@@ -1,9 +1,9 @@
 FROM python:3.9-slim
 
-# Arbeitsverzeichnis setzen
+# Arbeitsverzeichnis
 WORKDIR /app
 
-# Updates und Abhängigkeiten für Chrome/Playwright installieren
+# System-Abhängigkeiten für Playwright installieren
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -13,17 +13,14 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Playwright Browser installieren (mit System-Abhängigkeiten)
+# Playwright Browser UND System-Abhängigkeiten (sehr wichtig für Docker!)
 RUN playwright install --with-deps chromium
 
 # Code kopieren
 COPY app.py .
 
-# Port freigeben (Standard für Streamlit)
+# Port auf 3000 setzen (passend zu Shipper)
 EXPOSE 3000
 
-# Gesundheitscheck (Optional, gut für Cloud)
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-
-# Startbefehl
+# Startbefehl mit expliziter Port-Zuweisung
 ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=3000", "--server.address=0.0.0.0"]

@@ -20,10 +20,10 @@ RUN playwright install --with-deps chromium
 COPY app.py .
 
 # Port freigeben (Standard für Streamlit)
-EXPOSE 8501
+EXPOSE 3000
 
 # Gesundheitscheck (Optional, gut für Cloud)
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
 # Startbefehl
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=3000", "--server.address=0.0.0.0"]

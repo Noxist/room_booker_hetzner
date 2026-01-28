@@ -5,16 +5,16 @@ import datetime
 import sys
 from playwright.sync_api import sync_playwright
 
-# --- SYSTEM LOGGING (Visible in Cloud Console) ---
+# --- SYSTEM LOGGING (Sichtbar in der Shipper Konsole) ---
 def system_log(msg):
-    """Prints logs directly to the server console for debugging 502 errors."""
+    """Schreibt Logs direkt in die Server-Konsole."""
     ts = datetime.datetime.now().strftime("%H:%M:%S")
     print(f"[{ts}] {msg}")
     sys.stdout.flush()
 
 system_log("--- APP STARTUP INITIATED ---")
 
-# --- CONFIGURATION ---
+# --- KONFIGURATION ---
 try:
     st.set_page_config(
         page_title="Room Booker", 
@@ -25,10 +25,10 @@ try:
 except Exception as e:
     system_log(f"CRITICAL ERROR loading config: {e}")
 
-# --- HELPER FUNCTIONS ---
+# --- HELFER FUNKTIONEN ---
 def get_accounts():
     accs = []
-    system_log("Loading accounts from Environment Variables...")
+    system_log("Lade Accounts aus Environment Variables...")
     for i in range(1, 6):
         key_email = f"MY_EMAIL_{i}"
         key_pw = f"MY_PASSWORD_{i}"
@@ -38,10 +38,10 @@ def get_accounts():
         
         if email and pw:
             accs.append({"email": email, "password": pw})
-            system_log(f"Account {i} found.")
+            system_log(f"Account {i} gefunden.")
     
     if not accs:
-        system_log("WARNING: No accounts found in Env Vars.")
+        system_log("WARNUNG: Keine Accounts in Env Vars gefunden.")
     return accs
 
 APP_PASSWORD = os.environ.get("WEB_ACCESS_PASSWORD", "").strip()
@@ -59,34 +59,30 @@ if APP_PASSWORD:
                 st.session_state.authenticated = True
                 st.rerun()
             else:
-                st.error("Incorrect password.")
+                st.error("Falsches Passwort.")
         st.stop()
 
-# --- BACKEND LOGIC ---
+# --- BACKEND LOGIK ---
 class RoomScraper:
-    def __init__(self):
-        self.browser = None
-        self.playwright = None
-
     def log(self, msg, ui_container=None):
-        system_log(msg) # Always log to console
+        system_log(msg) # Immer in die Konsole
         if ui_container:
             ui_container.text(f">> {msg}")
 
     def scan_rooms(self, account):
-        system_log("Starting Room Scan...")
+        system_log("Starte Room Scan...")
         rooms = {}
         with sync_playwright() as p:
             try:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page()
                 
-                system_log(f"Navigating to Uni page with {account['email'][:3]}***")
+                system_log(f"Navigiere zur Uni Seite mit {account['email'][:3]}***")
                 page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=30000)
                 
-                # Login Logic
+                # Login Logik
                 if "login" in page.url or "wayf" in page.url:
-                    system_log("Login required...")
+                    system_log("Login erforderlich...")
                     if page.is_visible("input[name='j_username']"):
                         page.fill("input[name='j_username']", account['email'])
                     elif page.is_visible("#username"):
@@ -103,21 +99,20 @@ class RoomScraper:
                             page.click("button[name='_eventId_proceed']", force=True)
                     
                     page.wait_for_url("**/event/**", timeout=30000)
-                    system_log("Login successful.")
+                    system_log("Login erfolgreich.")
 
-                # Location Selection
+                # Standortwahl
                 if "/select" in page.url:
-                    system_log("Selecting Location...")
+                    system_log("Wähle Standort...")
                     try:
                         page.click("main a[href*='/set/1']")
                         page.wait_for_url("**/event/**")
                     except: pass
 
-                # Extract
-                system_log("Extracting room data...")
+                # Extraktion
+                system_log("Extrahiere Raumdaten...")
                 page.wait_for_load_state("domcontentloaded")
                 
-                # JS Fetch
                 rooms = page.evaluate("""() => {
                     const s = document.querySelector('#event_room');
                     if (!s) return {};
@@ -127,18 +122,18 @@ class RoomScraper:
                     }
                     return r;
                 }""")
-                system_log(f"Scan finished. Found {len(rooms)} rooms.")
+                system_log(f"Scan fertig. {len(rooms)} Räume gefunden.")
                 browser.close()
                 return rooms
                 
             except Exception as e:
-                system_log(f"SCAN ERROR: {e}")
+                system_log(f"SCAN FEHLER: {e}")
                 return {}
 
     def execute_booking(self, date_str, start, end, target_rooms, accounts, is_sim, ui_log):
-        system_log(f"Starting booking task for {date_str}")
+        system_log(f"Starte Buchungstask für {date_str}")
         
-        # Calculate Tasks
+        # Zeitblöcke berechnen
         tasks = []
         fmt = "%H:%M"
         try:
@@ -150,7 +145,7 @@ class RoomScraper:
                 tasks.append({"start": t_curr.strftime(fmt), "end": t_next.strftime(fmt)})
                 t_curr = t_next
         except:
-            self.log("Error parsing time.", ui_log)
+            self.log("Fehler beim Zeitformat.", ui_log)
             return
 
         with sync_playwright() as p:
@@ -158,7 +153,7 @@ class RoomScraper:
             
             for i, task in enumerate(tasks):
                 acc = accounts[i % len(accounts)]
-                self.log(f"Block {i+1} ({task['start']}-{task['end']}) using {acc['email']}", ui_log)
+                self.log(f"Block {i+1} ({task['start']}-{task['end']}) mit {acc['email']}", ui_log)
                 
                 context = browser.new_context(locale="de-CH")
                 page = context.new_page()
@@ -166,9 +161,8 @@ class RoomScraper:
                 try:
                     page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=30000)
                     
-                    # Auth Check
+                    # Login Check
                     if "login" in page.url or "wayf" in page.url:
-                        # ... Simplified Login for brevity, same as scan ...
                         try:
                             page.wait_for_selector("input", timeout=5000)
                             if page.is_visible("input[name='j_username']"):
@@ -189,16 +183,21 @@ class RoomScraper:
                             
                             page.wait_for_url("**/event/**", timeout=20000)
                         except:
-                            self.log("Login failed.", ui_log)
+                            self.log("Login fehlgeschlagen.", ui_log)
                             continue
 
+                    # Standortwahl (Hier war der Syntaxfehler)
                     if "/select" in page.url:
-                         try: page.click("main a[href*='/set/1']"); page.wait_for_url("**/event/**"); except: pass
+                        try:
+                            page.click("main a[href*='/set/1']")
+                            page.wait_for_url("**/event/**")
+                        except:
+                            pass
 
-                    # Booking Loop
+                    # Buchungsschleife
                     booked = False
                     
-                    # Get map
+                    # Mapping laden
                     room_map = page.evaluate("""() => {
                         const s = document.querySelector('#event_room');
                         if (!s) return {};
@@ -210,17 +209,17 @@ class RoomScraper:
                     for room_name in target_rooms:
                         if room_name in room_map:
                             rid = room_map[room_name]
-                            self.log(f"Trying {room_name}...", ui_log)
+                            self.log(f"Versuche {room_name}...", ui_log)
                             
                             # Reset
                             page.goto("https://raumreservation.ub.unibe.ch/event/add")
                             
-                            # Fill
+                            # Ausfüllen
                             page.select_option("#event_room", value=rid)
                             page.fill("#event_startDate", f"{date_str} {task['start']}")
                             page.keyboard.press("Enter")
                             
-                            # Duration
+                            # Dauer
                             t1 = datetime.datetime.strptime(task['start'], fmt)
                             t2 = datetime.datetime.strptime(task['end'], fmt)
                             dur = int((t2 - t1).total_seconds() / 60)
@@ -241,50 +240,63 @@ class RoomScraper:
                                 try:
                                     page.wait_for_url("**/event**", timeout=5000)
                                     if "/add" not in page.url:
-                                        self.log(f"Success: {room_name}", ui_log)
+                                        self.log(f"Erfolg: {room_name}", ui_log)
                                         booked = True
                                         break
                                 except: pass
                         
                     if not booked:
-                        self.log("No room found.", ui_log)
+                        self.log("Kein Raum gefunden.", ui_log)
 
                 except Exception as e:
-                    self.log(f"Error: {e}", ui_log)
+                    self.log(f"Fehler: {e}", ui_log)
                 finally:
                     context.close()
             
             browser.close()
-        self.log("Done.", ui_log)
+        self.log("Fertig.", ui_log)
 
 # --- UI ---
 st.title("Room Booker Mobile")
 accounts = get_accounts()
 
 if not accounts:
-    st.error("Check Shipper Logs! No accounts found.")
-    with st.expander("Manual Login"):
+    st.error("Prüfe Shipper Logs! Keine Accounts gefunden.")
+    with st.expander("Manueller Login"):
         m_u = st.text_input("Email")
         m_p = st.text_input("Password", type="password")
         if m_u and m_p: accounts = [{"email":m_u, "password":m_p}]
 
-# Room Management
+# Raum Management
 if "room_cache" not in st.session_state:
     st.session_state.room_cache = []
 
 if st.button("Update Room List"):
     if accounts:
-        with st.spinner("Scanning..."):
+        with st.spinner("Scanne..."):
             s = RoomScraper()
             res = s.scan_rooms(accounts[0])
             if res:
                 st.session_state.room_cache = list(res.keys())
-                st.success(f"Found {len(res)} rooms")
+                st.success(f"{len(res)} Räume gefunden")
             else:
-                st.error("Scan failed. See Logs.")
+                st.error("Scan fehlgeschlagen. Siehe Logs.")
 
-rooms_list = st.session_state.room_cache if st.session_state.room_cache else ["Scan first!"]
+rooms_list = st.session_state.room_cache if st.session_state.room_cache else ["Bitte erst scannen!"]
 
 with st.form("book"):
-    d = st.date_input("Date")
-    c1,c
+    d = st.date_input("Datum")
+    c1,c2 = st.columns(2)
+    with c1: s = st.text_input("Start", "08:00")
+    with c2: e = st.text_input("Ende", "18:00")
+    
+    tgt = st.multiselect("Räume", rooms_list)
+    sim = st.checkbox("Simulation", True)
+    
+    if st.form_submit_button("Buchen", type="primary"):
+        if accounts and tgt:
+            log_box = st.empty()
+            scraper = RoomScraper()
+            scraper.execute_booking(d.strftime("%d.%m.%Y"), s, e, tgt, accounts, sim, log_box)
+        else:
+            st.error("Fehlende Accounts oder Räume.")

@@ -1,33 +1,34 @@
 FROM python:3.9-slim
 
-# Prevent Python from buffering stdout/stderr (Crucial for Logs!)
+# Environment variables to keep the build clean
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-# Install system dependencies (cached)
+# 1. Install System Dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python libs
+# 2. Install Python Libraries
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Install Playwright & Browsers (This is the heavy part)
-# We do this in the build stage so it doesn't slow down startup
+# 3. Install Playwright Browsers (The heavy step)
+# We use a separate layer to cache this effectively
 RUN playwright install --with-deps chromium
 
+# 4. Copy Application Code
 COPY app.py .
 
-# Healthcheck to prevent 502s while loading
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl --fail http://localhost:3000/_stcore/health || exit 1
-
+# 5. Setup Port and Healthcheck
 EXPOSE 3000
 
-# Start Streamlit on Port 3000
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=3000", "--server.address=0.0.0.0", "--server.headless=true"]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD curl --fail http://localhost:3000/_stcore/health || exit 1
+
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=3000", "--server.address=0.0.0.0"]

@@ -4,133 +4,150 @@ import time
 import datetime
 from playwright.sync_api import sync_playwright
 
-# --- KONFIGURATION ---
-st.set_page_config(page_title="Room Booker Cloud", page_icon="⚡")
+# --- CONFIGURATION ---
+st.set_page_config(
+    page_title="Room Booker", 
+    layout="centered", 
+    initial_sidebar_state="collapsed"
+)
 
-# --- HILFSFUNKTIONEN ---
-def get_accounts_debug():
-    """
-    Versucht Accounts zu laden und gibt Debug-Infos zurück,
-    damit du am Handy siehst, was los ist.
-    """
+# --- HELPER FUNCTIONS ---
+def get_accounts():
+    """Reads accounts from environment variables."""
     accs = []
     logs = []
     
-    # Wir suchen nach MY_EMAIL_1 bis MY_EMAIL_5
     for i in range(1, 6):
         key_email = f"MY_EMAIL_{i}"
         key_pw = f"MY_PASSWORD_{i}"
         
-        # .strip() entfernt versehentliche Leerzeichen vom Handy-Tippen
         email = os.environ.get(key_email, "").strip()
         pw = os.environ.get(key_pw, "").strip()
         
         if email and pw:
             accs.append({"email": email, "password": pw})
-            # Zeige nur die ersten 3 Zeichen der Mail zur Sicherheit
-            safe_mail = email[:3] + "***" if len(email) > 3 else "***"
-            logs.append(f"✅ {key_email} gefunden ({safe_mail})")
-        else:
-            # Nur loggen wenn einer der beiden Teile da ist, um Verwirrung zu vermeiden
-            if email or pw:
-                logs.append(f"⚠️ {key_email} unvollständig (PW fehlt?)")
-            # else: logs.append(f"Start: Suche nach {key_email}...")
+            logs.append(f"Account {i} loaded.")
+        elif email or pw:
+            logs.append(f"Account {i} incomplete.")
 
     return accs, logs
 
-# Passwortschutz für die Webseite selbst
+# Access protection
 APP_PASSWORD = os.environ.get("WEB_ACCESS_PASSWORD", "").strip()
 
-# --- UI START ---
-
-# 1. Web-Zugriffsschutz
+# --- AUTHENTICATION ---
 if APP_PASSWORD:
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
-        st.title("🔒 Login")
-        pwd = st.text_input("Web-Passwort", type="password")
-        if st.button("Entsperren"):
+        st.header("Login")
+        pwd = st.text_input("Password", type="password")
+        if st.button("Login"):
             if pwd == APP_PASSWORD:
                 st.session_state.authenticated = True
                 st.rerun()
             else:
-                st.error("Falsch.")
+                st.error("Incorrect password.")
         st.stop()
 
-# 2. Account Check
-accounts, debug_logs = get_accounts_debug()
+# --- BACKEND LOGIC ---
 
-st.title("⚡ Uni Bern Booker")
-
-# Debug Expander (Damit du siehst, was Shipper macht)
-with st.expander("🔍 System Status / Debug Logs", expanded=not accounts):
-    st.write("Suche nach Umgebungsvariablen:")
-    if not debug_logs:
-        st.warning("Keine Variablen wie 'MY_EMAIL_1' gefunden.")
-    for log in debug_logs:
-        st.text(log)
+class RoomScraper:
+    """Handles fetching the room list and booking."""
     
-    st.info("Hinweis: Wenn hier nichts steht, prüfen Sie im Shipper Dashboard unter 'Variables', ob 'MY_EMAIL_1' exakt so geschrieben ist.")
-
-# Fallback: Manuelle Eingabe, falls Env Vars streiken
-if not accounts:
-    st.error("⚠️ Keine Accounts geladen. Bitte manuell eingeben:")
-    man_email = st.text_input("Notfall-Email")
-    man_pw = st.text_input("Notfall-Passwort", type="password")
-    if man_email and man_pw:
-        accounts = [{"email": man_email, "password": man_pw}]
-        st.success("Manueller Account bereit!")
-
-# Wenn immer noch keine Accounts da sind -> Stopp
-if not accounts:
-    st.stop()
-
-st.success(f"{len(accounts)} Account(s) bereit zum Buchen!")
-
-# --- BUCHUNGSLOGIK ---
-
-class CloudBooker:
-    def __init__(self):
-        self.log_area = st.empty()
-        self.logs = []
-
     def log(self, msg):
-        ts = datetime.datetime.now().strftime("%H:%M:%S")
-        entry = f"[{ts}] {msg}"
-        self.logs.append(entry)
-        self.log_area.code("\n".join(self.logs))
-        print(entry)
+        # Writes to the UI container provided in 'run'
+        if self.log_container:
+            ts = datetime.datetime.now().strftime("%H:%M:%S")
+            self.logs.append(f"[{ts}] {msg}")
+            self.log_container.code("\n".join(self.logs))
+            print(f"[{ts}] {msg}")
 
-    def run(self, date_str, start_str, end_str, rooms, account_list, is_sim):
-        self.log(f"🚀 Starte Prozess für {date_str} ({start_str}-{end_str})")
-        
-        # Zeitblöcke berechnen
-        try:
-            tasks = []
-            fmt = "%H:%M"
-            t_curr = datetime.datetime.strptime(start_str, fmt)
-            t_end = datetime.datetime.strptime(end_str, fmt)
+    def scan_rooms(self, account):
+        """Logs in and fetches the current room list."""
+        rooms = {}
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(locale="de-CH")
+            page = context.new_page()
             
+            try:
+                page.goto("https://raumreservation.ub.unibe.ch/event/add")
+                
+                # Login Logic
+                if "login" in page.url or "wayf" in page.url:
+                    if page.is_visible("input[name='j_username']"):
+                        page.fill("input[name='j_username']", account['email'])
+                    elif page.is_visible("#username"):
+                        page.fill("#username", account['email'])
+                    
+                    if page.is_visible("input[type='password']"):
+                        page.fill("input[type='password']", account['password'])
+                        page.click("button[name='_eventId_proceed']", force=True)
+                    else:
+                        page.keyboard.press("Enter")
+                        time.sleep(1)
+                        if page.is_visible("input[type='password']"):
+                            page.fill("input[type='password']", account['password'])
+                            page.click("button[name='_eventId_proceed']", force=True)
+                    
+                    page.wait_for_url("**/event/**", timeout=20000)
+
+                # Select vonRoll if needed
+                if "/select" in page.url:
+                    try:
+                        page.click("main a[href*='/set/1']")
+                        page.wait_for_url("**/event/**")
+                    except: pass
+
+                # Extract Options
+                page.wait_for_load_state("domcontentloaded")
+                time.sleep(2)
+                
+                rooms = page.evaluate("""() => {
+                    const s = document.querySelector('#event_room');
+                    if (!s) return {};
+                    const r = {};
+                    for (let o of s.options) { 
+                        if(o.value && o.innerText) r[o.innerText.trim()] = o.value; 
+                    }
+                    return r;
+                }""")
+                
+            except Exception as e:
+                print(f"Scan error: {e}")
+            finally:
+                browser.close()
+        return rooms
+
+    def execute_booking(self, date_str, start, end, target_rooms, accounts, is_sim, log_ui):
+        self.log_container = log_ui
+        self.logs = []
+        
+        self.log(f"Starting process for {date_str}...")
+
+        # Calculate Time Blocks (Split > 4h)
+        tasks = []
+        fmt = "%H:%M"
+        try:
+            t_curr = datetime.datetime.strptime(start, fmt)
+            t_end = datetime.datetime.strptime(end, fmt)
             while t_curr < t_end:
                 t_next = t_curr + datetime.timedelta(hours=4)
                 if t_next > t_end: t_next = t_end
                 tasks.append({"start": t_curr.strftime(fmt), "end": t_next.strftime(fmt)})
                 t_curr = t_next
-        except Exception as e:
-            self.log(f"Fehler beim Zeitformat: {e}")
+        except Exception:
+            self.log("Invalid time format.")
             return
 
         with sync_playwright() as p:
-            # Headless = True für Server!
             browser = p.chromium.launch(headless=True)
             
             for i, task in enumerate(tasks):
-                # Round Robin Account Auswahl
-                acc = account_list[i % len(account_list)]
-                self.log(f"\n--- Block {i+1}: {task['start']} bis {task['end']} ---")
-                self.log(f"Nutze Account: {acc['email'][:4]}***")
+                acc = accounts[i % len(accounts)]
+                self.log(f"Processing Block {i+1}: {task['start']} - {task['end']}")
                 
                 context = browser.new_context(locale="de-CH")
                 page = context.new_page()
@@ -139,17 +156,14 @@ class CloudBooker:
                     # 1. Login
                     page.goto("https://raumreservation.ub.unibe.ch/event/add")
                     
-                    if "login" in page.url or "wayf" in page.url or "eduid" in page.url:
-                        self.log("Login nötig...")
-                        # Versuch Email
+                    if "login" in page.url or "wayf" in page.url:
                         try:
-                            page.wait_for_selector("input", timeout=3000)
+                            page.wait_for_selector("input", timeout=5000)
                             if page.is_visible("input[name='j_username']"):
                                 page.fill("input[name='j_username']", acc['email'])
                             elif page.is_visible("#username"):
                                 page.fill("#username", acc['email'])
                             
-                            # PW Check
                             if page.is_visible("input[type='password']"):
                                 page.fill("input[type='password']", acc['password'])
                                 page.click("button[name='_eventId_proceed']", force=True)
@@ -160,50 +174,47 @@ class CloudBooker:
                                     page.fill("input[type='password']", acc['password'])
                                     page.click("button[name='_eventId_proceed']", force=True)
                             
-                            page.wait_for_url("**/event/**", timeout=15000)
-                            self.log("Login OK.")
+                            page.wait_for_url("**/event/**", timeout=20000)
                         except:
-                            self.log("Login Timeout oder Fehler.")
-                            continue # Nächster Block
+                            self.log("Login failed or timed out.")
+                            continue
 
-                    # 2. Standort
+                    # 2. Location Selection
                     if "/select" in page.url:
                         try:
                             page.click("main a[href*='/set/1']")
                             page.wait_for_url("**/event/**")
                         except: pass
 
-                    # 3. Raum suchen
-                    # Wir laden die Liste via JS
+                    # 3. Room Search
                     time.sleep(1)
-                    js_rooms = page.evaluate("""() => {
+                    # Fetch current map to match IDs
+                    room_map = page.evaluate("""() => {
                         const s = document.querySelector('#event_room');
                         if (!s) return {};
                         const r = {};
                         for (let o of s.options) { if(o.value) r[o.innerText.trim()] = o.value; }
                         return r;
                     }""")
-                    
+
                     booked = False
-                    for room_name in rooms:
-                        if room_name in js_rooms:
-                            rid = js_rooms[room_name]
-                            self.log(f"Versuche '{room_name}'...")
+                    for room_name in target_rooms:
+                        if room_name in room_map:
+                            room_id = room_map[room_name]
+                            self.log(f"Trying: {room_name}")
                             
-                            # Formular füllen
+                            # Refresh page to be clean
                             page.goto("https://raumreservation.ub.unibe.ch/event/add")
                             time.sleep(0.5)
                             
-                            # Raum setzen
-                            page.select_option("#event_room", value=rid)
+                            # Fill Form
+                            page.select_option("#event_room", value=room_id)
                             
-                            # Zeit
-                            full_start = f"{date_str} {task['start']}"
-                            page.fill("#event_startDate", full_start)
+                            page.fill("#event_startDate", f"{date_str} {task['start']}")
                             page.keyboard.press("Enter")
                             time.sleep(0.5)
                             
-                            # Dauer
+                            # Duration
                             t1 = datetime.datetime.strptime(task['start'], fmt)
                             t2 = datetime.datetime.strptime(task['end'], fmt)
                             dur = int((t2 - t1).total_seconds() / 60)
@@ -211,13 +222,13 @@ class CloudBooker:
                             page.evaluate(f"document.getElementById('event_duration').value = '{dur}'")
                             page.evaluate("document.getElementById('event_duration').dispatchEvent(new Event('change', {bubbles: true}))")
                             
-                            # Titel
-                            page.fill("#event_title", "Lernen")
+                            # Title
+                            page.fill("#event_title", "Study")
                             if page.is_visible('input[name="event[purpose]"][value="Other"]'):
                                 page.check('input[name="event[purpose]"][value="Other"]')
-                                
+                            
                             if is_sim:
-                                self.log("(Simulation) Wäre gebucht.")
+                                self.log("Simulation: Booking would be successful.")
                                 booked = True
                                 break
                             else:
@@ -225,43 +236,111 @@ class CloudBooker:
                                 try:
                                     page.wait_for_url("**/event**", timeout=5000)
                                     if "/add" not in page.url:
-                                        self.log(f"✅ ERFOLG: {room_name}")
+                                        self.log(f"Success: {room_name}")
                                         booked = True
                                         break
                                 except:
-                                    self.log(f"❌ {room_name} fehlgeschlagen.")
+                                    self.log(f"Failed: {room_name}")
+                        else:
+                            self.log(f"Room not found in list: {room_name}")
 
                     if not booked:
-                        self.log("⚠️ Kein Raum für diesen Block gefunden.")
+                        self.log("No suitable room found for this block.")
 
                 except Exception as e:
-                    self.log(f"Fehler im Prozess: {e}")
+                    self.log(f"Error: {e}")
                 finally:
                     context.close()
             
             browser.close()
-        self.log("🏁 Vorgang beendet.")
+        self.log("Process finished.")
 
+# --- UI LAYOUT ---
 
-# --- GUI INPUTS ---
-col1, col2 = st.columns(2)
-with col1:
-    d_input = st.date_input("Datum", datetime.datetime.now() + datetime.timedelta(days=1))
-with col2:
-    s_input = st.text_input("Start", "08:00")
-    e_input = st.text_input("Ende", "18:00")
+accounts, acc_logs = get_accounts()
 
-# Standard-Liste (Kannst du erweitern)
-room_list = [
-    "Bibliothek vonRoll: Gruppenraum 001", "Bibliothek vonRoll: Gruppenraum 002",
-    "Bibliothek vonRoll: Gruppenraum 003", "Bibliothek vonRoll: Gruppenraum 004",
-    "Bibliothek vonRoll: Gruppenraum 005", "Bibliothek vonRoll: Gruppenraum B01",
+# Header
+st.header("Uni Bern Room Booker")
+
+# Fallback / Status
+if not accounts:
+    st.error("No accounts found in environment variables.")
+    with st.expander("Manual Emergency Login"):
+        m_email = st.text_input("Email")
+        m_pw = st.text_input("Password", type="password")
+        if m_email and m_pw:
+            accounts = [{"email": m_email, "password": m_pw}]
+            st.success("Manual account ready.")
+else:
+    st.caption(f"System: {len(accounts)} active accounts connected.")
+
+# 1. ROOM LIST MANAGEMENT
+if "room_cache" not in st.session_state:
+    st.session_state.room_cache = []
+
+with st.expander("Room Management"):
+    if st.button("Update Room List (Scan)", type="secondary", use_container_width=True):
+        if not accounts:
+            st.error("Need at least one account to scan.")
+        else:
+            with st.spinner("Scanning rooms... please wait"):
+                scraper = RoomScraper()
+                # Use first account for scanning
+                rooms_dict = scraper.scan_rooms(accounts[0])
+                if rooms_dict:
+                    st.session_state.room_cache = list(rooms_dict.keys())
+                    st.success(f"Found {len(rooms_dict)} rooms.")
+                else:
+                    st.error("Scan failed. Try again.")
+
+# Default list if cache is empty
+room_options = st.session_state.room_cache if st.session_state.room_cache else [
+    "Bibliothek vonRoll: Gruppenraum 001",
+    "Bibliothek vonRoll: Gruppenraum 002",
+    "Bibliothek vonRoll: Gruppenraum 003",
+    "Bibliothek vonRoll: Gruppenraum 004",
     "Bibliothek vonRoll: Lounge"
 ]
-sel_rooms = st.multiselect("Räume", room_list, default=room_list[:2])
 
-chk_sim = st.checkbox("Simulation (Test)", value=True)
+# 2. BOOKING FORM
+with st.form("booking_form"):
+    st.subheader("Booking Details")
+    
+    # Date
+    d_input = st.date_input("Date", datetime.datetime.now() + datetime.timedelta(days=1))
+    
+    # Time (Columns)
+    c1, c2 = st.columns(2)
+    with c1:
+        s_input = st.text_input("Start Time", "08:00")
+    with c2:
+        e_input = st.text_input("End Time", "18:00")
+    
+    # Rooms
+    st.caption("Select preferred rooms (Priority: Top to Bottom)")
+    sel_rooms = st.multiselect("Rooms", room_options, default=room_options[:1])
+    
+    # Options
+    chk_sim = st.checkbox("Simulation Mode (Test only)", value=True)
+    
+    # Submit
+    submitted = st.form_submit_button("Start Booking", type="primary", use_container_width=True)
 
-if st.button("Starten", type="primary"):
-    bot = CloudBooker()
-    bot.run(d_input.strftime("%d.%m.%Y"), s_input, e_input, sel_rooms, accounts, chk_sim)
+# 3. EXECUTION
+if submitted:
+    if not accounts:
+        st.error("No accounts available.")
+    elif not sel_rooms:
+        st.error("Please select at least one room.")
+    else:
+        log_area = st.empty()
+        scraper = RoomScraper()
+        scraper.execute_booking(
+            d_input.strftime("%d.%m.%Y"), 
+            s_input, 
+            e_input, 
+            sel_rooms, 
+            accounts, 
+            chk_sim, 
+            log_area
+        )

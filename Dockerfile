@@ -1,26 +1,26 @@
 FROM python:3.9-slim
 
-# Arbeitsverzeichnis
+# Set working directory
 WORKDIR /app
 
-# System-Abhängigkeiten für Playwright installieren
+# Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     && rm -rf /var/lib/apt/lists/*
 
-# Python Bibliotheken installieren
+# Install Python libraries
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Playwright Browser UND System-Abhängigkeiten (sehr wichtig für Docker!)
+# Install Playwright browsers and dependencies
 RUN playwright install --with-deps chromium
 
-# Code kopieren
+# Copy application code
 COPY app.py .
 
-# Port auf 3000 setzen (passend zu Shipper)
+# Expose Port 3000
 EXPOSE 3000
 
-# Startbefehl mit expliziter Port-Zuweisung
+# Start Streamlit on Port 3000
 ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=3000", "--server.address=0.0.0.0"]

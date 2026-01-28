@@ -2,254 +2,266 @@ import streamlit as st
 import os
 import time
 import datetime
-import threading
 from playwright.sync_api import sync_playwright
 
 # --- KONFIGURATION ---
-# Versuche Login-Daten aus den Shipper Environment Variables zu laden
-ENV_EMAIL = os.environ.get("MY_EMAIL", "")
-ENV_PASSWORD = os.environ.get("MY_PASSWORD", "")
-APP_PASSWORD = os.environ.get("WEB_ACCESS_PASSWORD", "admin") # Schutz für die Webseite
+st.set_page_config(page_title="Room Booker Cloud", page_icon="⚡")
 
-st.set_page_config(page_title="Uni Bern Room Bot", page_icon="📚")
+# --- HILFSFUNKTIONEN ---
+def get_accounts_debug():
+    """
+    Versucht Accounts zu laden und gibt Debug-Infos zurück,
+    damit du am Handy siehst, was los ist.
+    """
+    accs = []
+    logs = []
+    
+    # Wir suchen nach MY_EMAIL_1 bis MY_EMAIL_5
+    for i in range(1, 6):
+        key_email = f"MY_EMAIL_{i}"
+        key_pw = f"MY_PASSWORD_{i}"
+        
+        # .strip() entfernt versehentliche Leerzeichen vom Handy-Tippen
+        email = os.environ.get(key_email, "").strip()
+        pw = os.environ.get(key_pw, "").strip()
+        
+        if email and pw:
+            accs.append({"email": email, "password": pw})
+            # Zeige nur die ersten 3 Zeichen der Mail zur Sicherheit
+            safe_mail = email[:3] + "***" if len(email) > 3 else "***"
+            logs.append(f"✅ {key_email} gefunden ({safe_mail})")
+        else:
+            # Nur loggen wenn einer der beiden Teile da ist, um Verwirrung zu vermeiden
+            if email or pw:
+                logs.append(f"⚠️ {key_email} unvollständig (PW fehlt?)")
+            # else: logs.append(f"Start: Suche nach {key_email}...")
 
-# --- SICHERHEITS-CHECK ---
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
+    return accs, logs
 
-def check_password():
-    if st.session_state.password_input == APP_PASSWORD:
-        st.session_state.authenticated = True
-    else:
-        st.error("Falsches Passwort")
+# Passwortschutz für die Webseite selbst
+APP_PASSWORD = os.environ.get("WEB_ACCESS_PASSWORD", "").strip()
 
-if not st.session_state.authenticated:
-    st.title("🔒 Login")
-    st.text_input("Zugriffspasswort", type="password", key="password_input", on_change=check_password)
-    st.stop() # Stoppt hier, wenn nicht eingeloggt
+# --- UI START ---
 
-# --- LOGIK (Headless angepasst) ---
+# 1. Web-Zugriffsschutz
+if APP_PASSWORD:
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if not st.session_state.authenticated:
+        st.title("🔒 Login")
+        pwd = st.text_input("Web-Passwort", type="password")
+        if st.button("Entsperren"):
+            if pwd == APP_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Falsch.")
+        st.stop()
+
+# 2. Account Check
+accounts, debug_logs = get_accounts_debug()
+
+st.title("⚡ Uni Bern Booker")
+
+# Debug Expander (Damit du siehst, was Shipper macht)
+with st.expander("🔍 System Status / Debug Logs", expanded=not accounts):
+    st.write("Suche nach Umgebungsvariablen:")
+    if not debug_logs:
+        st.warning("Keine Variablen wie 'MY_EMAIL_1' gefunden.")
+    for log in debug_logs:
+        st.text(log)
+    
+    st.info("Hinweis: Wenn hier nichts steht, prüfen Sie im Shipper Dashboard unter 'Variables', ob 'MY_EMAIL_1' exakt so geschrieben ist.")
+
+# Fallback: Manuelle Eingabe, falls Env Vars streiken
+if not accounts:
+    st.error("⚠️ Keine Accounts geladen. Bitte manuell eingeben:")
+    man_email = st.text_input("Notfall-Email")
+    man_pw = st.text_input("Notfall-Passwort", type="password")
+    if man_email and man_pw:
+        accounts = [{"email": man_email, "password": man_pw}]
+        st.success("Manueller Account bereit!")
+
+# Wenn immer noch keine Accounts da sind -> Stopp
+if not accounts:
+    st.stop()
+
+st.success(f"{len(accounts)} Account(s) bereit zum Buchen!")
+
+# --- BUCHUNGSLOGIK ---
 
 class CloudBooker:
     def __init__(self):
-        self.log_placeholder = st.empty()
+        self.log_area = st.empty()
         self.logs = []
 
     def log(self, msg):
-        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-        self.logs.append(f"[{timestamp}] {msg}")
-        # Update UI Log live
-        self.log_placeholder.code("\n".join(self.logs))
-        print(f"[{timestamp}] {msg}")
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        entry = f"[{ts}] {msg}"
+        self.logs.append(entry)
+        self.log_area.code("\n".join(self.logs))
+        print(entry)
 
-    def run_process(self, date_str, start_time, end_time, room_preference, email, password, simulation):
-        self.log("🚀 Starte Prozess im Container...")
+    def run(self, date_str, start_str, end_str, rooms, account_list, is_sim):
+        self.log(f"🚀 Starte Prozess für {date_str} ({start_str}-{end_str})")
         
-        with sync_playwright() as p:
-            # WICHTIG: In Docker immer headless=True
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                locale="de-CH"
-            )
-            page = context.new_page()
-
-            try:
-                # 1. Login & Navigation
-                self.log("Navigiere zur Uni-Seite...")
-                page.goto("https://raumreservation.ub.unibe.ch/event/add")
-                
-                # Auto-Login Logik (Kompakt)
-                if "login" in page.url or "wayf" in page.url or "eduid" in page.url:
-                    self.log("Login Maske erkannt. Logge ein...")
-                    try:
-                        # Warte auf Inputs
-                        page.wait_for_selector("input", timeout=5000)
-                        
-                        # Email
-                        if page.is_visible("input[name='j_username']"):
-                            page.fill("input[name='j_username']", email)
-                            time.sleep(0.5)
-                        elif page.is_visible("#username"):
-                            page.fill("#username", email)
-
-                        # Passwort Check (Switch Edu ID ist oft 2-Step)
-                        if page.is_visible("input[type='password']"):
-                            page.fill("input[type='password']", password)
-                            page.click("button[name='_eventId_proceed']", force=True)
-                        else:
-                            # Nur Email Feld da -> Enter und warten auf Passwort Feld
-                            page.keyboard.press("Enter")
-                            time.sleep(2)
-                            if page.is_visible("input[type='password']"):
-                                page.fill("input[type='password']", password)
-                                page.click("button[name='_eventId_proceed']", force=True)
-                        
-                        self.log("Login gesendet. Warte auf Redirect...")
-                        page.wait_for_url("**/event/add**", timeout=15000)
-                        self.log("Login erfolgreich!")
-                    except Exception as e:
-                        self.log(f"Login Problem: {e}")
-                        return
-
-                # 2. Standortwahl (Falls nötig)
-                if "/select" in page.url:
-                    self.log("Wähle Standort vonRoll...")
-                    try:
-                        page.click("main a[href*='/set/1']") # vonRoll ID
-                        page.goto("https://raumreservation.ub.unibe.ch/event/add")
-                    except:
-                        pass
-
-                # 3. Räume Scannen (Live Scan statt JSON Datei)
-                self.log("Scanne verfügbare Räume (Live)...")
-                page.wait_for_load_state("domcontentloaded")
-                time.sleep(1)
-                
-                # JS Injection zum Auslesen der Räume
-                room_map = page.evaluate("""() => {
-                    const sel = document.querySelector('#event_room');
-                    if (!sel) return null;
-                    const res = {};
-                    for (let i = 0; i < sel.options.length; i++) {
-                        const opt = sel.options[i];
-                        if (opt.value && opt.value.trim() !== "") {
-                            res[opt.innerText.trim()] = opt.value;
-                        }
-                    }
-                    return res;
-                }""")
-
-                if not room_map:
-                    self.log("Fehler: Konnte Raumliste nicht laden.")
-                    return
-
-                # 4. Buchungsschleife
-                target_room_id = None
-                target_room_name = None
-
-                # Wir suchen nach dem bevorzugten Raum
-                for r_name in room_preference:
-                    if r_name in room_map:
-                        target_room_id = room_map[r_name]
-                        target_room_name = r_name
-                        self.log(f"Versuche Favorit: {target_room_name}")
-                        
-                        # Versuch zu buchen
-                        if self._try_book_room(page, target_room_id, date_str, start_time, end_time, simulation):
-                            self.log(f"✅ ERFOLG! {target_room_name} gebucht.")
-                            return # Fertig
-                        else:
-                            self.log(f"❌ {target_room_name} nicht verfügbar. Nächster...")
-                    
-                self.log("Keine der gewünschten Räume konnte gebucht werden.")
-
-            except Exception as e:
-                self.log(f"Kritischer Fehler: {e}")
-                # Screenshot für Debugging im Browser anzeigen
-                try:
-                    scr = page.screenshot()
-                    st.image(scr, caption="Fehler Screenshot")
-                except: pass
-            finally:
-                browser.close()
-
-    def _try_book_room(self, page, room_id, date, start, end, simulation):
+        # Zeitblöcke berechnen
         try:
-            # Refresh Formular
-            page.goto("https://raumreservation.ub.unibe.ch/event/add")
-            time.sleep(1)
-
-            # Raum setzen
-            page.select_option("#event_room", value=room_id)
-            
-            # Zeit
-            page.fill("#event_startDate", f"{date} {start}")
-            page.keyboard.press("Enter")
-            time.sleep(1)
-
-            # Dauer berechnen
+            tasks = []
             fmt = "%H:%M"
-            t1 = datetime.datetime.strptime(start, fmt)
-            t2 = datetime.datetime.strptime(end, fmt)
-            dur = int((t2 - t1).total_seconds() / 60)
-
-            # Dauer setzen
-            page.evaluate(f"document.getElementById('event_duration').value = '{dur}'")
-            page.evaluate("document.getElementById('event_duration').dispatchEvent(new Event('change', {bubbles: true}))")
+            t_curr = datetime.datetime.strptime(start_str, fmt)
+            t_end = datetime.datetime.strptime(end_str, fmt)
             
-            # Titel
-            page.fill("#event_title", "Lernen")
-            if page.is_visible('input[name="event[purpose]"][value="Other"]'):
-                page.check('input[name="event[purpose]"][value="Other"]')
-
-            if simulation:
-                self.log("(Simulation) Button wäre jetzt gedrückt worden.")
-                return True
-            else:
-                page.click("#event_submit")
-                # Erfolg prüfen (Redirect oder Success Message)
-                try:
-                    page.wait_for_url("**/event**", timeout=5000)
-                    if "/add" not in page.url:
-                        return True
-                except: pass
-                
-            return False
+            while t_curr < t_end:
+                t_next = t_curr + datetime.timedelta(hours=4)
+                if t_next > t_end: t_next = t_end
+                tasks.append({"start": t_curr.strftime(fmt), "end": t_next.strftime(fmt)})
+                t_curr = t_next
         except Exception as e:
-            self.log(f"Buchungsversuch Fehler: {e}")
-            return False
+            self.log(f"Fehler beim Zeitformat: {e}")
+            return
 
-# --- UI AUFBAU ---
+        with sync_playwright() as p:
+            # Headless = True für Server!
+            browser = p.chromium.launch(headless=True)
+            
+            for i, task in enumerate(tasks):
+                # Round Robin Account Auswahl
+                acc = account_list[i % len(account_list)]
+                self.log(f"\n--- Block {i+1}: {task['start']} bis {task['end']} ---")
+                self.log(f"Nutze Account: {acc['email'][:4]}***")
+                
+                context = browser.new_context(locale="de-CH")
+                page = context.new_page()
 
-st.title("📚 Uni Bern Room Booker (Cloud)")
+                try:
+                    # 1. Login
+                    page.goto("https://raumreservation.ub.unibe.ch/event/add")
+                    
+                    if "login" in page.url or "wayf" in page.url or "eduid" in page.url:
+                        self.log("Login nötig...")
+                        # Versuch Email
+                        try:
+                            page.wait_for_selector("input", timeout=3000)
+                            if page.is_visible("input[name='j_username']"):
+                                page.fill("input[name='j_username']", acc['email'])
+                            elif page.is_visible("#username"):
+                                page.fill("#username", acc['email'])
+                            
+                            # PW Check
+                            if page.is_visible("input[type='password']"):
+                                page.fill("input[type='password']", acc['password'])
+                                page.click("button[name='_eventId_proceed']", force=True)
+                            else:
+                                page.keyboard.press("Enter")
+                                time.sleep(1)
+                                if page.is_visible("input[type='password']"):
+                                    page.fill("input[type='password']", acc['password'])
+                                    page.click("button[name='_eventId_proceed']", force=True)
+                            
+                            page.wait_for_url("**/event/**", timeout=15000)
+                            self.log("Login OK.")
+                        except:
+                            self.log("Login Timeout oder Fehler.")
+                            continue # Nächster Block
 
-# Sidebar für Einstellungen
-with st.sidebar:
-    st.header("Einstellungen")
-    sim_mode = st.checkbox("Simulations-Modus", value=True)
-    
-    st.markdown("---")
-    st.markdown("**Account Status:**")
-    if ENV_EMAIL and ENV_PASSWORD:
-        st.success("✅ Credentials aus Env geladen")
-        active_email = ENV_EMAIL
-        active_pw = ENV_PASSWORD
-    else:
-        st.warning("⚠️ Keine Env Vars gefunden")
-        active_email = st.text_input("Email")
-        active_pw = st.text_input("Passwort", type="password")
+                    # 2. Standort
+                    if "/select" in page.url:
+                        try:
+                            page.click("main a[href*='/set/1']")
+                            page.wait_for_url("**/event/**")
+                        except: pass
 
-# Hauptbereich
+                    # 3. Raum suchen
+                    # Wir laden die Liste via JS
+                    time.sleep(1)
+                    js_rooms = page.evaluate("""() => {
+                        const s = document.querySelector('#event_room');
+                        if (!s) return {};
+                        const r = {};
+                        for (let o of s.options) { if(o.value) r[o.innerText.trim()] = o.value; }
+                        return r;
+                    }""")
+                    
+                    booked = False
+                    for room_name in rooms:
+                        if room_name in js_rooms:
+                            rid = js_rooms[room_name]
+                            self.log(f"Versuche '{room_name}'...")
+                            
+                            # Formular füllen
+                            page.goto("https://raumreservation.ub.unibe.ch/event/add")
+                            time.sleep(0.5)
+                            
+                            # Raum setzen
+                            page.select_option("#event_room", value=rid)
+                            
+                            # Zeit
+                            full_start = f"{date_str} {task['start']}"
+                            page.fill("#event_startDate", full_start)
+                            page.keyboard.press("Enter")
+                            time.sleep(0.5)
+                            
+                            # Dauer
+                            t1 = datetime.datetime.strptime(task['start'], fmt)
+                            t2 = datetime.datetime.strptime(task['end'], fmt)
+                            dur = int((t2 - t1).total_seconds() / 60)
+                            
+                            page.evaluate(f"document.getElementById('event_duration').value = '{dur}'")
+                            page.evaluate("document.getElementById('event_duration').dispatchEvent(new Event('change', {bubbles: true}))")
+                            
+                            # Titel
+                            page.fill("#event_title", "Lernen")
+                            if page.is_visible('input[name="event[purpose]"][value="Other"]'):
+                                page.check('input[name="event[purpose]"][value="Other"]')
+                                
+                            if is_sim:
+                                self.log("(Simulation) Wäre gebucht.")
+                                booked = True
+                                break
+                            else:
+                                page.click("#event_submit")
+                                try:
+                                    page.wait_for_url("**/event**", timeout=5000)
+                                    if "/add" not in page.url:
+                                        self.log(f"✅ ERFOLG: {room_name}")
+                                        booked = True
+                                        break
+                                except:
+                                    self.log(f"❌ {room_name} fehlgeschlagen.")
+
+                    if not booked:
+                        self.log("⚠️ Kein Raum für diesen Block gefunden.")
+
+                except Exception as e:
+                    self.log(f"Fehler im Prozess: {e}")
+                finally:
+                    context.close()
+            
+            browser.close()
+        self.log("🏁 Vorgang beendet.")
+
+
+# --- GUI INPUTS ---
 col1, col2 = st.columns(2)
 with col1:
-    date_input = st.date_input("Datum", datetime.datetime.now() + datetime.timedelta(days=1))
-    # Konvertiere zu DD.MM.YYYY string
-    date_str = date_input.strftime("%d.%m.%Y")
-
+    d_input = st.date_input("Datum", datetime.datetime.now() + datetime.timedelta(days=1))
 with col2:
-    start_t = st.text_input("Startzeit", "08:00")
-    end_t = st.text_input("Endzeit", "12:00")
+    s_input = st.text_input("Start", "08:00")
+    e_input = st.text_input("Ende", "18:00")
 
-# Raumauswahl (Hardcoded Liste oder dynamisch ist schwer ohne vorherigen Scan, wir nehmen Standard-Liste)
-# Du kannst diese Liste erweitern!
-known_rooms = [
-    "Bibliothek vonRoll: Gruppenraum 001",
-    "Bibliothek vonRoll: Gruppenraum 002",
-    "Bibliothek vonRoll: Gruppenraum 003",
-    "Bibliothek vonRoll: Gruppenraum 004",
-    "Bibliothek vonRoll: Gruppenraum 005",
-    "Bibliothek vonRoll: Gruppenraum B01",
-    "Bibliothek vonRoll: Gruppenraum B02",
+# Standard-Liste (Kannst du erweitern)
+room_list = [
+    "Bibliothek vonRoll: Gruppenraum 001", "Bibliothek vonRoll: Gruppenraum 002",
+    "Bibliothek vonRoll: Gruppenraum 003", "Bibliothek vonRoll: Gruppenraum 004",
+    "Bibliothek vonRoll: Gruppenraum 005", "Bibliothek vonRoll: Gruppenraum B01",
     "Bibliothek vonRoll: Lounge"
 ]
+sel_rooms = st.multiselect("Räume", room_list, default=room_list[:2])
 
-selected_rooms = st.multiselect("Räume (Priorität von oben nach unten)", known_rooms, default=[known_rooms[0]])
+chk_sim = st.checkbox("Simulation (Test)", value=True)
 
-if st.button("Start Buchung", type="primary"):
-    if not active_email or not active_pw:
-        st.error("Keine Login-Daten vorhanden!")
-    else:
-        bot = CloudBooker()
-        # Threading damit UI nicht einfriert
-        bot.run_process(date_str, start_t, end_t, selected_rooms, active_email, active_pw, sim_mode)
+if st.button("Starten", type="primary"):
+    bot = CloudBooker()
+    bot.run(d_input.strftime("%d.%m.%Y"), s_input, e_input, sel_rooms, accounts, chk_sim)

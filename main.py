@@ -41,6 +41,7 @@ SETTINGS_FILE = APP_DIR / "settings.json"
 ROOMS_FILE = APP_DIR / "rooms.json"
 PLAYWRIGHT_BROWSERS_PATH = APP_DIR / "playwright"
 INSTALL_LOCK_FILE = APP_DIR / "playwright_install.lock"
+INSTALL_LOCK_TTL_SECONDS = 60 * 60
 
 
 def get_install_dir() -> Path:
@@ -404,7 +405,14 @@ class PlaywrightInstaller:
         if self._install_lock.locked():
             return False
         if INSTALL_LOCK_FILE.exists():
-            return False
+            try:
+                age = time.time() - INSTALL_LOCK_FILE.stat().st_mtime
+                if age > INSTALL_LOCK_TTL_SECONDS:
+                    INSTALL_LOCK_FILE.unlink()
+                else:
+                    return False
+            except Exception:
+                return False
         try:
             INSTALL_LOCK_FILE.write_text(str(os.getpid()), encoding="utf-8")
         except Exception:
@@ -421,10 +429,9 @@ class PlaywrightInstaller:
         except Exception:
             pass
 
-    def install(self) -> None:
+    def install(self) -> bool:
         if not self._acquire_install_lock():
-            self.logger.log("Playwright Installation läuft bereits. Bitte warten...")
-            return
+            return False
         PLAYWRIGHT_BROWSERS_PATH.mkdir(parents=True, exist_ok=True)
         env = os.environ.copy()
         env["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
@@ -440,11 +447,17 @@ class PlaywrightInstaller:
             for line in process.stdout:
                 self.logger.log(line.strip())
         process.wait()
-        if process.returncode == 0:
+        success = process.returncode == 0
+        if success:
             self.logger.log("Playwright Installation abgeschlossen.")
         else:
             self.logger.log("Playwright Installation fehlgeschlagen.")
         self._release_install_lock()
+        return success
+
+    def wait_for_existing_install(self) -> None:
+        while INSTALL_LOCK_FILE.exists():
+            time.sleep(1)
 
 
 class RoomBookerApp(ctk.CTk):
@@ -808,16 +821,39 @@ class RoomBookerApp(ctk.CTk):
         progress.pack(pady=10)
         progress.start()
 
-        def run_install():
-            installer.install()
+        def finish_popup():
             progress.stop()
             popup.destroy()
             self._install_in_progress = False
 
+        def run_install():
+            if installer.install():
+                self.after(0, finish_popup)
+                return
+            self.logger.log("Playwright Installation läuft bereits. Bitte warten...")
+            installer.wait_for_existing_install()
+            if installer.is_installed():
+                self.logger.log("Playwright Installation abgeschlossen.")
+            self.after(0, finish_popup)
+
         threading.Thread(target=run_install, daemon=True).start()
+
+
+def run_install_only() -> int:
+    logger = Logger(queue.Queue(), LOG_FILE)
+    installer = PlaywrightInstaller(logger)
+    if installer.is_installed():
+        logger.log("Playwright ist bereits installiert.")
+        return 0
+    if not installer.install():
+        logger.log("Playwright Installation läuft bereits. Bitte warten...")
+        installer.wait_for_existing_install()
+    return 0
 
 
 if __name__ == "__main__":
     os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(PLAYWRIGHT_BROWSERS_PATH))
+    if "--install-browsers" in sys.argv:
+        raise SystemExit(run_install_only())
     app = RoomBookerApp()
     app.mainloop()

@@ -40,6 +40,7 @@ APP_DIR.mkdir(parents=True, exist_ok=True)
 SETTINGS_FILE = APP_DIR / "settings.json"
 ROOMS_FILE = APP_DIR / "rooms.json"
 PLAYWRIGHT_BROWSERS_PATH = APP_DIR / "playwright"
+INSTALL_LOCK_FILE = APP_DIR / "playwright_install.lock"
 
 
 def get_install_dir() -> Path:
@@ -392,13 +393,38 @@ class BookingWorker:
 class PlaywrightInstaller:
     def __init__(self, logger: Logger):
         self.logger = logger
+        self._install_lock = threading.Lock()
 
     def is_installed(self) -> bool:
         if not PLAYWRIGHT_BROWSERS_PATH.exists():
             return False
         return any(path.name.startswith("chromium") for path in PLAYWRIGHT_BROWSERS_PATH.iterdir() if path.is_dir())
 
+    def _acquire_install_lock(self) -> bool:
+        if self._install_lock.locked():
+            return False
+        if INSTALL_LOCK_FILE.exists():
+            return False
+        try:
+            INSTALL_LOCK_FILE.write_text(str(os.getpid()), encoding="utf-8")
+        except Exception:
+            return False
+        self._install_lock.acquire()
+        return True
+
+    def _release_install_lock(self) -> None:
+        if self._install_lock.locked():
+            self._install_lock.release()
+        try:
+            if INSTALL_LOCK_FILE.exists():
+                INSTALL_LOCK_FILE.unlink()
+        except Exception:
+            pass
+
     def install(self) -> None:
+        if not self._acquire_install_lock():
+            self.logger.log("Playwright Installation läuft bereits. Bitte warten...")
+            return
         PLAYWRIGHT_BROWSERS_PATH.mkdir(parents=True, exist_ok=True)
         env = os.environ.copy()
         env["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
@@ -418,6 +444,7 @@ class PlaywrightInstaller:
             self.logger.log("Playwright Installation abgeschlossen.")
         else:
             self.logger.log("Playwright Installation fehlgeschlagen.")
+        self._release_install_lock()
 
 
 class RoomBookerApp(ctk.CTk):
@@ -444,6 +471,7 @@ class RoomBookerApp(ctk.CTk):
         self._show_frame("dashboard")
 
         self._start_log_pump()
+        self._install_in_progress = False
         self._ensure_playwright_ready()
 
     def _build_sidebar(self) -> None:
@@ -763,6 +791,9 @@ class RoomBookerApp(ctk.CTk):
         installer = PlaywrightInstaller(self.logger)
         if installer.is_installed():
             return
+        if self._install_in_progress:
+            return
+        self._install_in_progress = True
 
         popup = ctk.CTkToplevel(self)
         popup.title("Playwright Setup")
@@ -781,6 +812,7 @@ class RoomBookerApp(ctk.CTk):
             installer.install()
             progress.stop()
             popup.destroy()
+            self._install_in_progress = False
 
         threading.Thread(target=run_install, daemon=True).start()
 

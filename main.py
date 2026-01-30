@@ -15,7 +15,7 @@ import customtkinter as ctk
 from playwright.sync_api import sync_playwright
 
 APP_NAME = "Room Booker Ultimate"
-VERSION = "2.7"
+VERSION = "2.8"
 ROOM_BASE_URL = "https://raumreservation.ub.unibe.ch"
 EVENT_ADD_URL = f"{ROOM_BASE_URL}/event/add"
 VONROLL_LOCATION_PATH = "/set/1"
@@ -40,6 +40,18 @@ APP_DIR.mkdir(parents=True, exist_ok=True)
 SETTINGS_FILE = APP_DIR / "settings.json"
 ROOMS_FILE = APP_DIR / "rooms.json"
 PLAYWRIGHT_BROWSERS_PATH = APP_DIR / "playwright"
+
+
+def get_install_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+INSTALL_DIR = get_install_dir()
+LOG_DIR = INSTALL_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / "room_booker.log"
 
 
 @dataclass
@@ -114,13 +126,19 @@ class RoomStore:
 
 
 class Logger:
-    def __init__(self, queue_obj: "queue.Queue[str]") -> None:
+    def __init__(self, queue_obj: "queue.Queue[str]", log_file: Path) -> None:
         self.queue = queue_obj
+        self.log_file = log_file
 
     def log(self, message: str) -> None:
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         full_msg = f"[{timestamp}] {message}"
         print(full_msg)
+        try:
+            with self.log_file.open("a", encoding="utf-8") as handle:
+                handle.write(full_msg + "\n")
+        except Exception:
+            pass
         self.queue.put(full_msg)
 
 
@@ -142,7 +160,7 @@ class BookingWorker:
         self.logger = logger
 
     def get_context(self, playwright, session_path: Optional[Path] = None):
-        browser = playwright.chromium.launch(headless=False, slow_mo=50)
+        browser = playwright.chromium.launch(headless=True)
         args = {
             "user_agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -410,7 +428,7 @@ class RoomBookerApp(ctk.CTk):
         self.minsize(1100, 760)
 
         self.log_queue: "queue.Queue[str]" = queue.Queue()
-        self.logger = Logger(self.log_queue)
+        self.logger = Logger(self.log_queue, LOG_FILE)
         self.worker = BookingWorker(self.logger)
         self.settings = SettingsStore.load()
         self.rooms = RoomStore.load() or HARDCODED_ROOMS

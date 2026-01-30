@@ -26,11 +26,14 @@ jobs:
       - name: Install Playwright browsers
         run: python -m playwright install chromium
 
-      - name: Build EXE
-        run: pyinstaller --noconsole --onefile main.py
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build EXE and installer
+        run: python build.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RoomBooker-exe
+          name: RoomBooker-build
           path: dist/*.exe

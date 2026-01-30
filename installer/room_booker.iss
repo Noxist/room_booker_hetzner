@@ -23,5 +23,6 @@ Source: "..\\dist\\RoomBooker\\*"; DestDir: "{app}"; Flags: recursesubdirs creat
 Name: "{autoprograms}\\{#AppName}"; Filename: "{app}\\{#AppExeName}"
 
 [Run]
+; Nur noch ein Eintrag zum Starten der App. 
+; Die Prüfung und Installation der Browser übernimmt die App intern beim ersten Start.
 Filename: "{app}\\{#AppExeName}"; Description: "Start RoomBooker"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\\{#AppExeName}"; Parameters: "--install-browsers"; Description: "Install Playwright Browser"; Flags: nowait postinstall skipifsilent runhidden

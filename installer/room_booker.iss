@@ -10,14 +10,14 @@ AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\\{#AppName}
 DisableProgramGroupPage=yes
-OutputDir=dist
+OutputDir=..\\dist
 OutputBaseFilename=RoomBooker-Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
 [Files]
-Source: "dist\\RoomBooker\\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: "..\\dist\\RoomBooker\\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\\{#AppName}"; Filename: "{app}\\{#AppExeName}"

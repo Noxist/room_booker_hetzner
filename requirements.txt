@@ -1,2 +1,3 @@
-streamlit
+customtkinter
 playwright
+pyinstaller

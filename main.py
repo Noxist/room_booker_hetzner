@@ -2,7 +2,6 @@ import json
 import os
 import queue
 import random
-import subprocess
 import sys
 import threading
 import time
@@ -14,12 +13,12 @@ from typing import Callable, Dict, List, Optional
 import customtkinter as ctk
 from playwright.sync_api import sync_playwright
 
+# --- KONFIGURATION ---
 APP_NAME = "Room Booker Ultimate"
-VERSION = "2.8"
+VERSION = "2.9"  # Version erhöht für Übersicht
 ROOM_BASE_URL = "https://raumreservation.ub.unibe.ch"
 EVENT_ADD_URL = f"{ROOM_BASE_URL}/event/add"
 VONROLL_LOCATION_PATH = "/set/1"
-
 
 HARDCODED_ROOMS = {
     "vonRoll: Gruppenraum 001": "1",
@@ -27,13 +26,11 @@ HARDCODED_ROOMS = {
     "vonRoll: Lounge": "11",
 }
 
-
 def get_app_dir() -> Path:
     if sys.platform.startswith("win"):
         base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
         return base / "RoomBooker"
     return Path.home() / ".config" / "RoomBooker"
-
 
 APP_DIR = get_app_dir()
 APP_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,24 +40,39 @@ PLAYWRIGHT_BROWSERS_PATH = APP_DIR / "playwright"
 INSTALL_LOCK_FILE = APP_DIR / "playwright_install.lock"
 INSTALL_LOCK_TTL_SECONDS = 60 * 60
 
-
 def get_install_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
-
 
 INSTALL_DIR = get_install_dir()
 LOG_DIR = INSTALL_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOG_DIR / "room_booker.log"
 
+# --- HELPER CLASSES ---
+
+class OutputRedirector:
+    """Fängt Konsolenausgaben ab und sendet sie an eine Callback-Funktion."""
+    def __init__(self, callback: Callable[[str], None]):
+        self.callback = callback
+        self.encoding = 'utf-8'
+
+    def write(self, text: str):
+        # Ignoriere leere Zeilen
+        if text and text.strip():
+            self.callback(text.strip())
+
+    def flush(self):
+        pass
+    
+    def isatty(self):
+        return False
 
 @dataclass
 class Account:
     email: str = ""
     password: str = ""
-
 
 @dataclass
 class Settings:
@@ -71,7 +83,6 @@ class Settings:
     last_end: str = "18:00"
     simulation: bool = True
     theme: str = "Dark"
-
 
 class SettingsStore:
     @staticmethod
@@ -111,7 +122,6 @@ class SettingsStore:
         }
         SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
-
 class RoomStore:
     @staticmethod
     def load() -> Dict[str, str]:
@@ -125,7 +135,6 @@ class RoomStore:
     @staticmethod
     def save(room_map: Dict[str, str]) -> None:
         ROOMS_FILE.write_text(json.dumps(room_map, indent=2), encoding="utf-8")
-
 
 class Logger:
     def __init__(self, queue_obj: "queue.Queue[str]", log_file: Path) -> None:
@@ -143,7 +152,6 @@ class Logger:
             pass
         self.queue.put(full_msg)
 
-
 def human_type(page, selector: str, text: str) -> None:
     try:
         page.focus(selector)
@@ -152,10 +160,8 @@ def human_type(page, selector: str, text: str) -> None:
     except Exception:
         return
 
-
 def human_sleep(min_s: float = 0.5, max_s: float = 1.5) -> None:
     time.sleep(random.uniform(min_s, max_s))
-
 
 class BookingWorker:
     def __init__(self, logger: Logger):
@@ -390,7 +396,6 @@ class BookingWorker:
 
         self.logger.log("--- PROZESS ENDE ---")
 
-
 class PlaywrightInstaller:
     def __init__(self, logger: Logger):
         self.logger = logger
@@ -429,41 +434,59 @@ class PlaywrightInstaller:
         except Exception:
             pass
 
-    def install(self) -> bool:
+    def install(self, output_callback: Optional[Callable[[str], None]] = None) -> bool:
         if not self._acquire_install_lock():
             return False
         
         PLAYWRIGHT_BROWSERS_PATH.mkdir(parents=True, exist_ok=True)
-        # Umgebungsvariable setzen, damit Playwright den Pfad innerhalb des App-Verzeichnisses nutzt
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
         
         self.logger.log("Playwright Browser werden installiert...")
+        if output_callback:
+            output_callback("Starte Installation...")
         
-        import sys
-        # Wir speichern die ursprünglichen Argumente
-        old_argv = sys.argv
-        # Wir simulieren die Kommandozeile: "playwright install chromium"
-        sys.argv = ["playwright", "install", "chromium"]
+        # Umleiten von stdout und stderr
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        
+        capture_stream = None
+        if output_callback:
+            capture_stream = OutputRedirector(output_callback)
+            sys.stdout = capture_stream
+            sys.stderr = capture_stream
+
+        import sys as _sys_internal
+        # Alte Argumente sichern
+        old_argv = _sys_internal.argv
+        # Playwright Befehl simulieren
+        _sys_internal.argv = ["playwright", "install", "chromium"]
         
         success = False
         try:
-            # Wir rufen die Playwright CLI direkt als Funktion auf
             from playwright.__main__ import main as playwright_cli
             playwright_cli()
+            
+            # Wenn wir hier ankommen ohne Exit, war es erfolgreich
+            if output_callback: output_callback("Fertig!")
             self.logger.log("Playwright Installation abgeschlossen.")
             success = True
+
         except SystemExit as e:
-            # Playwright ruft am Ende oft sys.exit(0) auf, was wir hier abfangen
             if e.code == 0:
+                if output_callback: output_callback("Installation erfolgreich!")
                 self.logger.log("Playwright Installation erfolgreich beendet.")
                 success = True
             else:
+                if output_callback: output_callback(f"Fehler: Exit Code {e.code}")
                 self.logger.log(f"Playwright Installation fehlgeschlagen mit Exit-Code {e.code}.")
         except Exception as e:
+            if output_callback: output_callback(f"Kritischer Fehler: {e}")
             self.logger.log(f"Kritischer Fehler bei der Installation: {e}")
         finally:
-            # Argumente zurücksetzen, um die App-Logik nicht zu stören
-            sys.argv = old_argv
+            # Streams wiederherstellen
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            _sys_internal.argv = old_argv
             self._release_install_lock()
             
         return success
@@ -471,7 +494,6 @@ class PlaywrightInstaller:
     def wait_for_existing_install(self) -> None:
         while INSTALL_LOCK_FILE.exists():
             time.sleep(1)
-
 
 class RoomBookerApp(ctk.CTk):
     def __init__(self):
@@ -822,27 +844,43 @@ class RoomBookerApp(ctk.CTk):
         self._install_in_progress = True
 
         popup = ctk.CTkToplevel(self)
-        popup.title("Playwright Setup")
-        popup.geometry("420x160")
+        popup.title("Ersteinrichtung")
+        popup.geometry("500x250")
         popup.transient(self)
         popup.grab_set()
 
-        label = ctk.CTkLabel(popup, text="Installiere Browser...", font=ctk.CTkFont(size=14))
-        label.pack(pady=20)
+        label = ctk.CTkLabel(popup, text="RoomBooker lädt notwendige Komponenten (Browser)...", font=ctk.CTkFont(size=14, weight="bold"))
+        label.pack(pady=(20, 10))
+        
+        sub_label = ctk.CTkLabel(popup, text="Dies passiert nur beim allerersten Start.\nBitte warten Sie, auch wenn es so aussieht, als würde nichts passieren.", text_color="gray")
+        sub_label.pack(pady=(0, 15))
 
-        progress = ctk.CTkProgressBar(popup, mode="indeterminate", width=320)
+        progress = ctk.CTkProgressBar(popup, mode="indeterminate", width=380)
         progress.pack(pady=10)
         progress.start()
+        
+        # NEU: Ein Label für die Live-Konsole-Ausgabe
+        status_label = ctk.CTkLabel(popup, text="Initialisiere...", wraplength=480, font=ctk.CTkFont(family="Courier", size=11))
+        status_label.pack(pady=10, padx=10)
 
         def finish_popup():
             progress.stop()
             popup.destroy()
             self._install_in_progress = False
 
+        # Callback, um GUI vom Worker-Thread aus zu aktualisieren
+        def update_status(text):
+            # Nur die letzten 80 Zeichen anzeigen, damit das Label nicht explodiert
+            short_text = text[-120:] if len(text) > 120 else text
+            # GUI Updates müssen im Main-Thread passieren
+            self.after(0, lambda: status_label.configure(text=short_text))
+
         def run_install():
-            if installer.install():
+            # Wir übergeben den Callback an die Install-Funktion
+            if installer.install(output_callback=update_status):
                 self.after(0, finish_popup)
                 return
+            
             self.logger.log("Playwright Installation läuft bereits. Bitte warten...")
             installer.wait_for_existing_install()
             if installer.is_installed():

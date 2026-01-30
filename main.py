@@ -432,27 +432,40 @@ class PlaywrightInstaller:
     def install(self) -> bool:
         if not self._acquire_install_lock():
             return False
+        
         PLAYWRIGHT_BROWSERS_PATH.mkdir(parents=True, exist_ok=True)
-        env = os.environ.copy()
-        env["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
+        # Umgebungsvariable setzen, damit Playwright den Pfad innerhalb des App-Verzeichnisses nutzt
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
+        
         self.logger.log("Playwright Browser werden installiert...")
-        process = subprocess.Popen(
-            [sys.executable, "-m", "playwright", "install", "chromium"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            env=env,
-        )
-        if process.stdout:
-            for line in process.stdout:
-                self.logger.log(line.strip())
-        process.wait()
-        success = process.returncode == 0
-        if success:
+        
+        import sys
+        # Wir speichern die ursprünglichen Argumente
+        old_argv = sys.argv
+        # Wir simulieren die Kommandozeile: "playwright install chromium"
+        sys.argv = ["playwright", "install", "chromium"]
+        
+        success = False
+        try:
+            # Wir rufen die Playwright CLI direkt als Funktion auf
+            from playwright.__main__ import main as playwright_cli
+            playwright_cli()
             self.logger.log("Playwright Installation abgeschlossen.")
-        else:
-            self.logger.log("Playwright Installation fehlgeschlagen.")
-        self._release_install_lock()
+            success = True
+        except SystemExit as e:
+            # Playwright ruft am Ende oft sys.exit(0) auf, was wir hier abfangen
+            if e.code == 0:
+                self.logger.log("Playwright Installation erfolgreich beendet.")
+                success = True
+            else:
+                self.logger.log(f"Playwright Installation fehlgeschlagen mit Exit-Code {e.code}.")
+        except Exception as e:
+            self.logger.log(f"Kritischer Fehler bei der Installation: {e}")
+        finally:
+            # Argumente zurücksetzen, um die App-Logik nicht zu stören
+            sys.argv = old_argv
+            self._release_install_lock()
+            
         return success
 
     def wait_for_existing_install(self) -> None:

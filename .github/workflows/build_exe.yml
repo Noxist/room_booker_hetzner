@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# WICHTIG: Hier geben wir der Action explizit Schreibrechte für Inhalte und Releases
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   # --- WINDOWS JOB ---
   build-windows:
@@ -15,13 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Wichtig für die Versionsberechnung
+          fetch-depth: 0
 
       - name: Generate Version Number
         id: vars
         shell: bash
         run: |
-          # Zählt die Commits, um eine immer grösser werdende Zahl zu haben
+          # Zählt Commits für eine eindeutige Version
           VERSION="v2.0.$(git rev-list --count HEAD)"
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
           echo "Generated Version: $VERSION"
@@ -36,6 +41,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+
+      - name: Install Playwright Browsers
+        run: playwright install chromium
 
       - name: Build with PyInstaller
         run: python build.py
@@ -70,6 +78,9 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Install Playwright Browsers
+        run: playwright install chromium
+
       - name: Build with PyInstaller
         run: python build.py
 
@@ -93,19 +104,21 @@ jobs:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
           path: release_artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          # Nutzt die im Windows-Job generierte Versionsnummer
+          # Nutzt die Version aus dem Windows-Job
           tag_name: ${{ needs.build-windows.outputs.version }}
           name: Release ${{ needs.build-windows.outputs.version }}
-          body: "Automatischer Build vom ${{ github.event.head_commit.timestamp }}"
+          body: "Automatischer Build"
           draft: false
           prerelease: false
+          # Wir nutzen Wildcards, da download-artifact Unterordner erstellt
           files: |
             release_artifacts/RoomBooker-Setup-Windows/RoomBooker_Setup_Windows.exe
             release_artifacts/RoomBooker-MacOS/RoomBooker.dmg

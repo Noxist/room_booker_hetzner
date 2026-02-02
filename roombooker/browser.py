@@ -15,15 +15,25 @@ from roombooker.utils import human_sleep, human_type
 class BookingWorker:
     def __init__(self, logger):
         self.logger = logger
-        self.show_browser = False
+        # Diese Variable wird von der GUI (gui.py) über die Checkbox gesteuert
+        self.show_browser = False 
         self._no_override = object()
 
     def get_context(self, p, session_path: Optional[Path] = None, *, force_visible: bool = False):
-        headless_mode = False if force_visible else not self.show_browser
+        # Logik: Wenn force_visible True ist (z.B. beim Scan), dann sichtbar.
+        # Ansonsten entscheidet die User-Einstellung (self.show_browser).
+        is_headless = False if force_visible else not self.show_browser
 
-        self.logger.log(f"Starte Browser (Sichtbar: {self.show_browser})...")
+        self.logger.log(f"Starte Browser (Sichtbar: {not is_headless})...")
+        
         try:
-            browser = p.chromium.launch(headless=headless_mode, slow_mo=50)
+            # Wir erzwingen hier ein grosses Fenster, um Responsive-Probleme (Hamburger-Menü)
+            # zu minimieren, auch wenn headless.
+            browser = p.chromium.launch(
+                headless=is_headless, 
+                slow_mo=50,
+                args=["--start-maximized", "--window-size=1600,900"]
+            )
         except Exception as e:
             self.logger.log(f"Fehler Browser-Start: {e}")
             raise e
@@ -33,9 +43,11 @@ class BookingWorker:
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             ),
-            "viewport": {"width": 1300, "height": 900},
+            # Viewport explizit gross setzen
+            "viewport": {"width": 1600, "height": 900},
             "locale": "de-CH",
         }
+        
         if session_path and session_path.exists():
             self.logger.log(f"Lade Session: {session_path.name}")
             args["storage_state"] = str(session_path)
@@ -82,36 +94,56 @@ class BookingWorker:
                 page.goto(URLS["event_add"])
                 page.wait_for_load_state("domcontentloaded")
 
+            # --- VERBESSERTE STANDORTWAHL ---
             if "/select" in page.url:
                 self.logger.log("Standortwahl erkannt...")
                 try:
+                    # 1. Prüfen, ob der normale Dropdown sichtbar ist
                     if page.locator("#navbarDropDownRight").is_visible():
                         page.click("#navbarDropDownRight")
                         human_sleep(0.5)
+                    
+                    # 2. Fallback: Mobiles Hamburger-Menü prüfen
+                    elif page.locator(".navbar-toggler").is_visible():
+                        self.logger.log("Mobiles Menü erkannt, öffne Navigation...")
+                        page.click(".navbar-toggler")
+                        human_sleep(0.5)
+                        # Nach dem Öffnen nochmal prüfen, ob Dropdown jetzt da ist
+                        if page.locator("#navbarDropDownRight").is_visible():
+                            page.click("#navbarDropDownRight")
+                            human_sleep(0.5)
 
+                    # 3. Klick auf 'vonRoll' (Link sollte jetzt sichtbar sein)
+                    self.logger.log("Wähle Bibliothek vonRoll...")
                     page.click(f"a[href*='{URLS['vonroll_location_path']}']")
                     page.wait_for_load_state("networkidle")
+                
                 except Exception as e:
-                    self.logger.log(f"Warnung Standortwahl: {e}")
+                    self.logger.log(f"Warnung Standortwahl (versuche Fortfahren): {e}")
 
             human_sleep(1)
 
+            # --- LOGIN TRIGGER ---
             if "login" not in page.url and "wayf" not in page.url and "eduid" not in page.url:
                 if page.locator("#navbarUser").is_visible():
                     return True
 
-                self.logger.log("Login-Trigger: Klicke auf Timeline...")
+                self.logger.log("Suche Login-Trigger...")
                 try:
+                    # Wir suchen die Timeline-Zellen
                     trigger = page.locator(".timeline-cell-clickable").first
                     if trigger.count() > 0:
                         trigger.click()
                     else:
-                        page.mouse.click(700, 500)
+                        # Fallback: Blindklick in die Mitte
+                        self.logger.log("Keine Zellen gefunden, klicke blind...")
+                        page.mouse.click(800, 450) # Angepasst an 1600x900
 
                     time.sleep(3)
                 except Exception as e:
                     self.logger.log(f"Fehler bei Login-Trigger: {e}")
 
+            # --- ANMELDUNG ---
             if page.locator("#username").is_visible() or "eduid" in page.url:
                 self.logger.log(f"Führe Login durch für {email}...")
 
@@ -158,6 +190,7 @@ class BookingWorker:
             return override
         try:
             with sync_playwright() as p:
+                # Hier force_visible=True, damit User sieht was passiert beim Scan
                 browser, _, page = self.get_context(p, force_visible=True)
                 try:
                     self.logger.log("Starte Raum-Scan...")
@@ -211,6 +244,7 @@ class BookingWorker:
                     continue
 
                 self.logger.log(f"Hole Reservationen für: {acc.email}")
+                # Export auch sichtbar machen, ist transparenter
                 browser, context, page = self.get_context(p, force_visible=True)
 
                 try:
@@ -307,16 +341,20 @@ class BookingWorker:
                                 page.goto(URLS["event_add"])
                                 page.wait_for_load_state("domcontentloaded")
 
+                            # Raum setzen
                             page.evaluate(
                                 "v => { var s=document.getElementById('event_room'); "
                                 "s.value=v; s.dispatchEvent(new Event('change')); }",
                                 room_id,
                             )
                             human_sleep(0.5)
+                            
+                            # Datum setzen
                             page.fill("#event_startDate", f"{task['date']} {task['start']}")
                             page.keyboard.press("Enter")
                             human_sleep(0.5)
 
+                            # Dauer berechnen und setzen
                             t1 = datetime.strptime(task["start"], "%H:%M")
                             t2 = datetime.strptime(task["end"], "%H:%M")
                             dur = int((t2 - t1).total_seconds() / 60)
@@ -327,8 +365,9 @@ class BookingWorker:
                                 "new Event('change', {bubbles: true}))"
                             )
                             human_sleep(0.5)
+                            
+                            # Titel und Zweck
                             human_type(page, "#event_title", "Lernen")
-
                             if page.is_visible('input[name="event[purpose]"][value="Other"]'):
                                 page.check('input[name="event[purpose]"][value="Other"]')
 
@@ -339,6 +378,7 @@ class BookingWorker:
                                 self.logger.log("Speichere...")
                                 page.click("#event_submit")
                                 try:
+                                    # Erfolg prüfen
                                     page.wait_for_url(lambda u: "/event/add" not in u, timeout=5000)
                                     self.logger.log(f"ERFOLG: {room_name} gebucht!")
                                     block_success = True

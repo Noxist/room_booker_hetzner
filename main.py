@@ -5,6 +5,7 @@ import random
 import sys
 import threading
 import time
+import importlib.util
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -15,7 +16,7 @@ from playwright.sync_api import sync_playwright
 
 # --- KONFIGURATION ---
 APP_NAME = "Room Booker Ultimate"
-VERSION = "3.1 (Smart Logic)"
+VERSION = "3.3 (Dev-Mode)"
 ROOM_BASE_URL = "https://raumreservation.ub.unibe.ch"
 EVENT_ADD_URL = f"{ROOM_BASE_URL}/event/add"
 VONROLL_LOCATION_PATH = "/set/1"
@@ -34,55 +35,48 @@ def get_app_dir() -> Path:
 
 APP_DIR = get_app_dir()
 APP_DIR.mkdir(parents=True, exist_ok=True)
+
+# --- DATEI-PFADE ---
 SETTINGS_FILE = APP_DIR / "settings.json"
 ROOMS_FILE = APP_DIR / "rooms.json"
 PLAYWRIGHT_BROWSERS_PATH = APP_DIR / "playwright"
 INSTALL_LOCK_FILE = APP_DIR / "playwright_install.lock"
 DEBUG_DIR = APP_DIR / "debug_screenshots"
 DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-INSTALL_LOCK_TTL_SECONDS = 60 * 60
+LOG_DIR = APP_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / "room_booker.log"
+
+# --- DIE MAGISCHE DEBUG-DATEI ---
+DEBUG_LOGIC_FILE = APP_DIR / "debug_logic.py"
+
+# WICHTIG: Pfad global setzen
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
 
 def get_install_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
 
-INSTALL_DIR = get_install_dir()
-LOG_DIR = INSTALL_DIR / "logs"
-LOG_DIR.mkdir(parents=True, exist_ok=True)
-LOG_FILE = LOG_DIR / "room_booker.log"
-
-
-# --- HELPER FUNKTIONEN ---
+# --- HELPER ---
 
 def human_type(page, selector: str, text: str) -> None:
     try:
         page.focus(selector)
         for char in text:
             page.keyboard.type(char, delay=random.randint(20, 60))
-    except Exception:
-        return
+    except Exception: pass
 
 def human_sleep(min_s: float = 0.5, max_s: float = 1.5) -> None:
     time.sleep(random.uniform(min_s, max_s))
 
-
-# --- KLASSEN ---
-
 class OutputRedirector:
-    """Fängt Konsolenausgaben ab und sendet sie an eine Callback-Funktion fürs GUI."""
     def __init__(self, callback: Callable[[str], None]):
         self.callback = callback
-
     def write(self, text: str):
-        if text and text.strip():
-            self.callback(text.strip())
-
-    def flush(self):
-        pass
-    
-    def isatty(self):
-        return False
+        if text and text.strip(): self.callback(text.strip())
+    def flush(self): pass
+    def isatty(self): return False
 
 @dataclass
 class Account:
@@ -102,25 +96,21 @@ class Settings:
 class SettingsStore:
     @staticmethod
     def load() -> Settings:
-        if not SETTINGS_FILE.exists():
-            return Settings()
+        if not SETTINGS_FILE.exists(): return Settings()
         try:
             data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            return Settings()
-
-        accounts = [Account(**acc) for acc in data.get("accounts", [])]
-        while len(accounts) < 3:
-            accounts.append(Account())
-        return Settings(
-            accounts=accounts[:3],
-            selected_rooms=data.get("selected_rooms", []),
-            last_date=data.get("last_date", ""),
-            last_start=data.get("last_start", "08:00"),
-            last_end=data.get("last_end", "18:00"),
-            simulation=data.get("simulation", True),
-            theme=data.get("theme", "Dark"),
-        )
+            accounts = [Account(**acc) for acc in data.get("accounts", [])]
+            while len(accounts) < 3: accounts.append(Account())
+            return Settings(
+                accounts=accounts[:3],
+                selected_rooms=data.get("selected_rooms", []),
+                last_date=data.get("last_date", ""),
+                last_start=data.get("last_start", "08:00"),
+                last_end=data.get("last_end", "18:00"),
+                simulation=data.get("simulation", True),
+                theme=data.get("theme", "Dark"),
+            )
+        except json.JSONDecodeError: return Settings()
 
     @staticmethod
     def save(settings: Settings) -> None:
@@ -139,10 +129,8 @@ class RoomStore:
     @staticmethod
     def load() -> Dict[str, str]:
         if ROOMS_FILE.exists():
-            try:
-                return json.loads(ROOMS_FILE.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                return {}
+            try: return json.loads(ROOMS_FILE.read_text(encoding="utf-8"))
+            except: return {}
         return {}
 
     @staticmethod
@@ -155,33 +143,40 @@ class Logger:
         self.log_file = log_file
 
     def log(self, message: str) -> None:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%H:%M:%S")
         full_msg = f"[{timestamp}] {message}"
         print(full_msg)
         try:
             with self.log_file.open("a", encoding="utf-8") as handle:
                 handle.write(full_msg + "\n")
-        except Exception:
-            pass
+        except Exception: pass
         self.queue.put(full_msg)
 
-
-# --- NEUE LOGIK (Vom zweiten Skript übernommen) ---
+# --- WORKER LOGIK ---
 
 class BookingWorker:
     def __init__(self, logger: Logger):
         self.logger = logger
+        self.show_browser = False  # Wird von GUI gesteuert
 
     def get_context(self, p, session_path: Optional[Path] = None):
-        # HEADLESS auf True gesetzt, damit keine Fenster aufpoppen (wie gewünscht)
-        browser = p.chromium.launch(headless=True, slow_mo=50) 
+        # Steuerung über Variable show_browser
+        headless_mode = not self.show_browser
+        
+        self.logger.log(f"Starte Browser (Sichtbar: {self.show_browser})...")
+        try:
+            browser = p.chromium.launch(headless=headless_mode, slow_mo=50)
+        except Exception as e:
+            self.logger.log(f"Fehler Browser-Start: {e}")
+            raise e
+
         args = {
             "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "viewport": {"width": 1300, "height": 900},
             "locale": "de-CH",
         }
         if session_path and session_path.exists():
-            self.logger.log(f"DEBUG: Lade Cookie aus {session_path.name}")
+            self.logger.log(f"Lade Session: {session_path.name}")
             args["storage_state"] = str(session_path)
         
         context = browser.new_context(**args)
@@ -189,142 +184,145 @@ class BookingWorker:
         return browser, context, page
 
     def navigate_to_target(self, page, email, password) -> bool:
-        max_retries = 20
-        self.logger.log("Navigiere zum Formular...")
-        
+        max_retries = 15
         for i in range(max_retries):
             try:
                 url = page.url
-                
-                # Ziel erreicht?
                 if "/event/add" in url and "login" not in url:
                     return True
 
-                # Standortwahl (/select)
                 if "/select" in url:
-                    self.logger.log("Standortwahl erkannt.")
+                    self.logger.log("Standortwahl...")
                     try:
                         loc_selector = f"main a[href*='{VONROLL_LOCATION_PATH}']"
                         if page.locator(loc_selector).count() > 0:
                             page.click(loc_selector)
                         else:
                             page.locator("main ul li a").first.click()
-                        
-                        # Sofort weiter zum Ziel erzwingen
                         page.goto(EVENT_ADD_URL)
                         continue 
                     except: pass
 
-                # Login
                 elif "eduid.ch" in url or "login" in url or "wayf" in url:
-                    self.logger.log(f"Login Maske erkannt.")
+                    self.logger.log(f"Login Maske ({i+1})...")
                     try:
                         try: page.wait_for_selector("input", timeout=2000)
                         except: pass
 
                         sel_user = "input[name='j_username'], #username, #userId"
                         sel_pass = "input[type='password'], #password"
-                        sel_btn  = "button[name='_eventId_proceed']"
-
+                        
                         if page.is_visible(sel_user) and not page.input_value(sel_user):
                             page.fill(sel_user, email)
                             human_sleep(0.2)
 
                         if page.is_visible(sel_pass):
                             page.fill(sel_pass, password)
-                            human_sleep(0.3)
-                            if page.locator(sel_btn).count() > 0:
-                                page.locator(sel_btn).first.click(force=True)
-                            else:
-                                page.keyboard.press("Enter")
+                            page.keyboard.press("Enter")
                             page.wait_for_timeout(4000)
                             continue
-                        
                         elif page.is_visible(sel_user):
                             page.keyboard.press("Enter")
                             page.wait_for_timeout(1500)
                             continue
                     except: pass
-
                 else:
-                    # Unbekannt, versuche Navigation
                     page.goto(EVENT_ADD_URL)
                     page.wait_for_timeout(2000)
-
             except:
                 page.wait_for_timeout(1000)
-        
         return False
 
     def update_room_list(self, email, password) -> Optional[Dict[str, str]]:
         self.logger.log("--- START: RAUM SCAN ---")
-        with sync_playwright() as p:
-            browser, context, page = self.get_context(p)
-            try:
-                page.goto(EVENT_ADD_URL)
-                if self.navigate_to_target(page, email, password):
-                    self.logger.log("Extrahiere Raumliste (JS Direct)...")
-                    page.wait_for_load_state("domcontentloaded")
-                    human_sleep(1)
-                    
-                    # Strategie: JS Direct (Aus neuem Code übernommen)
-                    js_data = page.evaluate("""() => {
-                        const sel = document.querySelector('#event_room');
-                        if (!sel) return null;
-                        const res = {};
-                        for (let i = 0; i < sel.options.length; i++) {
-                            const opt = sel.options[i];
-                            if (opt.value && opt.value.trim() !== "") {
-                                res[opt.innerText.trim()] = opt.value;
+        try:
+            with sync_playwright() as p:
+                browser, context, page = self.get_context(p)
+                try:
+                    page.goto(EVENT_ADD_URL)
+                    if self.navigate_to_target(page, email, password):
+                        self.logger.log("Seite geladen. Lese Daten...")
+                        page.wait_for_load_state("domcontentloaded")
+                        human_sleep(1)
+                        js_data = page.evaluate("""() => {
+                            const sel = document.querySelector('#event_room');
+                            if (!sel) return null;
+                            const res = {};
+                            for (let i = 0; i < sel.options.length; i++) {
+                                const opt = sel.options[i];
+                                if (opt.value && opt.value.trim() !== "") {
+                                    res[opt.innerText.trim()] = opt.value;
+                                }
                             }
-                        }
-                        return res;
-                    }""")
-                    
-                    if js_data:
-                        self.logger.log(f"Scan erfolgreich: {len(js_data)} Räume.")
-                        return js_data
+                            return res;
+                        }""")
+                        
+                        if js_data:
+                            self.logger.log(f"Scan erfolgreich: {len(js_data)} Räume.")
+                            return js_data
+                        else:
+                            self.logger.log("Keine Räume gefunden.")
+                            return None
                     else:
-                        self.logger.log("Keine Räume gefunden (Element leer?)")
+                        self.logger.log("Login nicht geschafft.")
                         return None
-                else:
-                    self.logger.log("Scan Abbruch: Ziel nicht erreicht.")
-                    return None
-            except Exception as e:
-                self.logger.log(f"Fehler Scan: {e}")
-                return None
-            finally:
-                browser.close()
+                finally:
+                    browser.close()
+        except Exception as e:
+            self.logger.log(f"CRITICAL: Playwright Crash: {e}")
+            return None
 
     def refresh_session(self, idx, email, password) -> None:
         self.logger.log(f"--- SESSION {idx+1} CHECK ---")
         session_file = APP_DIR / f"session_{idx}.json"
-        with sync_playwright() as p:
-            browser, context, page = self.get_context(p)
-            try:
-                page.goto(EVENT_ADD_URL)
-                if self.navigate_to_target(page, email, password):
-                    context.storage_state(path=str(session_file))
-                    self.logger.log(f"Session {idx+1} OK.")
-                else:
-                    self.logger.log("Session Check fehlgeschlagen.")
-            finally:
-                browser.close()
+        try:
+            with sync_playwright() as p:
+                browser, context, page = self.get_context(p)
+                try:
+                    page.goto(EVENT_ADD_URL)
+                    if self.navigate_to_target(page, email, password):
+                        context.storage_state(path=str(session_file))
+                        self.logger.log(f"Session {idx+1} OK.")
+                    else:
+                        self.logger.log("Session Check fehlgeschlagen.")
+                finally:
+                    browser.close()
+        except Exception as e:
+            self.logger.log(f"Fehler Session Check: {e}")
 
+    # --- HIER IST DIE MAGIE FÜR DEINE ANPASSUNGEN ---
     def execute_booking(self, tasks, accounts, preferred_rooms, simulation_mode) -> None:
-        self.logger.log("--- START: SMART BUCHUNG ---")
-        if simulation_mode:
-            self.logger.log("ACHTUNG: Simulations-Modus AN. Es wird NICHT gespeichert.")
+        # Prüfen, ob externe debug_logic.py existiert
+        if DEBUG_LOGIC_FILE.exists():
+            self.logger.log(f"!!! EXTERNES SKRIPT GEFUNDEN: {DEBUG_LOGIC_FILE.name} !!!")
+            self.logger.log("Lade externe Logik...")
+            try:
+                # Modul dynamisch laden
+                spec = importlib.util.spec_from_file_location("debug_logic", DEBUG_LOGIC_FILE)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                
+                # Prüfen ob Funktion 'run_booking' existiert
+                if hasattr(mod, "run_booking"):
+                    # Wir übergeben 'self' (den Worker), damit das Skript Zugriff auf 
+                    # get_context, logger und navigate_to_target hat!
+                    mod.run_booking(self, tasks, accounts, preferred_rooms, simulation_mode)
+                    return
+                else:
+                    self.logger.log("Fehler: 'run_booking' Funktion nicht in debug_logic.py gefunden.")
+            except Exception as e:
+                self.logger.log(f"CRITICAL FEHLER im externen Skript: {e}")
+                self.logger.log("Falle zurück auf interne Standard-Logik...")
+
+        # --- INTERNE STANDARD-LOGIK (Falls kein Skript da ist) ---
+        self.logger.log("--- START: INTERNE BUCHUNG ---")
+        if simulation_mode: self.logger.log("SIMULATIONS-MODUS (keine Buchung)")
         
         acc_idx = 0
-
         for i, task in enumerate(tasks):
             block_success = False
-            
-            # Wir versuchen jeden Raum in der Liste
             for room_name in preferred_rooms:
-                if block_success: break # Block erledigt
-
+                if block_success: break
                 room_id = task['all_rooms'].get(room_name)
                 if not room_id: continue
 
@@ -332,86 +330,63 @@ class BookingWorker:
                 session_file = APP_DIR / f"session_{acc_idx % len(accounts)}.json"
                 acc_idx += 1
 
-                self.logger.log(f"Versuche: {task['start']}-{task['end']} in '{room_name}'...")
+                self.logger.log(f"Versuche: {task['start']}-{task['end']} ({room_name})")
                 
-                with sync_playwright() as p:
-                    browser, context, page = self.get_context(p, session_path=session_file)
-                    try:
-                        page.goto(EVENT_ADD_URL)
-                        
-                        if not self.navigate_to_target(page, acc.email, acc.password):
-                            self.logger.log("Login fehlgeschlagen, versuche nächsten...")
-                            continue
+                try:
+                    with sync_playwright() as p:
+                        browser, context, page = self.get_context(p, session_path=session_file)
+                        try:
+                            page.goto(EVENT_ADD_URL)
+                            if not self.navigate_to_target(page, acc.email, acc.password):
+                                self.logger.log("Login fehlgeschlagen.")
+                                continue
 
-                        # Session updaten
-                        context.storage_state(path=str(session_file))
+                            context.storage_state(path=str(session_file))
 
-                        # --- FORMULAR (Aus neuer Logik) ---
-                        # 1. Raum setzen (JS Force)
-                        page.evaluate(f"v => {{ var s=document.getElementById('event_room'); s.value=v; s.dispatchEvent(new Event('change')); }}", room_id)
-                        human_sleep(0.5)
-
-                        # 2. Datum/Zeit
-                        full_start = f"{task['date']} {task['start']}"
-                        page.fill("#event_startDate", full_start)
-                        page.keyboard.press("Enter")
-                        human_sleep(0.8)
-
-                        # 3. Dauer
-                        fmt = "%H:%M"
-                        t1 = datetime.strptime(task['start'], fmt)
-                        t2 = datetime.strptime(task['end'], fmt)
-                        dur = int((t2 - t1).total_seconds() / 60)
-                        
-                        page.evaluate(f"document.getElementById('event_duration').value = '{dur}'")
-                        page.evaluate("document.getElementById('event_duration').dispatchEvent(new Event('change', {bubbles: true}))")
-                        human_sleep(0.5)
-
-                        # 4. Titel
-                        human_type(page, "#event_title", "Lernen")
-                        if page.is_visible('input[name="event[purpose]"][value="Other"]'):
-                            page.check('input[name="event[purpose]"][value="Other"]')
-
-                        # 5. Speichern / Check
-                        if simulation_mode:
-                            self.logger.log("SIMULATION: Wäre erfolgreich (Button nicht gedrückt).")
-                            block_success = True
-                            # Screenshot simulation
-                            try: page.screenshot(path=DEBUG_DIR / f"sim_success_{i}.png")
-                            except: pass
-                        else:
-                            self.logger.log("Drücke Speichern...")
-                            page.click("#event_submit") # Der echte Klick
+                            page.evaluate(f"v => {{ var s=document.getElementById('event_room'); s.value=v; s.dispatchEvent(new Event('change')); }}", room_id)
+                            human_sleep(0.5)
+                            page.fill("#event_startDate", f"{task['date']} {task['start']}")
+                            page.keyboard.press("Enter")
+                            human_sleep(0.5)
                             
-                            # Wir warten 5 Sekunden.
-                            try:
-                                page.wait_for_url("**/event**", timeout=5000)
-                                if "/add" not in page.url:
-                                    self.logger.log(f"ERFOLG! Raum {room_name} gebucht.")
-                                    block_success = True
-                                else:
-                                    self.logger.log(f"Warnung: URL hat sich nicht geändert.")
-                                    raise Exception("URL unverändert")
-                            except:
-                                self.logger.log(f"Raum {room_name} scheint belegt/fehlerhaft. Versuche nächsten...")
-                                try: page.screenshot(path=DEBUG_DIR / f"fail_{room_name}_{i}.png")
-                                except: pass
-                    
-                    except Exception as e:
-                        self.logger.log(f"Fehler bei Versuch: {e}")
-                    finally:
-                        try: browser.close()
-                        except: pass
+                            t1 = datetime.strptime(task['start'], "%H:%M")
+                            t2 = datetime.strptime(task['end'], "%H:%M")
+                            dur = int((t2 - t1).total_seconds() / 60)
+                            
+                            page.evaluate(f"document.getElementById('event_duration').value = '{dur}'")
+                            page.evaluate("document.getElementById('event_duration').dispatchEvent(new Event('change', {bubbles: true}))")
+                            human_sleep(0.5)
+                            human_type(page, "#event_title", "Lernen")
+                            
+                            if page.is_visible('input[name="event[purpose]"][value="Other"]'):
+                                page.check('input[name="event[purpose]"][value="Other"]')
+
+                            if simulation_mode:
+                                self.logger.log("SIMULATION OK.")
+                                block_success = True
+                            else:
+                                self.logger.log("Speichere...")
+                                page.click("#event_submit")
+                                try:
+                                    page.wait_for_url("**/event**", timeout=5000)
+                                    if "/add" not in page.url:
+                                        self.logger.log(f"ERFOLG: {room_name}")
+                                        block_success = True
+                                    else:
+                                        raise Exception("URL unverändert")
+                                except:
+                                    self.logger.log(f"Fehler/Belegt: {room_name}")
+                        finally:
+                            browser.close()
+                except Exception as e:
+                    self.logger.log(f"Fehler: {e}")
             
             if not block_success:
-                self.logger.log(f"FEHLER: Kein freier Raum gefunden für {task['start']}-{task['end']}!")
-            
-            human_sleep(2)
-
+                self.logger.log(f"FEHLER: Block {task['start']} fehlgeschlagen.")
+            human_sleep(1)
         self.logger.log("--- PROZESS ENDE ---")
 
-
-# --- INSTALLER (Beibehalten) ---
+# --- INSTALLER ---
 
 class PlaywrightInstaller:
     def __init__(self, logger: Logger):
@@ -442,7 +417,7 @@ class PlaywrightInstaller:
             except SystemExit as e:
                 return e.code == 0
             except Exception as e:
-                if output_callback: output_callback(str(e))
+                if output_callback: output_callback(f"Error: {e}")
                 return False
             finally:
                 sys.stdout, sys.stderr = orig_stdout, orig_stderr
@@ -450,7 +425,7 @@ class PlaywrightInstaller:
         finally:
             self._install_lock.release()
 
-# --- GUI (Beibehalten) ---
+# --- GUI ---
 
 class RoomBookerApp(ctk.CTk):
     def __init__(self):
@@ -493,42 +468,39 @@ class RoomBookerApp(ctk.CTk):
 
     def _build_dashboard_ui(self):
         f = self.frames["dashboard"]
-        
-        # Datum und Zeit Inputs
         time_frame = ctk.CTkFrame(f)
         time_frame.pack(fill="x", pady=10)
-        
         ctk.CTkLabel(time_frame, text="Datum:").pack(side="left", padx=10)
         self.date_entry = ctk.CTkEntry(time_frame, width=100, placeholder_text="DD.MM.YYYY")
         self.date_entry.pack(side="left", padx=5)
         self.date_entry.insert(0, (datetime.now() + timedelta(days=1)).strftime("%d.%m.%Y"))
-        
         ctk.CTkLabel(time_frame, text="Start:").pack(side="left", padx=10)
         self.start_entry = ctk.CTkEntry(time_frame, width=60)
         self.start_entry.pack(side="left", padx=5)
         self.start_entry.insert(0, "08:00")
-        
         ctk.CTkLabel(time_frame, text="Ende:").pack(side="left", padx=10)
         self.end_entry = ctk.CTkEntry(time_frame, width=60)
         self.end_entry.pack(side="left", padx=5)
         self.end_entry.insert(0, "18:00")
         
-        # Raumliste
         self.rooms_scroll = ctk.CTkScrollableFrame(f, height=300, label_text="Bevorzugte Räume")
         self.rooms_scroll.pack(fill="x", pady=10)
         self.room_vars = {}
         self._render_rooms()
         
-        # Controls
+        # DEBUG CHECKBOX
+        self.debug_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(f, text="Browser anzeigen (Debug)", variable=self.debug_var, fg_color="#E59400").pack(pady=5)
+
         self.sim_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(f, text="Simulations-Modus (Nicht buchen)", variable=self.sim_var).pack(pady=10)
+        ctk.CTkCheckBox(f, text="Simulations-Modus (Nicht buchen)", variable=self.sim_var).pack(pady=5)
+        
         self.start_btn = ctk.CTkButton(f, text="Buchung starten", fg_color="#1f8a4c", command=self._start_booking, height=40)
         self.start_btn.pack(pady=10, fill="x")
 
     def _render_rooms(self):
         for w in self.rooms_scroll.winfo_children(): w.destroy()
-        if not self.rooms:
-            ctk.CTkLabel(self.rooms_scroll, text="Bitte erst Scan in Einstellungen durchführen!").pack()
+        if not self.rooms: ctk.CTkLabel(self.rooms_scroll, text="Bitte erst Scan in Einstellungen durchführen!").pack()
         for name in self.rooms:
             v = ctk.BooleanVar(value=name in self.settings.selected_rooms)
             ctk.CTkCheckBox(self.rooms_scroll, text=name, variable=v).pack(anchor="w", pady=2)
@@ -547,12 +519,13 @@ class RoomBookerApp(ctk.CTk):
             p.insert(0, self.settings.accounts[i].password)
             self.acc_entries.append((e, p))
             ctk.CTkButton(row, text="Test", width=50, command=lambda idx=i: self._test_acc(idx)).pack(side="right", padx=10)
-            
         ctk.CTkButton(f, text="Speichern", command=self._save_accs).pack(pady=20)
 
     def _test_acc(self, idx):
         self._save_accs()
         acc = self.settings.accounts[idx]
+        # Wert aus Debug-Checkbox an Worker übergeben
+        self.worker.show_browser = self.debug_var.get()
         threading.Thread(target=lambda: self.worker.refresh_session(idx, acc.email, acc.password), daemon=True).start()
 
     def _save_accs(self):
@@ -563,17 +536,19 @@ class RoomBookerApp(ctk.CTk):
     def _build_settings_ui(self):
         f = self.frames["settings"]
         ctk.CTkLabel(f, text="Datenbank", font=("", 16, "bold")).pack(pady=10)
-        ctk.CTkButton(f, text="Räume neu scannen (aktualisieren)", command=self._run_scan, fg_color="#E59400").pack(pady=10, fill="x")
-        ctk.CTkLabel(f, text="Hinweis: Für den Scan wird Account 1 verwendet.", text_color="gray").pack()
+        ctk.CTkButton(f, text="Räume neu scannen", command=self._run_scan, fg_color="#E59400").pack(pady=10, fill="x")
+        ctk.CTkLabel(f, text="Scannt mit Account 1", text_color="gray").pack()
 
     def _run_scan(self):
         self._save_accs()
+        # Wert aus Debug-Checkbox an Worker übergeben
+        self.worker.show_browser = self.debug_var.get()
         threading.Thread(target=lambda: self._perform_scan(), daemon=True).start()
     
     def _perform_scan(self):
         acc = self.settings.accounts[0]
         if not acc.email:
-            self.logger.log("Fehler: Account 1 hat keine Email.")
+            self.logger.log("Fehler: Account 1 fehlt.")
             return
         res = self.worker.update_room_list(acc.email, acc.password)
         if res:
@@ -595,34 +570,25 @@ class RoomBookerApp(ctk.CTk):
     def _start_booking(self):
         rooms = [n for n, v in self.room_vars.items() if v.get()]
         accs = [a for a in self.settings.accounts if a.email]
-        
-        # 4H Blöcke generieren
         tasks = []
         try:
-            start_str = self.start_entry.get()
-            end_str = self.end_entry.get()
-            fmt = "%H:%M"
-            t_curr = datetime.strptime(start_str, fmt)
-            t_end = datetime.strptime(end_str, fmt)
-            
-            while t_curr < t_end:
-                t_next = t_curr + timedelta(hours=4)
-                if t_next > t_end: t_next = t_end
-                tasks.append({
-                    "start": t_curr.strftime(fmt), 
-                    "end": t_next.strftime(fmt), 
-                    "date": self.date_entry.get(), 
-                    "all_rooms": self.rooms
-                })
-                t_curr = t_next
+            start, end, fmt = self.start_entry.get(), self.end_entry.get(), "%H:%M"
+            tc, te = datetime.strptime(start, fmt), datetime.strptime(end, fmt)
+            while tc < te:
+                tn = tc + timedelta(hours=4)
+                if tn > te: tn = te
+                tasks.append({"start": tc.strftime(fmt), "end": tn.strftime(fmt), "date": self.date_entry.get(), "all_rooms": self.rooms})
+                tc = tn
         except Exception as e:
-            self.logger.log(f"Fehler bei Zeitformat: {e}")
+            self.logger.log(f"Zeitformat Fehler: {e}")
             return
 
         if not rooms:
-            self.logger.log("Bitte Räume auswählen.")
+            self.logger.log("Keine Räume gewählt.")
             return
 
+        # Debug-Status setzen
+        self.worker.show_browser = self.debug_var.get()
         threading.Thread(target=lambda: self.worker.execute_booking(tasks, accs, rooms, self.sim_var.get()), daemon=True).start()
 
     def _ensure_playwright_ready(self):
@@ -633,14 +599,11 @@ class RoomBookerApp(ctk.CTk):
         popup.title("Installation")
         popup.geometry("500x300")
         popup.grab_set()
-        ctk.CTkLabel(popup, text="Lade Browser-Komponenten...", font=("", 14, "bold")).pack(pady=10)
-        ctk.CTkLabel(popup, text="Bitte warten, das Fenster schliesst sich automatisch.", text_color="gray").pack()
-        status_lbl = ctk.CTkLabel(popup, text="Initialisiere...", wraplength=450, font=("Courier", 12))
+        ctk.CTkLabel(popup, text="Lade Browser...", font=("", 14, "bold")).pack(pady=10)
+        status_lbl = ctk.CTkLabel(popup, text="Starte...", wraplength=450, font=("Courier", 12))
         status_lbl.pack(pady=10)
-        
         prog = ctk.CTkProgressBar(popup, mode="indeterminate")
-        prog.pack(pady=10)
-        prog.start()
+        prog.pack(pady=10); prog.start()
         
         def update_st(t): self.after(0, lambda: status_lbl.configure(text=t[-100:]))
         def run():

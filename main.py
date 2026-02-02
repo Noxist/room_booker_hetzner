@@ -262,11 +262,12 @@ class BookingWorker:
 
     def perform_login(self, page, email, password) -> bool:
         """
-        Zentrale Login-Funktion basierend auf den Debug-Ergebnissen.
+        Zentrale Login-Funktion basierend auf der robusten 'check_reservations_final.py' Logik.
         """
         try:
             # 1. Startseite aufrufen
             if "/event/add" not in page.url:
+                self.logger.log(f"Navigiere zu {EVENT_ADD_URL}...")
                 page.goto(EVENT_ADD_URL)
                 page.wait_for_load_state("domcontentloaded")
             
@@ -288,7 +289,7 @@ class BookingWorker:
             human_sleep(1)
 
             # 3. Login Trigger (Timeline Klick)
-            # Wir sind noch nicht eingeloggt (kein Logout-Button, URL hat kein 'login' aber wir sind auch nicht in der App)
+            # Wir sind noch nicht eingeloggt (kein Logout-Button, URL hat kein 'login')
             if "login" not in page.url and "wayf" not in page.url and "eduid" not in page.url:
                 # Prüfen ob wir schon eingeloggt sind (User Menü sichtbar)
                 if page.locator("#navbarUser").is_visible():
@@ -300,39 +301,50 @@ class BookingWorker:
                     if trigger.count() > 0:
                         trigger.click()
                     else:
+                        # Fallback: Klicke blind in die Mitte
                         page.mouse.click(700, 500)
                     
-                    # Warten auf Redirect
+                    # Warten auf Redirect zu edu-ID
                     time.sleep(3)
                 except Exception as e:
                     self.logger.log(f"Fehler bei Login-Trigger: {e}")
 
             # 4. Edu-ID Login Prozess
-            if "eduid" in page.url or page.locator("#username").is_visible():
+            # Wir warten explizit, ob die Login-Elemente auftauchen
+            if page.locator("#username").is_visible() or "eduid" in page.url:
                 self.logger.log(f"Führe Login durch für {email}...")
                 
                 # Username
-                page.fill("#username", email)
-                human_sleep(0.5)
-                if page.locator("button[name='_eventId_submit']").is_visible():
-                    page.click("button[name='_eventId_submit']")
-                else:
-                    page.keyboard.press("Enter")
-                
-                human_sleep(1.5)
+                try:
+                    page.wait_for_selector("#username", timeout=5000)
+                    page.fill("#username", email)
+                    human_sleep(0.5)
+                    
+                    if page.locator("button[name='_eventId_submit']").is_visible():
+                        page.click("button[name='_eventId_submit']")
+                    else:
+                        page.keyboard.press("Enter")
+                    
+                    human_sleep(1.5)
 
-                # Password
-                if page.locator("#password").is_visible():
+                    # Password
+                    page.wait_for_selector("#password", timeout=5000)
                     page.fill("#password", password)
                     human_sleep(0.5)
+                    
                     if page.locator("button[name='_eventId_proceed']").is_visible():
                         page.click("button[name='_eventId_proceed']")
                     else:
                         page.keyboard.press("Enter")
-                
-                self.logger.log("Login abgeschickt. Warte auf Weiterleitung...")
-                page.wait_for_load_state("networkidle")
-                time.sleep(5) # Wichtig für Session-Aufbau
+                    
+                    self.logger.log("Login abgeschickt. Warte auf Session...")
+                    page.wait_for_load_state("networkidle")
+                    
+                    # WICHTIG: Wartezeit aus dem funktionierenden Skript übernehmen
+                    time.sleep(8) 
+                except Exception as e:
+                    self.logger.log(f"Fehler beim Ausfüllen des Logins: {e}")
+                    return False
 
             # Check ob erfolgreich
             if page.locator("#navbarUser").is_visible() or "/event/add" in page.url:
@@ -398,40 +410,45 @@ class BookingWorker:
                     continue
                     
                 self.logger.log(f"Hole Reservationen für: {acc.email}")
-                browser, context, page = self.get_context(p, force_visible=True) # Sichtbar lassen für Feedback
+                # Wir öffnen für jeden Account einen frischen Kontext, um Session-Vermischung zu vermeiden
+                browser, context, page = self.get_context(p, force_visible=True)
                 
                 try:
                     if self.perform_login(page, acc.email, acc.password):
                         self.logger.log(f"Gehe zu {RESERVATIONS_URL}...")
                         page.goto(RESERVATIONS_URL)
                         page.wait_for_load_state("networkidle")
-                        human_sleep(1)
+                        human_sleep(2)
                         
-                        rows = page.locator("table.table tbody tr").all()
-                        count = 0
-                        
-                        if len(rows) > 0:
-                            for row in rows:
-                                cells = row.locator("td").all()
-                                if len(cells) >= 4:
-                                    # Daten extrahieren
-                                    raw_time = " ".join(cells[0].inner_text().split())
-                                    title = cells[1].inner_text().strip()
-                                    location = cells[2].inner_text().strip()
-                                    room = cells[3].inner_text().strip()
-                                    
-                                    all_reservations.append({
-                                        "Account": acc.email,
-                                        "Zeit": raw_time,
-                                        "Titel": title,
-                                        "Ort": location,
-                                        "Raum": room,
-                                        "Abgerufen_am": datetime.now().strftime("%d.%m.%Y %H:%M")
-                                    })
-                                    count += 1
-                            self.logger.log(f"-> {count} Reservationen gefunden.")
+                        # Prüfen, ob Tabelle da ist
+                        if page.locator("table.table").is_visible():
+                            rows = page.locator("table.table tbody tr").all()
+                            count = 0
+                            
+                            if len(rows) > 0:
+                                for row in rows:
+                                    cells = row.locator("td").all()
+                                    if len(cells) >= 4:
+                                        # Daten extrahieren und bereinigen
+                                        raw_time = " ".join(cells[0].inner_text().split())
+                                        title = cells[1].inner_text().strip()
+                                        location = cells[2].inner_text().strip()
+                                        room = cells[3].inner_text().strip()
+                                        
+                                        all_reservations.append({
+                                            "Account": acc.email,
+                                            "Zeit": raw_time,
+                                            "Titel": title,
+                                            "Ort": location,
+                                            "Raum": room,
+                                            "Abgerufen_am": datetime.now().strftime("%d.%m.%Y %H:%M")
+                                        })
+                                        count += 1
+                                self.logger.log(f"-> {count} Reservationen gefunden.")
+                            else:
+                                self.logger.log("-> Keine Reservationen in der Liste.")
                         else:
-                            self.logger.log("-> Keine Reservationen in der Liste.")
+                            self.logger.log("-> Keine Tabelle gefunden (Login evtl. unvollständig?).")
                     else:
                         self.logger.log(f"-> Login fehlgeschlagen für {acc.email}")
                 except Exception as e:
@@ -448,6 +465,7 @@ class BookingWorker:
                     dict_writer.writeheader()
                     dict_writer.writerows(all_reservations)
                 self.logger.log(f"ERFOLG: Alle Reservationen gespeichert in: {CSV_EXPORT_FILE}")
+                # Optional: Datei öffnen oder Pfad anzeigen
             except Exception as e:
                 self.logger.log(f"Fehler beim Speichern der CSV: {e}")
         else:

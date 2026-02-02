@@ -1,42 +1,32 @@
-name: Build Desktop Apps
+name: Build RoomBooker
 
 on:
   push:
-    branches:
-      - "**"
-
-permissions:
-  contents: write
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
+    name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact_name: RoomBooker_Setup_Windows.exe
+            asset_name: RoomBooker_Setup_Windows.exe
+          - os: macos-latest
+            artifact_name: RoomBooker-macos
+            asset_name: RoomBooker_macOS.dmg
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
-
-      - name: Set version (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          $version = "v2.0.${{ github.run_number }}"
-          $version | Out-File -FilePath version.txt -Encoding utf8
-          Add-Content $env:GITHUB_ENV "APP_VERSION=$version"
-
-      - name: Set version (macOS)
-        if: matrix.os == 'macos-latest'
-        shell: bash
-        run: |
-          echo "v2.0.${{ github.run_number }}" > version.txt
-          echo "APP_VERSION=v2.0.${{ github.run_number }}" >> $GITHUB_ENV
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -44,42 +34,64 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build
+      - name: Install Playwright Browsers
+        run: playwright install chromium
+
+      # --- BUILD SCHRITT (EXE erstellen) ---
+      - name: Build with PyInstaller
         run: python build.py
 
+      # --- WINDOWS SPEZIFISCH: Installer bauen ---
+      - name: Build Windows Installer (Inno Setup)
+        if: matrix.os == 'windows-latest'
+        uses: Minionguyjosh/inno-setup-action@v1.2.2
+        with:
+          path: installer/room_booker.iss
+
+      # --- MACOS SPEZIFISCH: DMG bauen ---
       - name: Package macOS app (DMG)
         if: matrix.os == 'macos-latest'
         run: |
-          # Creates a DMG from the .app folder produced by build.py
-          hdiutil create -volname "RoomBooker" -srcfolder dist/RoomBooker.app -ov -format UDZO dist/RoomBooker.dmg
+          # Falls build.py eine .app erstellt hat, packen wir sie in ein DMG
+          if [ -d "dist/RoomBooker.app" ]; then
+            hdiutil create -volname "RoomBooker" -srcfolder "dist/RoomBooker.app" -ov -format UDZO "dist/RoomBooker.dmg"
+          else
+            echo "RoomBooker.app not found!"
+            exit 1
+          fi
 
-      - name: Upload artifact (Windows)
+      # --- ARTIFACTS HOCHLADEN ---
+      
+      # Windows: Den Installer hochladen
+      - name: Upload Windows Artifact
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: RoomBooker-windows
-          path: dist/RoomBooker.exe
+          name: RoomBooker-Setup-Windows
+          path: Output/RoomBooker_Setup_Windows.exe
 
-      - name: Upload artifact (macOS)
+      # MacOS: Das DMG hochladen
+      - name: Upload MacOS Artifact
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: RoomBooker-macos
+          name: RoomBooker-MacOS
           path: dist/RoomBooker.dmg
 
   release:
-    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: release_artifacts
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: v2.0.${{ github.run_number }}
-          name: v2.0.${{ github.run_number }}
-          files: release_artifacts/**
+          files: |
+            release_artifacts/RoomBooker-Setup-Windows/RoomBooker_Setup_Windows.exe
+            release_artifacts/RoomBooker-MacOS/RoomBooker.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

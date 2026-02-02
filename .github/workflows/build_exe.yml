@@ -47,10 +47,11 @@ jobs:
       - name: Build
         run: python build.py
 
-      - name: Package macOS app
+      - name: Package macOS app (DMG)
         if: matrix.os == 'macos-latest'
         run: |
-          ditto -c -k --sequesterRsrc --keepParent dist/RoomBooker.app dist/RoomBooker-macos.zip
+          # Creates a DMG from the .app folder produced by build.py
+          hdiutil create -volname "RoomBooker" -srcfolder dist/RoomBooker.app -ov -format UDZO dist/RoomBooker.dmg
 
       - name: Upload artifact (Windows)
         if: matrix.os == 'windows-latest'
@@ -64,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: RoomBooker-macos
-          path: dist/RoomBooker-macos.zip
+          path: dist/RoomBooker.dmg
 
   release:
     if: github.ref == 'refs/heads/main'

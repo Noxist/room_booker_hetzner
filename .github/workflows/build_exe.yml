@@ -1,13 +1,19 @@
-name: Build Windows EXE
+name: Build Desktop Apps
 
 on:
   push:
     branches:
       - "**"
 
+permissions:
+  contents: write
+
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,7 +21,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
+
+      - name: Set version (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = "v2.0.${{ github.run_number }}"
+          $version | Out-File -FilePath version.txt -Encoding utf8
+          Add-Content $env:GITHUB_ENV "APP_VERSION=$version"
+
+      - name: Set version (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          echo "v2.0.${{ github.run_number }}" > version.txt
+          echo "APP_VERSION=v2.0.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -23,17 +44,41 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Install Playwright browsers
-        run: python -m playwright install chromium
-
-      - name: Install Inno Setup
-        run: choco install innosetup -y
-
-      - name: Build EXE and installer
+      - name: Build
         run: python build.py
 
-      - name: Upload artifact
+      - name: Package macOS app
+        if: matrix.os == 'macos-latest'
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent dist/RoomBooker.app dist/RoomBooker-macos.zip
+
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: RoomBooker-build
-          path: dist/*.exe
+          name: RoomBooker-windows
+          path: dist/RoomBooker.exe
+
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: RoomBooker-macos
+          path: dist/RoomBooker-macos.zip
+
+  release:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.0.${{ github.run_number }}
+          name: v2.0.${{ github.run_number }}
+          files: release_artifacts/**

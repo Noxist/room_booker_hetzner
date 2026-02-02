@@ -1,18 +1,24 @@
 import os
+import platform
+import subprocess
 import sys
 from pathlib import Path
-import shutil
-import subprocess
 
 APP_NAME = "RoomBooker"
 BASE_DIR = Path(__file__).resolve().parent
 DIST_DIR = BASE_DIR / "dist"
 BUILD_DIR = BASE_DIR / "build"
 ICON_DIR = BASE_DIR / "assets" / "icons"
-INNO_SCRIPT = BASE_DIR / "installer" / "room_booker.iss"
+VERSION_FILE = BASE_DIR / "version.txt"
 
 
-def main() -> None:
+def read_version() -> str:
+    if VERSION_FILE.exists():
+        return VERSION_FILE.read_text(encoding="utf-8").strip()
+    return "0.0.0"
+
+
+def build_pyinstaller() -> None:
     env = os.environ.copy()
     env.setdefault("PLAYWRIGHT_BROWSERS_PATH", "0")
 
@@ -29,8 +35,6 @@ def main() -> None:
         "PyInstaller",
         "--name",
         APP_NAME,
-        "--onedir",
-        "--noconsole",
         "--clean",
         "--distpath",
         str(DIST_DIR),
@@ -40,19 +44,29 @@ def main() -> None:
         "playwright",
         "main.py",
     ]
+
+    system = platform.system().lower()
+    if system == "windows":
+        cmd.append("--onefile")
+        cmd.append("--noconsole")
+    elif system == "darwin":
+        cmd.append("--windowed")
+        cmd.extend(["--osx-bundle-identifier", "com.roombooker.app"])
+    else:
+        cmd.append("--onedir")
+        cmd.append("--windowed")
+
     if icon_path:
         cmd.extend(["--icon", str(icon_path)])
 
     print("Running:", " ".join(cmd))
     subprocess.check_call(cmd, env=env, cwd=str(BASE_DIR))
 
-    if INNO_SCRIPT.exists():
-        iscc = shutil.which("iscc")
-        if iscc:
-            print("Running Inno Setup:", iscc)
-            subprocess.check_call([iscc, str(INNO_SCRIPT)], cwd=str(BASE_DIR))
-        else:
-            print("Inno Setup (iscc) not found; skipping installer build.")
+
+def main() -> None:
+    version = read_version()
+    print(f"Building {APP_NAME} {version}")
+    build_pyinstaller()
 
 
 if __name__ == "__main__":

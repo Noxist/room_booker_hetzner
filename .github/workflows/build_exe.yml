@@ -31,17 +31,21 @@ jobs:
       - name: Build with PyInstaller
         run: python build.py
 
-      # This action runs ONLY on Windows, and now only exists in the Windows job
-      - name: Build Windows Installer (Inno Setup)
-        uses: Minionguyjosh/inno-setup-action@v1.2.2
-        with:
-          path: installer/room_booker.iss
+      # --- KORREKTUR START: Inno Setup direkt installieren ---
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress
+
+      - name: Build Windows Installer
+        # Wir rufen den Compiler direkt auf. Das ist stabiler als externe Actions.
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\room_booker.iss'
+      # --- KORREKTUR ENDE ---
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RoomBooker-Setup-Windows
-          path: Output/RoomBooker_Setup_Windows.exe
+          # Der Output landet standardmässig im Unterordner "Output" relativ zum Skript
+          path: installer/Output/RoomBooker_Setup_Windows.exe
 
   # --- MACOS JOB ---
   build-macos:

@@ -47,6 +47,11 @@ jobs:
       - name: Build
         run: python build.py
 
+      - name: Package macOS app
+        if: matrix.os == 'macos-latest'
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent dist/RoomBooker.app dist/RoomBooker-macos.zip
+
       - name: Upload artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -59,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: RoomBooker-macos
-          path: dist/RoomBooker.app/**
+          path: dist/RoomBooker-macos.zip
 
   release:
     if: github.ref == 'refs/heads/main'

@@ -49,6 +49,9 @@ def build_pyinstaller() -> None:
     if system == "windows":
         cmd.append("--onefile")
         cmd.append("--noconsole")
+    elif system == "darwin":
+        cmd.append("--windowed")
+        cmd.extend(["--osx-bundle-identifier", "com.roombooker.app"])
     else:
         cmd.append("--onedir")
         cmd.append("--windowed")

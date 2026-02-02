@@ -1,3 +1,4 @@
+import argparse
 import os
 import platform
 import subprocess
@@ -18,7 +19,7 @@ def read_version() -> str:
     return "0.0.0"
 
 
-def build_pyinstaller() -> None:
+def build_pyinstaller(*, onedir: bool, debug: bool) -> None:
     env = os.environ.copy()
     env.setdefault("PLAYWRIGHT_BROWSERS_PATH", "0")
 
@@ -42,18 +43,25 @@ def build_pyinstaller() -> None:
         str(BUILD_DIR),
         "--collect-all",
         "playwright",
+        "--collect-all",
+        "roombooker",
         "main.py",
     ]
 
     system = platform.system().lower()
     if system == "windows":
-        cmd.append("--onefile")
-        cmd.append("--noconsole")
+        if onedir:
+            cmd.append("--onedir")
+        else:
+            cmd.append("--onefile")
+        if not debug:
+            cmd.append("--noconsole")
     elif system == "darwin":
         cmd.append("--windowed")
         cmd.extend(["--osx-bundle-identifier", "com.roombooker.app"])
     else:
-        cmd.append("--onedir")
+        if onedir:
+            cmd.append("--onedir")
         cmd.append("--windowed")
 
     if icon_path:
@@ -64,9 +72,23 @@ def build_pyinstaller() -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Build RoomBooker with PyInstaller.")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Build in debug/onedir mode (keeps folder structure).",
+    )
+    parser.add_argument(
+        "--onedir",
+        action="store_true",
+        help="Force onedir build (alias for --debug mode).",
+    )
+    args = parser.parse_args()
+
     version = read_version()
     print(f"Building {APP_NAME} {version}")
-    build_pyinstaller()
+    onedir = args.debug or args.onedir
+    build_pyinstaller(onedir=onedir, debug=args.debug)
 
 
 if __name__ == "__main__":

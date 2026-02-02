@@ -234,8 +234,8 @@ class BookingWorker:
         self.logger = logger
         self.show_browser = False  # Wird von GUI gesteuert
 
-    def get_context(self, p, session_path: Optional[Path] = None):
-        headless_mode = not self.show_browser
+    def get_context(self, p, session_path: Optional[Path] = None, *, force_visible: bool = False):
+        headless_mode = False if force_visible else not self.show_browser
 
         self.logger.log(f"Starte Browser (Sichtbar: {self.show_browser})...")
         try:
@@ -297,7 +297,7 @@ class BookingWorker:
     def update_room_list(self, email: str, password: str) -> Optional[Dict[str, str]]:
         try:
             with sync_playwright() as p:
-                browser, _, page = self.get_context(p)
+                browser, _, page = self.get_context(p, force_visible=True)
                 try:
                     page.goto(EVENT_ADD_URL)
                     if self.navigate_to_target(page, email, password):
@@ -337,7 +337,7 @@ class BookingWorker:
         session_file = APP_DIR / f"session_{idx}.json"
         try:
             with sync_playwright() as p:
-                browser, context, page = self.get_context(p)
+                browser, context, page = self.get_context(p, force_visible=True)
                 try:
                     page.goto(EVENT_ADD_URL)
                     if self.navigate_to_target(page, email, password):

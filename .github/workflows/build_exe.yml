@@ -44,25 +44,22 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Install build tooling (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install create-dmg
-
-      - name: Install Inno Setup (Windows)
-        if: matrix.os == 'windows-latest'
-        run: choco install innosetup -y
-
       - name: Build
         run: python build.py
 
-      - name: Upload artifacts
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: RoomBooker-${{ matrix.os }}
-          path: |
-            dist/**
-            installer/**
+          name: RoomBooker-windows
+          path: dist/RoomBooker.exe
+
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: RoomBooker-macos
+          path: dist/RoomBooker.app/**
 
   release:
     if: github.ref == 'refs/heads/main'

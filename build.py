@@ -71,6 +71,14 @@ def build_pyinstaller(*, onedir: bool, debug: bool) -> None:
     subprocess.check_call(cmd, env=env, cwd=str(BASE_DIR))
 
 
+def build_windows_installer() -> None:
+    installer_script = BASE_DIR / "installer" / "room_booker.iss"
+    if not installer_script.exists():
+        raise FileNotFoundError(f"Inno Setup script not found: {installer_script}")
+    print("Running: iscc", installer_script)
+    subprocess.check_call(["iscc", str(installer_script)], cwd=str(installer_script.parent))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build RoomBooker with PyInstaller.")
     parser.add_argument(
@@ -83,12 +91,22 @@ def main() -> None:
         action="store_true",
         help="Force onedir build (alias for --debug mode).",
     )
+    parser.add_argument(
+        "--installer",
+        action="store_true",
+        help="Build Windows installer (requires Inno Setup/iscc).",
+    )
     args = parser.parse_args()
 
     version = read_version()
     print(f"Building {APP_NAME} {version}")
-    onedir = args.debug or args.onedir
+    onedir = args.debug or args.onedir or args.installer
     build_pyinstaller(onedir=onedir, debug=args.debug)
+    if args.installer:
+        system = platform.system().lower()
+        if system != "windows":
+            raise RuntimeError("--installer is only supported on Windows.")
+        build_windows_installer()
 
 
 if __name__ == "__main__":

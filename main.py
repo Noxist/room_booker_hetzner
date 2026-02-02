@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import queue
@@ -9,10 +10,10 @@ import importlib.util
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Any
 
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from playwright.sync_api import sync_playwright
 
 # --- KONFIGURATION ---
@@ -20,6 +21,7 @@ APP_NAME = "Room Booker Ultimate"
 VERSION_FILE = Path(__file__).resolve().parent / "version.txt"
 ROOM_BASE_URL = "https://raumreservation.ub.unibe.ch"
 EVENT_ADD_URL = f"{ROOM_BASE_URL}/event/add"
+RESERVATIONS_URL = f"{ROOM_BASE_URL}/reservation"
 VONROLL_LOCATION_PATH = "/set/1"
 
 HARDCODED_ROOMS = {
@@ -50,6 +52,7 @@ DEBUG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR = APP_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOG_DIR / "room_booker.log"
+CSV_EXPORT_FILE = APP_DIR / "alle_reservationen.csv"
 
 # --- DIE MAGISCHE DEBUG-DATEI ---
 DEBUG_LOGIC_FILE = APP_DIR / "debug_logic.py"
@@ -257,53 +260,105 @@ class BookingWorker:
         page = context.new_page()
         return browser, context, page
 
-    def navigate_to_target(self, page, email, password) -> bool:
-        max_retries = 15
-        for _ in range(max_retries):
-            try:
-                url = page.url
-                if "/event/add" in url and "login" not in url:
+    def perform_login(self, page, email, password) -> bool:
+        """
+        Zentrale Login-Funktion basierend auf den Debug-Ergebnissen.
+        """
+        try:
+            # 1. Startseite aufrufen
+            if "/event/add" not in page.url:
+                page.goto(EVENT_ADD_URL)
+                page.wait_for_load_state("domcontentloaded")
+            
+            # 2. Standortwahl (Dropdown-Trick)
+            if "/select" in page.url:
+                self.logger.log("Standortwahl erkannt...")
+                try:
+                    # Erst Dropdown öffnen, falls vorhanden
+                    if page.locator("#navbarDropDownRight").is_visible():
+                        page.click("#navbarDropDownRight")
+                        human_sleep(0.5)
+                    
+                    # Dann auf vonRoll klicken
+                    page.click("a[href*='/set/1']")
+                    page.wait_for_load_state("networkidle")
+                except Exception as e:
+                    self.logger.log(f"Warnung Standortwahl: {e}")
+
+            human_sleep(1)
+
+            # 3. Login Trigger (Timeline Klick)
+            # Wir sind noch nicht eingeloggt (kein Logout-Button, URL hat kein 'login' aber wir sind auch nicht in der App)
+            if "login" not in page.url and "wayf" not in page.url and "eduid" not in page.url:
+                # Prüfen ob wir schon eingeloggt sind (User Menü sichtbar)
+                if page.locator("#navbarUser").is_visible():
                     return True
 
-                if "/select" in url:
-                    self.logger.log("Standortwahl...")
-                    try:
-                        loc_selector = f"main a[href*='{VONROLL_LOCATION_PATH}']"
-                        if page.locator(loc_selector).count() > 0:
-                            page.click(loc_selector)
-                        else:
-                            self.logger.log("Konnte Standort nicht finden.")
-                            return False
-                    except Exception as e:
-                        self.logger.log(f"Fehler Standortwahl: {e}")
-                        return False
-
-                if "login" in url:
-                    self.logger.log("Login-Seite...")
-                    if page.locator("#username").count() > 0:
-                        page.fill("#username", email)
-                        page.fill("#password", password)
-                        page.click("#loginbtn")
-                        page.wait_for_load_state("networkidle")
+                self.logger.log("Login-Trigger: Klicke auf Timeline...")
+                try:
+                    trigger = page.locator(".timeline-cell-clickable").first
+                    if trigger.count() > 0:
+                        trigger.click()
                     else:
-                        self.logger.log("Login-Felder nicht gefunden.")
-                        return False
+                        page.mouse.click(700, 500)
+                    
+                    # Warten auf Redirect
+                    time.sleep(3)
+                except Exception as e:
+                    self.logger.log(f"Fehler bei Login-Trigger: {e}")
 
-                page.wait_for_timeout(1000)
-            except Exception:
-                time.sleep(1)
-        return False
+            # 4. Edu-ID Login Prozess
+            if "eduid" in page.url or page.locator("#username").is_visible():
+                self.logger.log(f"Führe Login durch für {email}...")
+                
+                # Username
+                page.fill("#username", email)
+                human_sleep(0.5)
+                if page.locator("button[name='_eventId_submit']").is_visible():
+                    page.click("button[name='_eventId_submit']")
+                else:
+                    page.keyboard.press("Enter")
+                
+                human_sleep(1.5)
+
+                # Password
+                if page.locator("#password").is_visible():
+                    page.fill("#password", password)
+                    human_sleep(0.5)
+                    if page.locator("button[name='_eventId_proceed']").is_visible():
+                        page.click("button[name='_eventId_proceed']")
+                    else:
+                        page.keyboard.press("Enter")
+                
+                self.logger.log("Login abgeschickt. Warte auf Weiterleitung...")
+                page.wait_for_load_state("networkidle")
+                time.sleep(5) # Wichtig für Session-Aufbau
+
+            # Check ob erfolgreich
+            if page.locator("#navbarUser").is_visible() or "/event/add" in page.url:
+                return True
+            
+            return False
+
+        except Exception as e:
+            self.logger.log(f"Fehler in perform_login: {e}")
+            return False
 
     def update_room_list(self, email: str, password: str) -> Optional[Dict[str, str]]:
         try:
             with sync_playwright() as p:
                 browser, _, page = self.get_context(p, force_visible=True)
                 try:
-                    page.goto(EVENT_ADD_URL)
-                    if self.navigate_to_target(page, email, password):
-                        self.logger.log("Seite geladen. Lese Daten...")
-                        page.wait_for_load_state("domcontentloaded")
-                        human_sleep(1)
+                    self.logger.log("Starte Raum-Scan...")
+                    if self.perform_login(page, email, password):
+                        self.logger.log("Login OK. Scanne Räume...")
+                        # Sicherstellen, dass wir auf der richtigen Seite sind
+                        if "/event/add" not in page.url:
+                            page.goto(EVENT_ADD_URL)
+                            page.wait_for_load_state("domcontentloaded")
+                        
+                        human_sleep(2)
+                        
                         js_data = page.evaluate(
                             """() => {
                             const sel = document.querySelector('#event_room');
@@ -319,54 +374,86 @@ class BookingWorker:
                         }"""
                         )
 
-                        if js_data:
+                        if js_data and len(js_data) > 0:
                             self.logger.log(f"Scan erfolgreich: {len(js_data)} Räume.")
                             return js_data
-                        self.logger.log("Keine Räume gefunden.")
+                        
+                        self.logger.log("Scan fehlgeschlagen (Liste leer?).")
                         return None
-                    self.logger.log("Login nicht geschafft.")
-                    return None
+                    else:
+                        self.logger.log("Login für Scan fehlgeschlagen.")
+                        return None
                 finally:
                     browser.close()
         except Exception as e:
             self.logger.log(f"CRITICAL: Playwright Crash: {e}")
             return None
 
-    def refresh_session(self, idx: int, email: str, password: str) -> None:
-        self.logger.log(f"--- SESSION {idx + 1} CHECK ---")
-        session_file = APP_DIR / f"session_{idx}.json"
-        try:
-            with sync_playwright() as p:
-                browser, context, page = self.get_context(p, force_visible=True)
+    def fetch_reservations(self, accounts: List[Account]) -> None:
+        all_reservations = []
+        
+        with sync_playwright() as p:
+            for acc in accounts:
+                if not acc.active or not acc.email:
+                    continue
+                    
+                self.logger.log(f"Hole Reservationen für: {acc.email}")
+                browser, context, page = self.get_context(p, force_visible=True) # Sichtbar lassen für Feedback
+                
                 try:
-                    page.goto(EVENT_ADD_URL)
-                    if self.navigate_to_target(page, email, password):
-                        context.storage_state(path=str(session_file))
-                        self.logger.log(f"Session {idx + 1} OK.")
+                    if self.perform_login(page, acc.email, acc.password):
+                        self.logger.log(f"Gehe zu {RESERVATIONS_URL}...")
+                        page.goto(RESERVATIONS_URL)
+                        page.wait_for_load_state("networkidle")
+                        human_sleep(1)
+                        
+                        rows = page.locator("table.table tbody tr").all()
+                        count = 0
+                        
+                        if len(rows) > 0:
+                            for row in rows:
+                                cells = row.locator("td").all()
+                                if len(cells) >= 4:
+                                    # Daten extrahieren
+                                    raw_time = " ".join(cells[0].inner_text().split())
+                                    title = cells[1].inner_text().strip()
+                                    location = cells[2].inner_text().strip()
+                                    room = cells[3].inner_text().strip()
+                                    
+                                    all_reservations.append({
+                                        "Account": acc.email,
+                                        "Zeit": raw_time,
+                                        "Titel": title,
+                                        "Ort": location,
+                                        "Raum": room,
+                                        "Abgerufen_am": datetime.now().strftime("%d.%m.%Y %H:%M")
+                                    })
+                                    count += 1
+                            self.logger.log(f"-> {count} Reservationen gefunden.")
+                        else:
+                            self.logger.log("-> Keine Reservationen in der Liste.")
                     else:
-                        self.logger.log("Session Check fehlgeschlagen.")
+                        self.logger.log(f"-> Login fehlgeschlagen für {acc.email}")
+                except Exception as e:
+                    self.logger.log(f"Fehler beim Abruf: {e}")
                 finally:
                     browser.close()
-        except Exception as e:
-            self.logger.log(f"Fehler Session Check: {e}")
+                    
+        # CSV Speichern
+        if all_reservations:
+            try:
+                keys = all_reservations[0].keys()
+                with open(CSV_EXPORT_FILE, 'w', newline='', encoding='utf-8') as f:
+                    dict_writer = csv.DictWriter(f, fieldnames=keys)
+                    dict_writer.writeheader()
+                    dict_writer.writerows(all_reservations)
+                self.logger.log(f"ERFOLG: Alle Reservationen gespeichert in: {CSV_EXPORT_FILE}")
+            except Exception as e:
+                self.logger.log(f"Fehler beim Speichern der CSV: {e}")
+        else:
+            self.logger.log("Keine Reservationen zum Speichern gefunden.")
 
     def execute_booking(self, tasks, accounts, preferred_rooms, simulation_mode) -> None:
-        if DEBUG_LOGIC_FILE.exists():
-            self.logger.log(f"!!! EXTERNES SKRIPT GEFUNDEN: {DEBUG_LOGIC_FILE.name} !!!")
-            self.logger.log("Lade externe Logik...")
-            try:
-                spec = importlib.util.spec_from_file_location("debug_logic", DEBUG_LOGIC_FILE)
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-
-                if hasattr(mod, "run_booking"):
-                    mod.run_booking(self, tasks, accounts, preferred_rooms, simulation_mode)
-                    return
-                self.logger.log("Fehler: 'run_booking' Funktion nicht in debug_logic.py gefunden.")
-            except Exception as e:
-                self.logger.log(f"CRITICAL FEHLER im externen Skript: {e}")
-                self.logger.log("Falle zurück auf interne Standard-Logik...")
-
         self.logger.log("--- START: INTERNE BUCHUNG ---")
         if simulation_mode:
             self.logger.log("SIMULATIONS-MODUS (keine Buchung)")
@@ -382,22 +469,29 @@ class BookingWorker:
                     continue
 
                 acc = accounts[acc_idx % len(accounts)]
-                session_file = APP_DIR / f"session_{acc_idx % len(accounts)}.json"
+                session_file = APP_DIR / f"session_{acc.email.replace('@','_')}.json"
                 acc_idx += 1
 
-                self.logger.log(f"Versuche: {task['start']}-{task['end']} ({room_name})")
+                self.logger.log(f"Versuche: {task['start']}-{task['end']} ({room_name}) mit {acc.email}")
 
                 try:
                     with sync_playwright() as p:
                         browser, context, page = self.get_context(p, session_path=session_file)
                         try:
-                            page.goto(EVENT_ADD_URL)
-                            if not self.navigate_to_target(page, acc.email, acc.password):
+                            # Wir nutzen die zentrale Login-Logik
+                            if not self.perform_login(page, acc.email, acc.password):
                                 self.logger.log("Login fehlgeschlagen.")
                                 continue
 
+                            # Session speichern
                             context.storage_state(path=str(session_file))
 
+                            # Zurück zur Buchungsseite falls nötig
+                            if "/event/add" not in page.url:
+                                page.goto(EVENT_ADD_URL)
+                                page.wait_for_load_state("domcontentloaded")
+
+                            # Formular ausfüllen
                             page.evaluate(
                                 "v => { var s=document.getElementById('event_room'); s.value=v; s.dispatchEvent(new Event('change')); }",
                                 room_id,
@@ -430,21 +524,30 @@ class BookingWorker:
                                 self.logger.log("Speichere...")
                                 page.click("#event_submit")
                                 try:
-                                    page.wait_for_url("**/event**", timeout=5000)
-                                    if "/add" not in page.url:
-                                        self.logger.log(f"ERFOLG: {room_name}")
-                                        block_success = True
-                                    else:
-                                        raise Exception("URL unverändert")
+                                    # Erfolgskriterium: URL ändert sich oder wir sind nicht mehr auf /add
+                                    page.wait_for_url(lambda u: "/event/add" not in u, timeout=5000)
+                                    self.logger.log(f"ERFOLG: {room_name} gebucht!")
+                                    block_success = True
                                 except Exception:
-                                    self.logger.log(f"Fehler/Belegt: {room_name}")
+                                    # Prüfen auf Fehlermeldungen im Text
+                                    content = page.content().lower()
+                                    if "konflikt" in content or "belegt" in content:
+                                         self.logger.log(f"Raum {room_name} ist belegt.")
+                                    else:
+                                         # Wenn wir immer noch auf der Seite sind, hat es wohl nicht geklappt
+                                         if "/event/add" in page.url:
+                                             self.logger.log(f"Fehler bei {room_name} (Keine Bestätigung).")
+                                         else:
+                                             # URL hat gewechselt -> Erfolg
+                                             self.logger.log(f"ERFOLG: {room_name} gebucht!")
+                                             block_success = True
                         finally:
                             browser.close()
                 except Exception as e:
-                    self.logger.log(f"Fehler: {e}")
+                    self.logger.log(f"Fehler bei Buchungsvorgang: {e}")
 
             if not block_success:
-                self.logger.log(f"FEHLER: Block {task['start']} fehlgeschlagen.")
+                self.logger.log(f"FEHLER: Block {task['start']} konnte nicht gebucht werden.")
             human_sleep(1)
         self.logger.log("--- PROZESS ENDE ---")
 
@@ -718,6 +821,11 @@ class RoomBookerApp(ctk.CTk):
         ctk.CTkButton(system_tab, text="Räume neu scannen", command=self._run_scan, fg_color="#E59400").pack(
             anchor="w", pady=(5, 10)
         )
+        
+        # --- NEUER BUTTON FÜR RESERVATIONS EXPORT ---
+        ctk.CTkButton(system_tab, text="Reservationen exportieren (CSV)", command=self._export_reservations, fg_color="#2B78E4").pack(
+            anchor="w", pady=(5, 10)
+        )
 
         ctk.CTkLabel(system_tab, text="Logs", font=("", 14, "bold")).pack(anchor="w", pady=(10, 5))
         self.log_text = ctk.CTkTextbox(system_tab, height=220)
@@ -873,6 +981,17 @@ class RoomBookerApp(ctk.CTk):
             self.rooms = res
             RoomStore.save(res)
             self.after(0, self._render_rooms)
+            
+    def _export_reservations(self) -> None:
+        self._save_accounts()
+        active_accounts = [acc for acc in self.settings.accounts if acc.active and acc.email]
+        if not active_accounts:
+            self.logger.log("Keine aktiven Accounts für den Export.")
+            return
+        
+        self.logger.log(f"Starte Export für {len(active_accounts)} Accounts...")
+        self.worker.show_browser = self.debug_var.get()
+        threading.Thread(target=lambda: self.worker.fetch_reservations(active_accounts), daemon=True).start()
 
     def _add_job_to_queue(self) -> None:
         mode = self.mode_var.get()

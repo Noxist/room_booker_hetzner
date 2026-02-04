@@ -1,8 +1,4 @@
-from roombooker.gui import RoomBookerApp
-
-
-def main() -> None:
-    RoomBookerApp().mainloop()
+from main_headless import main
 
 
 if __name__ == "__main__":

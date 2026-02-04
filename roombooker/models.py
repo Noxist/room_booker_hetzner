@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 from typing import Dict, List
 
 
@@ -49,3 +50,13 @@ class Settings:
     accounts: List[Account] = field(default_factory=list)
     simulation: bool = True
     theme: str = "Dark"
+
+
+@dataclass
+class JobRequest:
+    active: bool = True
+    day: str = "Montag"
+    start: str = "08:00"
+    end: str = "18:00"
+    rooms: List[str] = field(default_factory=list)
+    summary: Optional[str] = None

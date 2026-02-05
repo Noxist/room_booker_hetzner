@@ -7,19 +7,18 @@ from playwright.sync_api import sync_playwright
 from roombooker.storage import load_accounts, resolve_data_dir
 
 # --- STANDARD KONFIGURATION ---
-PREFERRED_ROOMS = ["D-204", "A-204", "A-241", "D-239", "D-231", "A-231", "D-202", "D-235"]
 DEFAULT_START = "08:00"
 DEFAULT_END = "20:00"
 MAX_BLOCK_MINUTES = 240
 
-# Falls keine weights.json existiert, nehmen wir diese Werte:
+# Standard-Gewichte (Falls JSON fehlt)
+# preferredRoomBonus ist hier entfernt, da wir rein nach Qualitaet gehen
 DEFAULT_WEIGHTS = {
     "totalCoveredMin": 0.0141,
     "waitPenalty": -1.453,
     "switchBonus": 1.021,
     "stabilityBonus": 9.352,
-    "productiveLossMin": -0.118,
-    "preferredRoomBonus": 5.0
+    "productiveLossMin": -0.118
 }
 
 def t2m(t_str):
@@ -32,24 +31,19 @@ def m2t(mins):
     return f"{h:02d}:{m:02d}"
 
 def load_weights(data_dir):
-    """Lädt Gewichte aus weights.json oder nimmt Standardwerte."""
     weights_path = data_dir / "weights.json"
     weights = DEFAULT_WEIGHTS.copy()
-    
     if weights_path.exists():
         try:
             with open(weights_path, "r") as f:
                 loaded = json.load(f)
+                # Wir ignorieren Keys, die wir nicht mehr brauchen (z.B. preferredRoomBonus)
                 weights.update(loaded)
             print(f"⚖️  Gewichte geladen aus: {weights_path}")
         except Exception as e:
-            print(f"⚠️  Fehler beim Laden der weights.json: {e}. Nutze Standards.")
+            print(f"⚠️  Fehler bei weights.json: {e}")
     else:
-        print(f"ℹ️  Keine weights.json gefunden. Nutze Standardwerte.")
-        # Optional: Erstelle die Datei, damit der User sie bearbeiten kann
-        # with open(weights_path, "w") as f:
-        #     json.dump(weights, f, indent=2)
-            
+        print(f"ℹ️  Keine weights.json gefunden. Nutze Standards.")
     return weights
 
 def parse_arguments(args):
@@ -57,7 +51,8 @@ def parse_arguments(args):
         "date": None,
         "start": DEFAULT_START,
         "end": DEFAULT_END,
-        "accounts_override": None
+        "accounts_override": None,
+        "debug": False
     }
     for arg in args:
         if re.match(r"\d{2}\.\d{2}\.\d{4}", arg):
@@ -69,12 +64,13 @@ def parse_arguments(args):
         match_acc = re.match(r"/x(\d+)", arg)
         if match_acc:
             config["accounts_override"] = int(match_acc.group(1))
+        if arg == "--debug" or arg == "-d":
+            config["debug"] = True
     return config
 
 def get_free_duration(bookings, start_time, max_end_time):
     sorted_b = sorted(bookings, key=lambda x: x['start_m'])
     current_limit = max_end_time
-    
     for b in sorted_b:
         if b['end_m'] <= start_time: continue
         if b['start_m'] <= start_time:
@@ -84,13 +80,16 @@ def get_free_duration(bookings, start_time, max_end_time):
             break
     return current_limit
 
-def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_history, weights):
-    """
-    Rekursiver Pfadfinder mit dynamischen Gewichten.
-    """
+def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_history, weights, debug=False, depth=0):
+    indent = "  " * depth
+    if debug:
+        print(f"\n{indent}🔎 Suche ab {m2t(current_time)} (Accounts übrig: {accounts_left})")
+
     if current_time >= target_end:
+        if debug: print(f"{indent}🏁 Zielzeit erreicht.")
         return path_history
     if accounts_left <= 0:
+        if debug: print(f"{indent}🛑 Keine Accounts mehr.")
         return path_history
 
     candidates = []
@@ -105,59 +104,65 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
         duration = actual_end - current_time
         
         if duration >= 15:
-            # --- SCORING CALCULATION ---
+            # --- SCORING CALCULATION (REIN MATHE / AI) ---
             score = 0
+            details = []
             
-            # 1. Dauer (Masse ist gut)
-            score += duration * weights["totalCoveredMin"]
+            # 1. Dauer
+            s_dur = duration * weights.get("totalCoveredMin", 0.014)
+            score += s_dur
+            details.append(f"Dauer({duration}m):{s_dur:.2f}")
             
             # 2. Stabilität vs. Wechsel
             if last_room:
                 if room == last_room:
-                    score += weights["stabilityBonus"]
+                    s_stab = weights.get("stabilityBonus", 9.0)
+                    details.append(f"Stab:{s_stab:.2f}")
+                    score += s_stab
                 else:
-                    score += weights["switchBonus"]
+                    s_switch = weights.get("switchBonus", 1.0)
+                    details.append(f"Wechsel:{s_switch:.2f}")
+                    score += s_switch
             
-            # 3. Wartezeit (hier implizit 0, da wir ab current_time suchen, 
-            # aber für Lücken-Logik wichtig, falls wir später ansetzen würden)
-            # score += gap * weights["waitPenalty"] 
-
-            # 4. Lieblingsraum
-            if room in PREFERRED_ROOMS:
-                score += weights["preferredRoomBonus"]
+            # (Kein "preferredRoom" Check mehr -> totale Objektivität)
 
             candidates.append({
                 "room": room,
                 "start": current_time,
                 "end": actual_end,
                 "duration": duration,
-                "score": score
+                "score": score,
+                "details": ", ".join(details)
             })
     
     # Sortieren nach Score
     candidates.sort(key=lambda x: x['score'], reverse=True)
-    top_candidates = candidates[:6] # Beam Search Breite
+    
+    if debug and candidates:
+        print(f"{indent}   Top Kandidaten (aus {len(candidates)}):")
+        for c in candidates[:3]:
+            print(f"{indent}   -> {c['room']} ({c['duration']}m) Score: {c['score']:.2f} [{c['details']}]")
+
+    # Beam Search: Wir schauen uns die besten 6 Optionen an
+    top_candidates = candidates[:6]
     
     best_full_path = path_history
     best_path_score = -float('inf')
     
-    # Hilfsfunktion für Gesamtscore eines Pfades
     def calculate_total_score(path):
         total_s = 0
         for i, step in enumerate(path):
             dur = step['end_m'] - step['start_m']
-            total_s += dur * weights["totalCoveredMin"]
-            if step['room'] in PREFERRED_ROOMS:
-                total_s += weights["preferredRoomBonus"]
-            
+            total_s += dur * weights.get("totalCoveredMin", 0.014)
             if i > 0:
                 if path[i-1]['room'] == step['room']:
-                    total_s += weights["stabilityBonus"]
+                    total_s += weights.get("stabilityBonus", 9.0)
                 else:
-                    total_s += weights["switchBonus"]
+                    total_s += weights.get("switchBonus", 1.0)
         return total_s
 
     if not top_candidates:
+        if debug: print(f"{indent}⚠️ Keine passenden Räume gefunden.")
         return path_history
 
     for cand in top_candidates:
@@ -175,17 +180,17 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
             target_end, 
             accounts_left - 1, 
             path_history + [new_step],
-            weights
+            weights,
+            debug,
+            depth + 1
         )
         
         if not result_path: continue
         
-        # Bewertung: Reichweite > Score
         final_end = result_path[-1]['end_m']
         current_max_end = best_full_path[-1]['end_m'] if best_full_path else 0
         path_score = calculate_total_score(result_path)
         
-        # Logik: Wir wollen primär ans Ziel (20:00). Wenn beide gleich weit kommen, gewinnt der Score.
         if final_end > current_max_end:
             best_full_path = result_path
             best_path_score = path_score
@@ -220,16 +225,13 @@ def extract_all_rooms(page):
 def run_scan():
     config = parse_arguments(sys.argv)
     if not config["date"]:
-        print("❌ Fehler: Kein Datum. Bsp: python3 math_scan_v4.py 12.02.2026 /x5")
+        print("❌ Fehler: Kein Datum. Bsp: python3 math_scan_v4.py 12.02.2026 /x3 --debug")
         return
 
     data_dir = resolve_data_dir()
-    
-    # --- GEWICHTE LADEN ---
     weights = load_weights(data_dir)
-    # ----------------------
 
-    print(f"--- 🔗 CHAIN SCAN V4 ({config['date']}) ---")
+    print(f"--- 🔗 CHAIN SCAN V4 ({config['date']}) [DEBUG={config['debug']}] ---")
     accs = load_accounts(data_dir / "settings.json")
     
     num_accounts = config["accounts_override"] if config["accounts_override"] else len(accs)
@@ -253,11 +255,6 @@ def run_scan():
             page.wait_for_load_state("domcontentloaded")
             time.sleep(2)
             
-            # Falls Weiterleitung oder Login nötig... (gekürzt für Übersicht)
-            if "login" in page.url or "wayf" in page.url:
-                 print("⚠️ Seite verlangt Login. Bitte Session erneuern oder interaktiven Modus nutzen.")
-                 # Hier könnte man die Login-Logik reaktivieren falls nötig
-
             try:
                 page.wait_for_selector("rect[data-event-event-value]", timeout=5000)
             except:
@@ -265,11 +262,14 @@ def run_scan():
 
             raw_bookings = extract_all_rooms(page)
             
-            rooms_data = {r: [] for r in PREFERRED_ROOMS} 
+            # Hier sammeln wir jetzt einfach ALLES was wir finden
+            rooms_data = {} 
             for b in raw_bookings:
                 r = b['room']
                 if r not in rooms_data: rooms_data[r] = []
                 rooms_data[r].append({'start_m': t2m(b['start']), 'end_m': t2m(b['end'])})
+            
+            print(f"✅ {len(rooms_data)} verschiedene Räume gefunden.")
             
         except Exception as e:
             print(f"❌ Fehler: {e}")
@@ -277,14 +277,14 @@ def run_scan():
             return
         browser.close()
 
-    print("🧮 Berechne beste Kette mit AI-Gewichten...")
+    print("🧮 Berechne beste Kette (Objektiv & Gewichtet)...")
     req_start = t2m(config["start"])
     req_end = t2m(config["end"])
     
-    # Gewichte übergeben
-    chain = find_best_chain(rooms_data, req_start, req_end, num_accounts, [], weights)
+    chain = find_best_chain(rooms_data, req_start, req_end, num_accounts, [], weights, debug=config["debug"])
     
     if chain:
+        print("\n✅ OPTIMALER KETTEN-PLAN:")
         clean_chain = []
         for step in chain:
             clean_chain.append({
@@ -292,14 +292,10 @@ def run_scan():
                 "end": step["end"],
                 "room": step["room"]
             })
-        
-        print("\n✅ OPTIMALER KETTEN-PLAN:")
         print(json.dumps(clean_chain, indent=2))
         
         total_min = chain[-1]['end_m'] - chain[0]['start_m']
-        print(f"\n📊 Abdeckung: {total_min/60:.1f} Stunden ({len(chain)} Buchungen)")
-        if chain[-1]['end_m'] < req_end:
-            print(f"⚠️ Ziel 20:00 verfehlt. Ende um {chain[-1]['end']}.")
+        print(f"\n📊 Abdeckung: {total_min/60:.1f} Stunden")
     else:
         print("❌ Keine machbare Kette gefunden.")
 

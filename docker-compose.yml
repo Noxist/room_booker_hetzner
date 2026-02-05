@@ -1,0 +1,17 @@
+services:
+  room-booker:
+    build: .
+    image: auto_reserve-room-booker
+    container_name: room-booker
+    restart: unless-stopped
+    # Hier binden wir den Ordner mit den Einstellungen ein
+    volumes:
+      - ../auto_reserve_data:/app/data
+    environment:
+      - TZ=Europe/Zurich
+      - PYTHONUNBUFFERED=1
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      # Deine Google Calendar ID
+      - GOOGLE_CALENDAR_ID=3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com
+      # Hier den OpenAI Key einfügen (sk-...)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

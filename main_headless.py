@@ -31,7 +31,8 @@ def resolve_job_date(day: str) -> str | None:
     if target is None:
         return None
     today = date.today()
-    for offset in range(0, 14):
+    # Wir suchen im Bereich von heute bis +14 Tage
+    for offset in range(0, 15):
         candidate = today + timedelta(days=offset)
         if candidate.weekday() == target:
             return candidate.strftime("%d.%m.%Y")
@@ -89,15 +90,25 @@ def main() -> None:
     engine = BookingEngine(logger)
     all_successes: List[Dict[str, object]] = []
 
+    # 14-Tage-Limit berechnen
+    limit_date = date.today() + timedelta(days=14)
+
     for job in jobs:
         resolved_date = resolve_job_date(job.day)
         if not resolved_date:
-            logger.log(f"Job übersprungen (ungültiges Datum/Wochentag): {job.day}")
             continue
+            
+        # FIX: Prüfen, ob das Datum erlaubt ist (<= 14 Tage)
+        job_date_obj = datetime.strptime(resolved_date, "%d.%m.%Y").date()
+        if job_date_obj > limit_date:
+            logger.log(f"INFO: Überspringe {resolved_date} (Limit: {limit_date.strftime('%d.%m.%Y')})")
+            continue
+
         tasks = build_tasks(job.start, job.end, resolved_date, rooms)
         if not tasks:
             logger.log(f"Job übersprungen (ungültige Zeit): {job.start}-{job.end}")
             continue
+            
         successes = engine.execute_booking(tasks, accounts, job.rooms, simulation_mode=False, summary=summary)
         all_successes.extend(successes)
 
@@ -105,14 +116,14 @@ def main() -> None:
     if all_successes:
         notifier.send_status("Gebucht", f"{len(all_successes)} Slots")
     else:
-        notifier.send_status("Alle Räume voll")
+        # Nur senden, wenn wir überhaupt versucht haben zu buchen (d.h. Datum war gültig)
+        pass 
 
     credentials_path = __import__("os").environ.get(
         "GOOGLE_CREDENTIALS_PATH", str(data_dir / "google_credentials.json")
     )
     calendar_id = __import__("os").environ.get("GOOGLE_CALENDAR_ID", "")
     if not calendar_id:
-        logger.log("GOOGLE_CALENDAR_ID nicht gesetzt. Überspringe Kalender-Sync.")
         return
 
     calendar = CalendarSync(credentials_path, calendar_id, logger, summary=summary)

@@ -1,0 +1,11 @@
+# Sicherheit: Niemals Passwörter hochladen!
+settings.json
+session_*.json
+
+# Müll & Dumps
+__pycache__/
+*.pyc
+html_dumps/
+full_dump.html
+*.tar.gz
+.env

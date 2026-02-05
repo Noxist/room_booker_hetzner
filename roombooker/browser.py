@@ -20,15 +20,14 @@ class BookingWorker:
         self._no_override = object()
 
     def get_context(self, p, session_path: Optional[Path] = None, *, force_visible: bool = False):
-        # Logik: Wenn force_visible True ist (z.B. beim Scan), dann sichtbar.
+        # Logik: Wenn force_visible True ist, dann sichtbar.
         # Ansonsten entscheidet die User-Einstellung (self.show_browser).
         is_headless = False if force_visible else not self.show_browser
 
         self.logger.log(f"Starte Browser (Sichtbar: {not is_headless})...")
         
         try:
-            # Wir erzwingen hier ein grosses Fenster, um Responsive-Probleme (Hamburger-Menü)
-            # zu minimieren, auch wenn headless.
+            # Wir erzwingen hier ein grosses Fenster
             browser = p.chromium.launch(
                 headless=is_headless, 
                 slow_mo=50,
@@ -43,7 +42,6 @@ class BookingWorker:
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             ),
-            # Viewport explizit gross setzen
             "viewport": {"width": 1600, "height": 900},
             "locale": "de-CH",
         }
@@ -94,80 +92,61 @@ class BookingWorker:
                 page.goto(URLS["event_add"])
                 page.wait_for_load_state("domcontentloaded")
 
-            # --- VERBESSERTE STANDORTWAHL ---
             if "/select" in page.url:
                 self.logger.log("Standortwahl erkannt...")
                 try:
-                    # 1. Prüfen, ob der normale Dropdown sichtbar ist
                     if page.locator("#navbarDropDownRight").is_visible():
                         page.click("#navbarDropDownRight")
                         human_sleep(0.5)
-                    
-                    # 2. Fallback: Mobiles Hamburger-Menü prüfen
                     elif page.locator(".navbar-toggler").is_visible():
                         self.logger.log("Mobiles Menü erkannt, öffne Navigation...")
                         page.click(".navbar-toggler")
                         human_sleep(0.5)
-                        # Nach dem Öffnen nochmal prüfen, ob Dropdown jetzt da ist
                         if page.locator("#navbarDropDownRight").is_visible():
                             page.click("#navbarDropDownRight")
                             human_sleep(0.5)
 
-                    # 3. Klick auf 'vonRoll' (Link sollte jetzt sichtbar sein)
                     self.logger.log("Wähle Bibliothek vonRoll...")
                     page.click(f"a[href*='{URLS['vonroll_location_path']}']")
                     page.wait_for_load_state("networkidle")
-                
                 except Exception as e:
                     self.logger.log(f"Warnung Standortwahl (versuche Fortfahren): {e}")
 
             human_sleep(1)
 
-            # --- LOGIN TRIGGER ---
             if "login" not in page.url and "wayf" not in page.url and "eduid" not in page.url:
                 if page.locator("#navbarUser").is_visible():
                     return True
-
                 self.logger.log("Suche Login-Trigger...")
                 try:
-                    # Wir suchen die Timeline-Zellen
                     trigger = page.locator(".timeline-cell-clickable").first
                     if trigger.count() > 0:
                         trigger.click()
                     else:
-                        # Fallback: Blindklick in die Mitte
                         self.logger.log("Keine Zellen gefunden, klicke blind...")
-                        page.mouse.click(800, 450) # Angepasst an 1600x900
-
+                        page.mouse.click(800, 450)
                     time.sleep(3)
                 except Exception as e:
                     self.logger.log(f"Fehler bei Login-Trigger: {e}")
 
-            # --- ANMELDUNG ---
             if page.locator("#username").is_visible() or "eduid" in page.url:
                 self.logger.log(f"Führe Login durch für {email}...")
-
                 try:
                     page.wait_for_selector("#username", timeout=5000)
                     page.fill("#username", email)
                     human_sleep(0.5)
-
                     if page.locator("button[name='_eventId_submit']").is_visible():
                         page.click("button[name='_eventId_submit']")
                     else:
                         page.keyboard.press("Enter")
-
                     human_sleep(1.5)
-
                     page.wait_for_selector("#password", timeout=5000)
                     page.fill("#password", password)
                     human_sleep(0.5)
-
                     if page.locator("button[name='_eventId_proceed']").is_visible():
                         page.click("button[name='_eventId_proceed']")
                     else:
                         page.keyboard.press("Enter")
-
                     self.logger.log("Login abgeschickt. Warte auf Session...")
                     page.wait_for_load_state("networkidle")
                     time.sleep(8)
@@ -177,9 +156,7 @@ class BookingWorker:
 
             if page.locator("#navbarUser").is_visible() or "/event/add" in page.url:
                 return True
-
             return False
-
         except Exception as e:
             self.logger.log(f"Fehler in perform_login: {e}")
             return False
@@ -190,8 +167,8 @@ class BookingWorker:
             return override
         try:
             with sync_playwright() as p:
-                # Hier force_visible=True, damit User sieht was passiert beim Scan
-                browser, _, page = self.get_context(p, force_visible=True)
+                # FIX HIER: force_visible nicht hardcoden!
+                browser, _, page = self.get_context(p, force_visible=self.show_browser)
                 try:
                     self.logger.log("Starte Raum-Scan...")
                     if self.perform_login(page, email, password):
@@ -242,10 +219,9 @@ class BookingWorker:
             for acc in accounts:
                 if not acc.active or not acc.email:
                     continue
-
                 self.logger.log(f"Hole Reservationen für: {acc.email}")
-                # Export auch sichtbar machen, ist transparenter
-                browser, context, page = self.get_context(p, force_visible=True)
+                # FIX HIER EBENFALLS
+                browser, context, page = self.get_context(p, force_visible=self.show_browser)
 
                 try:
                     if self.perform_login(page, acc.email, acc.password):
@@ -253,11 +229,9 @@ class BookingWorker:
                         page.goto(URLS["reservations"])
                         page.wait_for_load_state("networkidle")
                         human_sleep(2)
-
                         if page.locator("table.table").is_visible():
                             rows = page.locator("table.table tbody tr").all()
                             count = 0
-
                             if len(rows) > 0:
                                 for row in rows:
                                     cells = row.locator("td").all()
@@ -266,7 +240,6 @@ class BookingWorker:
                                         title = cells[1].inner_text().strip()
                                         location = cells[2].inner_text().strip()
                                         room = cells[3].inner_text().strip()
-
                                         all_reservations.append(
                                             {
                                                 "Account": acc.email,
@@ -334,9 +307,7 @@ class BookingWorker:
                             if not self.perform_login(page, acc.email, acc.password):
                                 self.logger.log("Login fehlgeschlagen.")
                                 continue
-
                             context.storage_state(path=str(session_file))
-
                             if "/event/add" not in page.url:
                                 page.goto(URLS["event_add"])
                                 page.wait_for_load_state("domcontentloaded")
@@ -349,12 +320,10 @@ class BookingWorker:
                             )
                             human_sleep(0.5)
                             
-                            # Datum setzen
                             page.fill("#event_startDate", f"{task['date']} {task['start']}")
                             page.keyboard.press("Enter")
                             human_sleep(0.5)
 
-                            # Dauer berechnen und setzen
                             t1 = datetime.strptime(task["start"], "%H:%M")
                             t2 = datetime.strptime(task["end"], "%H:%M")
                             dur = int((t2 - t1).total_seconds() / 60)
@@ -366,7 +335,6 @@ class BookingWorker:
                             )
                             human_sleep(0.5)
                             
-                            # Titel und Zweck
                             human_type(page, "#event_title", "Lernen")
                             if page.is_visible('input[name="event[purpose]"][value="Other"]'):
                                 page.check('input[name="event[purpose]"][value="Other"]')
@@ -378,7 +346,6 @@ class BookingWorker:
                                 self.logger.log("Speichere...")
                                 page.click("#event_submit")
                                 try:
-                                    # Erfolg prüfen
                                     page.wait_for_url(lambda u: "/event/add" not in u, timeout=5000)
                                     self.logger.log(f"ERFOLG: {room_name} gebucht!")
                                     block_success = True

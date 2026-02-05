@@ -1,6 +1,5 @@
-pyinstaller
+playwright==1.41.2
 customtkinter
-playwright
 google-api-python-client
 google-auth
 paho-mqtt

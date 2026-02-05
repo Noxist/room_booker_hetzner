@@ -49,7 +49,11 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 VERSION_FILE = get_install_dir() / "version.txt"
 
-os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
+# --- BUGFIX LEANDRO START ---
+# Wir setzen den Pfad NUR, wenn er noch nicht durch Docker gesetzt wurde (/ms-playwright)
+if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(PLAYWRIGHT_BROWSERS_PATH)
+# --- BUGFIX LEANDRO END ---
 
 
 def get_version() -> str:

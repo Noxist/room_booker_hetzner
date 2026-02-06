@@ -1,7 +1,7 @@
 # Sicherheit: Niemals Passwörter hochladen!
 settings.json
 session_*.json
-
+service_account.json
 # Müll & Dumps
 __pycache__/
 *.pyc

@@ -14,11 +14,6 @@
     "desc": "Platz fuer 6 Personen (A-237, D-237)",
     "rooms": ["A-237", "D-237"]
   },
-  "wc": {
-    "title": "Nahe WC",
-    "desc": "Räume in der Nähe der Toiletten (Beispiel)",
-    "rooms": ["A-231", "D-231"]
-  },
   "default": {
     "title": "Egal (Optimum)",
     "desc": "Alle Raeume, entscheidet nach Weights",

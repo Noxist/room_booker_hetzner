@@ -1,0 +1,27 @@
+{
+  "large": {
+    "title": "Grosser Raum",
+    "desc": "Platz fuer 16 Personen (A-204, D-204)",
+    "rooms": ["A-204", "D-204"]
+  },
+  "medium": {
+    "title": "Standard Raum",
+    "desc": "Platz fuer 10 Personen (A-231, D-231 etc.)",
+    "rooms": ["A-206", "A-231", "A-233", "A-235", "A-241", "D-202", "D-206", "D-231", "D-233", "D-235", "D-239", "D-243"]
+  },
+  "small": {
+    "title": "Kleiner Raum",
+    "desc": "Platz fuer 6 Personen (A-237, D-237)",
+    "rooms": ["A-237", "D-237"]
+  },
+  "wc": {
+    "title": "Nahe WC",
+    "desc": "Räume in der Nähe der Toiletten (Beispiel)",
+    "rooms": ["A-231", "D-231"]
+  },
+  "default": {
+    "title": "Egal (Optimum)",
+    "desc": "Alle Raeume, entscheidet nach Weights",
+    "rooms": ["A-204", "A-206", "A-231", "A-233", "A-235", "A-237", "A-241", "D-202", "D-204", "D-206", "D-231", "D-233", "D-235", "D-237", "D-239", "D-243"]
+  }
+}

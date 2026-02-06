@@ -9,3 +9,4 @@ html_dumps/
 full_dump.html
 *.tar.gz
 .env
+service_account.json

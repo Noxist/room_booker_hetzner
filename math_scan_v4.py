@@ -11,8 +11,7 @@ DEFAULT_START = "08:00"
 DEFAULT_END = "20:00"
 MAX_BLOCK_MINUTES = 240
 
-# Standard-Gewichte (Falls JSON fehlt)
-# preferredRoomBonus ist hier entfernt, da wir rein nach Qualitaet gehen
+# Standard-Gewichte
 DEFAULT_WEIGHTS = {
     "totalCoveredMin": 0.0141,
     "waitPenalty": -1.453,
@@ -37,13 +36,12 @@ def load_weights(data_dir):
         try:
             with open(weights_path, "r") as f:
                 loaded = json.load(f)
-                # Wir ignorieren Keys, die wir nicht mehr brauchen (z.B. preferredRoomBonus)
                 weights.update(loaded)
-            print(f"⚖️  Gewichte geladen aus: {weights_path}")
+            print(f"[INFO] Gewichte geladen aus: {weights_path}")
         except Exception as e:
-            print(f"⚠️  Fehler bei weights.json: {e}")
+            print(f"[WARN] Fehler bei weights.json: {e}")
     else:
-        print(f"ℹ️  Keine weights.json gefunden. Nutze Standards.")
+        print(f"[INFO] Keine weights.json gefunden. Nutze Standards.")
     return weights
 
 def parse_arguments(args):
@@ -83,13 +81,13 @@ def get_free_duration(bookings, start_time, max_end_time):
 def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_history, weights, debug=False, depth=0):
     indent = "  " * depth
     if debug:
-        print(f"\n{indent}🔎 Suche ab {m2t(current_time)} (Accounts übrig: {accounts_left})")
+        print(f"\n{indent}[SEARCH] Suche ab {m2t(current_time)} (Accounts uebrig: {accounts_left})")
 
     if current_time >= target_end:
-        if debug: print(f"{indent}🏁 Zielzeit erreicht.")
+        if debug: print(f"{indent}[END] Zielzeit erreicht.")
         return path_history
     if accounts_left <= 0:
-        if debug: print(f"{indent}🛑 Keine Accounts mehr.")
+        if debug: print(f"{indent}[END] Keine Accounts mehr.")
         return path_history
 
     candidates = []
@@ -104,7 +102,7 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
         duration = actual_end - current_time
         
         if duration >= 15:
-            # --- SCORING CALCULATION (REIN MATHE / AI) ---
+            # --- SCORING CALCULATION ---
             score = 0
             details = []
             
@@ -124,8 +122,6 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
                     details.append(f"Wechsel:{s_switch:.2f}")
                     score += s_switch
             
-            # (Kein "preferredRoom" Check mehr -> totale Objektivität)
-
             candidates.append({
                 "room": room,
                 "start": current_time,
@@ -135,7 +131,6 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
                 "details": ", ".join(details)
             })
     
-    # Sortieren nach Score
     candidates.sort(key=lambda x: x['score'], reverse=True)
     
     if debug and candidates:
@@ -143,7 +138,6 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
         for c in candidates[:3]:
             print(f"{indent}   -> {c['room']} ({c['duration']}m) Score: {c['score']:.2f} [{c['details']}]")
 
-    # Beam Search: Wir schauen uns die besten 6 Optionen an
     top_candidates = candidates[:6]
     
     best_full_path = path_history
@@ -162,7 +156,7 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
         return total_s
 
     if not top_candidates:
-        if debug: print(f"{indent}⚠️ Keine passenden Räume gefunden.")
+        if debug: print(f"{indent}[WARN] Keine passenden Raeume gefunden.")
         return path_history
 
     for cand in top_candidates:
@@ -202,7 +196,7 @@ def find_best_chain(rooms_data, current_time, target_end, accounts_left, path_hi
     return best_full_path
 
 def extract_all_rooms(page):
-    print("🔍 Extrahiere ALLE Räume aus dem HTML...")
+    print("[INFO] Extrahiere ALLE Raeume aus dem HTML...")
     bookings = page.evaluate("""() => {
         const elements = document.querySelectorAll('rect[data-event-event-value]');
         const results = [];
@@ -225,17 +219,17 @@ def extract_all_rooms(page):
 def run_scan():
     config = parse_arguments(sys.argv)
     if not config["date"]:
-        print("❌ Fehler: Kein Datum. Bsp: python3 math_scan_v4.py 12.02.2026 /x3 --debug")
+        print("[ERROR] Fehler: Kein Datum. Bsp: python3 math_scan_v4.py 12.02.2026 /x3 --debug")
         return
 
     data_dir = resolve_data_dir()
     weights = load_weights(data_dir)
 
-    print(f"--- 🔗 CHAIN SCAN V4 ({config['date']}) [DEBUG={config['debug']}] ---")
+    print(f"--- CHAIN SCAN V4 ({config['date']}) [DEBUG={config['debug']}] ---")
     accs = load_accounts(data_dir / "settings.json")
     
     num_accounts = config["accounts_override"] if config["accounts_override"] else len(accs)
-    print(f"ℹ️ Accounts: {num_accounts} | Ziel: {config['start']} - {config['end']}")
+    print(f"[INFO] Accounts: {num_accounts} | Ziel: {config['start']} - {config['end']}")
 
     session_files = list(data_dir.glob("session_*.json"))
     session_path = session_files[0] if session_files else None
@@ -250,7 +244,7 @@ def run_scan():
             iso_date = f"{d_parts[2]}-{d_parts[1]}-{d_parts[0]}"
             target_url = f"https://raumreservation.ub.unibe.ch/event?day={iso_date}"
             
-            print(f"Lade Daten von: {target_url}")
+            print(f"[INFO] Lade Daten von: {target_url}")
             page.goto(target_url)
             page.wait_for_load_state("domcontentloaded")
             time.sleep(2)
@@ -258,33 +252,45 @@ def run_scan():
             try:
                 page.wait_for_selector("rect[data-event-event-value]", timeout=5000)
             except:
-                print("ℹ️ Keine Buchungen gefunden (Alles frei?).")
+                print("[INFO] Keine Buchungen gefunden (Alles frei?).")
 
             raw_bookings = extract_all_rooms(page)
             
-            # Hier sammeln wir jetzt einfach ALLES was wir finden
             rooms_data = {} 
             for b in raw_bookings:
                 r = b['room']
                 if r not in rooms_data: rooms_data[r] = []
                 rooms_data[r].append({'start_m': t2m(b['start']), 'end_m': t2m(b['end'])})
             
-            print(f"✅ {len(rooms_data)} verschiedene Räume gefunden.")
+            # --- DEBUG: RAW DATA DUMP ---
+            if config["debug"]:
+                print("\n[DEBUG] --- GEPARSTE RAUM-DATEN (RAW) ---")
+                print("Format: Raumname -> Liste der BELEGTEN Zeiten")
+                sorted_rooms = sorted(rooms_data.keys())
+                for r in sorted_rooms:
+                    b_list = rooms_data[r]
+                    b_list.sort(key=lambda x: x['start_m'])
+                    times = [f"{m2t(slot['start_m'])}-{m2t(slot['end_m'])}" for slot in b_list]
+                    print(f"  {r:<10} : {', '.join(times)}")
+                print("[DEBUG] -----------------------------------\n")
+            # ----------------------------
+
+            print(f"[INFO] {len(rooms_data)} verschiedene Raeume gefunden.")
             
         except Exception as e:
-            print(f"❌ Fehler: {e}")
+            print(f"[ERROR] Fehler: {e}")
             browser.close()
             return
         browser.close()
 
-    print("🧮 Berechne beste Kette (Objektiv & Gewichtet)...")
+    print("[INFO] Berechne beste Kette (Objektiv & Gewichtet)...")
     req_start = t2m(config["start"])
     req_end = t2m(config["end"])
     
     chain = find_best_chain(rooms_data, req_start, req_end, num_accounts, [], weights, debug=config["debug"])
     
     if chain:
-        print("\n✅ OPTIMALER KETTEN-PLAN:")
+        print("\n[RESULT] OPTIMALER KETTEN-PLAN:")
         clean_chain = []
         for step in chain:
             clean_chain.append({
@@ -295,9 +301,9 @@ def run_scan():
         print(json.dumps(clean_chain, indent=2))
         
         total_min = chain[-1]['end_m'] - chain[0]['start_m']
-        print(f"\n📊 Abdeckung: {total_min/60:.1f} Stunden")
+        print(f"\n[STATS] Abdeckung: {total_min/60:.1f} Stunden")
     else:
-        print("❌ Keine machbare Kette gefunden.")
+        print("[RESULT] Keine machbare Kette gefunden.")
 
 if __name__ == "__main__":
     run_scan()

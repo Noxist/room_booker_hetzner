@@ -1,26 +1,23 @@
---- 🔗 CHAIN SCAN V4 (07.02.2026) ---
-ℹ️ Accounts: 3 | Ziel: 08:00 - 20:00
-Lade Daten von: https://raumreservation.ub.unibe.ch/event?day=2026-02-07
-🔍 Extrahiere ALLE Räume aus dem HTML...
-🧮 Berechne beste Kette...
+[INFO] Gewichte geladen aus: weights.json
+--- CHAIN SCAN V5 (09.02.2026) [DEBUG=True] ---
+[INFO] Lade: https://raumreservation.ub.unibe.ch/event?day=2026-02-09 (Timeout: 60s)
+[INFO] Standort-Auswahl erkannt. Suche Link...
+[INFO] Klicke Standort: Basisbibliothek Unitobler BTO
+[INFO] Kehre zurück zur Kalender-Ansicht...
+[INFO] 2 Raeume gefunden.
+[SEARCH] Suche ab 08:00 (Accounts: 3)
+   -> Gruppenraum C-116 (210m) Score:2.96 [Dauer:2.96]
+   -> Gruppenraum C-111 (150m) Score:2.11 [Dauer:2.11]
+  [SEARCH] Suche ab 11:30 (Accounts: 2)
+  [SEARCH] Suche ab 10:30 (Accounts: 2)
+     -> Gruppenraum C-116 (60m) Score:1.87 [Dauer:0.85,Wechsel]
+    [SEARCH] Suche ab 11:30 (Accounts: 1)
 
-✅ OPTIMALER KETTEN-PLAN:
+[RESULT] PLAN:
 [
   {
     "start": "08:00",
-    "end": "12:00",
-    "room": "A-241"
-  },
-  {
-    "start": "12:00",
-    "end": "16:00",
-    "room": "A-204"
-  },
-  {
-    "start": "16:00",
-    "end": "20:00",
-    "room": "D-204"
+    "end": "11:30",
+    "room": "Gruppenraum C-116"
   }
 ]
-
-📊 Abdeckung: 12.0 Stunden (3 Buchungen)

@@ -86,6 +86,16 @@ def perform_login(page, email, password):
         page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=60000)
         time.sleep(2)
         
+        # --- FIX: STANDORTWAHL ABFANGEN ---
+        # Wir prüfen URL und Page Content, um sicher zu sein
+        if "select" in page.url or page.locator("text=Bibliothek wählen").count() > 0:
+             print("   [LOGIN DEBUG] Standortwahl erkannt (/select). Setze vonRoll...")
+             page.goto("https://raumreservation.ub.unibe.ch/set/1") # 1 = vonRoll
+             time.sleep(1)
+             page.goto("https://raumreservation.ub.unibe.ch/event/add")
+             time.sleep(2)
+        # ----------------------------------
+
         print(f"   [LOGIN DEBUG] URL ist: {page.url}")
 
         # Fall 1: Bereits eingeloggt
@@ -127,8 +137,8 @@ def perform_login(page, email, password):
             
     except Exception as e:
         print(f"   [FATAL LOGIN ERROR] {e}")
-        traceback.print_exc() # ZEIGT DEN VÖLLIGEN FEHLER
-        page.screenshot(path="login_fatal.png")
+        try: page.screenshot(path="login_fatal.png")
+        except: pass
         print("   [INFO] Screenshot gespeichert: login_fatal.png")
     return False
 
@@ -143,6 +153,8 @@ def scan_rooms(iso_date, allowed_rooms):
             url = f"https://raumreservation.ub.unibe.ch/event?day={iso_date}"
             page.goto(url, wait_until="domcontentloaded")
             time.sleep(2)
+            
+            # Auch hier Standortwahl Fix
             if "select" in page.url:
                  page.goto("https://raumreservation.ub.unibe.ch/set/1")
                  page.goto(url)
@@ -213,7 +225,8 @@ def execute_booking_step(step, account, date_str):
                         if "successfully" in page.content(): success = True
         except Exception as e:
             print(f"[ERROR IN BOOKING] {e}")
-            page.screenshot(path="booking_error.png")
+            try: page.screenshot(path="booking_error.png")
+            except: pass
         finally: browser.close()
         return success
 
@@ -249,7 +262,7 @@ def execute_job(date_str, start_time, end_time, category_key, num_accounts):
             best_slot = find_slot(rooms_state, current_time, gap_end, opt, date_str)
             if not best_slot: print(f"[WARN] Kein Raum!"); break
             
-            # Account Rotation: Wenn Login fehlschlägt, probiere nächsten Account
+            # Account Rotation
             slot_filled = False
             for acc in avail_accs:
                 if execute_booking_step(best_slot, acc, date_str):
@@ -263,7 +276,7 @@ def execute_job(date_str, start_time, end_time, category_key, num_accounts):
             
             if not slot_filled:
                 print("[FAIL] Gap konnte nicht gefüllt werden. Überspringe...")
-                current_time += 30 # Prevent Loop
+                current_time += 30 
 
 if __name__ == "__main__":
     if len(sys.argv) > 4:

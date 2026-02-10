@@ -33,6 +33,12 @@ class StorageManager:
     def save_history(self, h): self.save_json(self.history_path, h)
     
     def get_settings(self): return self.load_json(self.settings_path)
+    
+    def get_calendar_id(self):
+        # Priorität: settings.json > Env Var > 'primary'
+        settings = self.get_settings()
+        return settings.get("calendar_id", os.environ.get("GOOGLE_CALENDAR_ID", "primary"))
+
     def get_weights(self): return self.load_json(self.weights_path)
     def get_categories(self): return self.load_json(self.categories_path)
     
@@ -41,4 +47,3 @@ class StorageManager:
         jobs = self.get_jobs()
         jobs.append(job_data)
         self.save_json(self.jobs_path, jobs)
-        print(f"[STORAGE] Job '{job_data.get('category')}' gespeichert.")

@@ -1,141 +1,33 @@
 import json
 import os
-from dataclasses import asdict
-from pathlib import Path
-from typing import Dict, List, Optional
+from .config import SETTINGS_FILE, HISTORY_FILE, WEIGHTS_FILE, CATEGORIES_FILE
 
-# Wir nutzen relative Imports oder absolute, je nach Environment. 
-# Hier sicherheitshalber absolute Imports passend zum Modul.
-from roombooker.config import BLUEPRINTS_FILE, ROOMS_FILE, SETTINGS_FILE
-from roombooker.models import Account, Job, JobRequest, Settings
-
-class SettingsStore:
-    @staticmethod
-    def load() -> Settings:
-        if not SETTINGS_FILE.exists():
-            return Settings(accounts=[Account()])
-        try:
-            data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-            # Fallback falls accounts key fehlt
-            acc_data = data.get("accounts", [])
-            accounts = [Account(**acc) for acc in acc_data] if acc_data else [Account()]
-            
-            return Settings(
-                accounts=accounts,
-                simulation=data.get("simulation", True),
-                theme=data.get("theme", "Dark"),
-            )
-        except Exception:
-            return Settings(accounts=[Account()])
-
-    @staticmethod
-    def save(settings: Settings) -> None:
-        data = asdict(settings)
-        SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
-
-
-class RoomStore:
-    @staticmethod
-    def load() -> Dict[str, str]:
-        if ROOMS_FILE.exists():
+class StorageManager:
+    def _load(self, path, default):
+        if path.exists():
             try:
-                return json.loads(ROOMS_FILE.read_text(encoding="utf-8"))
-            except Exception:
-                return {}
-        return {}
+                with open(path, "r") as f: return json.load(f)
+            except: return default
+        return default
 
-    @staticmethod
-    def save(room_map: Dict[str, str]) -> None:
-        ROOMS_FILE.write_text(json.dumps(room_map, indent=2), encoding="utf-8")
+    def _save(self, path, data):
+        with open(path, "w") as f: json.dump(data, f, indent=2)
 
+    def get_settings(self):
+        data = self._load(SETTINGS_FILE, {"accounts": []})
+        if isinstance(data, list): return data
+        return data.get("accounts", [])
 
-class BlueprintStore:
-    @staticmethod
-    def load() -> Dict[str, List[Job]]:
-        if not BLUEPRINTS_FILE.exists():
-            return {}
-        try:
-            data = json.loads(BLUEPRINTS_FILE.read_text(encoding="utf-8"))
-            return {name: [Job.from_dict(j) for j in jobs] for name, jobs in data.items()}
-        except Exception:
-            return {}
+    def get_history(self): return self._load(HISTORY_FILE, {})
+    def save_history(self, history): self._save(HISTORY_FILE, history)
 
-    @staticmethod
-    def save(blueprints: Dict[str, List[Job]]) -> None:
-        payload = {name: [job.to_dict() for job in jobs] for name, jobs in blueprints.items()}
-        BLUEPRINTS_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    def get_weights(self):
+        return self._load(WEIGHTS_FILE, {
+            "totalCoveredMin": 0.001,
+            "waitPenalty": -1.5,
+            "switchBonus": -0.03,
+            "stabilityBonus": 0.5,
+            "preferredRoomBonus": 5
+        })
 
-
-def resolve_data_dir() -> Path:
-    # Versucht erst Env Var, dann lokales 'data', dann '/app/data'
-    if os.path.exists("data"):
-        return Path("data")
-    return Path(os.environ.get("ROOMBOOKER_DATA_DIR", "/app/data"))
-
-
-def read_json_file(path: Path) -> Optional[object]:
-    if not path.exists():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
-
-
-def load_accounts(settings_path: Optional[Path] = None) -> List[Account]:
-    """Lädt Accounts aus der settings.json"""
-    target = settings_path or (resolve_data_dir() / "settings.json")
-    
-    # Fallback: Wenn Settings-Datei nicht da, leere Liste
-    if not target.exists():
-        return []
-        
-    payload = read_json_file(target)
-    if not isinstance(payload, dict):
-        return []
-        
-    accounts_data = payload.get("accounts", [])
-    if not isinstance(accounts_data, list):
-        return []
-        
-    # Sicherstellen, dass Account Objekte erstellt werden
-    valid_accounts = []
-    for acc in accounts_data:
-        if isinstance(acc, dict):
-            try:
-                valid_accounts.append(Account(**acc))
-            except: pass
-            
-    return valid_accounts
-
-
-def load_jobs(jobs_path: Optional[Path] = None) -> List[JobRequest]:
-    target = jobs_path or (resolve_data_dir() / "jobs.json")
-    payload = read_json_file(target)
-    if not isinstance(payload, list):
-        return []
-    jobs: List[JobRequest] = []
-    for item in payload:
-        if not isinstance(item, dict):
-            continue
-        try:
-            jobs.append(
-                JobRequest(
-                    active=item.get("active", True),
-                    day=item.get("day", "Montag"),
-                    start=item.get("start", "08:00"),
-                    end=item.get("end", "18:00"),
-                    rooms=list(item.get("rooms", [])),
-                    summary=item.get("summary"),
-                )
-            )
-        except: pass
-    return jobs
-
-
-def load_rooms(rooms_path: Optional[Path] = None) -> Dict[str, str]:
-    target = rooms_path or (resolve_data_dir() / "rooms.json")
-    payload = read_json_file(target)
-    if not isinstance(payload, dict):
-        return {}
-    return {str(name): str(value) for name, value in payload.items()}
+    def get_categories(self): return self._load(CATEGORIES_FILE, {})

@@ -1,44 +1,145 @@
 import sys
-import os
-import time
+import argparse
+from datetime import datetime
+from roombooker.storage import StorageManager
+from roombooker.intelligence import BookingIntelligence
+from roombooker.browser import BrowserEngine, m2t, t2m
+from roombooker.calendar_sync import CalendarSync 
+from roombooker.jobs import JobManager
+from roombooker.config import CREDENTIALS_FILE
 
-# Wir importieren die Module direkt, damit Fehler sofort sichtbar sind
-import cli
-import job_manager
-import auto_booker
-from roombooker.config import APP_NAME
+def run_booking_logic(date_str, start_str, end_str, category, num_accounts, job_id=None):
+    store = StorageManager()
+    brain = BookingIntelligence(store)
+    browser = BrowserEngine(headless=True)
+    
+    req_start = t2m(start_str)
+    req_end = t2m(end_str)
+    
+    # Gap Calculation
+    gaps = brain.calculate_gaps(date_str, req_start, req_end)
+    if not gaps:
+        print(f"[INFO] {date_str}: Alles bereits abgedeckt.")
+        if job_id: JobManager().mark_done(job_id, date_str)
+        return
 
-def print_header():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print(f"--- {APP_NAME} ---")
-    print("[1] Sofort Buchen")
-    print("[2] Serie (Wochentage)")
-    print("[3] Zukunft (Queue)")
-    print("[4] Sync Google Cal")
-    print("[5] Jobs verwalten")
-    print("[q] Exit")
+    # Scanning
+    cats = store.get_categories()
+    target_rooms = cats.get(category, cats.get("default", {})).get("rooms", [])
+    if not target_rooms:
+        print(f"[ERROR] Keine Räume für Kategorie '{category}' gefunden.")
+        return
 
-def main():
-    while True:
-        print_header()
-        choice = input("\nWahl: ").strip().lower()
+    print(f"[SCAN] Scanne {len(target_rooms)} Räume...")
+    rooms_state = browser.scan_grid(date_str, target_rooms)
+    
+    # Booking Loop
+    all_accounts = store.get_settings()
+    if num_accounts > 0: all_accounts = all_accounts[:num_accounts]
         
-        if choice == '1':
-            cli.interactive_wizard(mode="once")
-        elif choice == '2':
-            cli.interactive_wizard(mode="series")
-        elif choice == '3':
-            print("\n--- QUEUE (Nächste Jobs) ---")
-            job_manager.print_queue()
-            input("\n[Enter] zurück...")
-        elif choice == '4':
-            auto_booker.manual_sync_check()
-            input("\n[Enter] zurück...")
-        elif choice == '5':
-            job_manager.interactive_menu()
-        elif choice == 'q':
-            print("Bye!")
-            break
+    for g_start, g_end in gaps:
+        curr = g_start
+        while curr < g_end:
+            avail_accs = brain.get_available_accounts(date_str, curr, g_end, all_accounts)
+            if not avail_accs: 
+                print("[WARN] Keine Accounts mehr verfügbar!")
+                break
+                
+            best = None
+            for room, bookings in rooms_state.items():
+                limit = g_end
+                sorted_b = sorted(bookings, key=lambda x: x['start'])
+                for b in sorted_b:
+                    if b['end'] <= curr: continue
+                    if b['start'] < limit: limit = b['start']
+                actual_end = min(limit, curr + 240)
+                if (actual_end - curr) >= 30:
+                    score = brain.score_room(room, curr, actual_end, date_str)
+                    if not best or score > best['score']:
+                        best = {"room": room, "start": curr, "end": actual_end, "score": score}
+            
+            if not best:
+                curr += 30; continue
+                
+            acc = avail_accs[0]
+            print(f">>> BUCHE {best['room']} ({m2t(best['start'])}-{m2t(best['end'])})")
+            
+            # Aufruf der Browser-Logik
+            if browser.perform_booking(date_str, best['room'], best['start'], best['end'], acc):
+                brain.record_booking(date_str, best['room'], best['start'], best['end'], acc['email'])
+                curr = best['end']
+                if job_id: JobManager().mark_done(job_id, date_str)
+            else:
+                avail_accs.pop(0)
+
+def run_sync():
+    print("--- FULL SYNC START ---")
+    store = StorageManager()
+    browser = BrowserEngine(headless=True)
+    syncer = CalendarSync(str(CREDENTIALS_FILE))
+    
+    accounts = store.get_settings()
+    all_events = []
+    
+    for acc in accounts:
+        if not acc.get("active", True): continue
+        print(f"[SYNC] Lade Reservationen für {acc['email']}...")
+        res = browser.get_my_reservations(acc)
+        print(f"   -> {len(res)} gefunden.")
+        all_events.extend(res)
+        
+    if all_events:
+        syncer.sync_slots(all_events)
+    print("--- SYNC DONE ---")
+
+def start_wizard():
+    print("\n--- ROOM BOOKER WIZARD (Stabilized) ---")
+    print("[1] Einmalige Buchung (Sofort)")
+    print("[2] Zukünftige Buchung planen (Smart Wait)")
+    print("[3] Jobs verwalten")
+    print("[4] Google Calendar Sync")
+    print("[q] Beenden")
+    
+    c = input("Auswahl: ").strip()
+    if c == "1":
+        d = input("Datum (DD.MM.YYYY): ")
+        s = input("Start (HH:MM): ")
+        e = input("Ende (HH:MM): ")
+        run_booking_logic(d, s, e, "default", 4)
+    elif c == "2":
+        d = input("Zieldatum (DD.MM.YYYY): ")
+        s = input("Start (HH:MM): ")
+        e = input("Ende (HH:MM): ")
+        JobManager().add_job("onetime", target_date=d, time_start=s, time_end=e, category="default")
+        print("[SUCCESS] Job gespeichert.")
+    elif c == "3":
+        jm = JobManager()
+        for j in jm.jobs:
+            print(f" - {j['type']} {j.get('target_date')} (Aktiv: {j['active']})")
+    elif c == "4":
+        run_sync()
+
+def process_jobs():
+    print("[RUNNER] Prüfe anstehende Jobs...")
+    jm = JobManager()
+    due = jm.get_due_jobs()
+    if not due:
+        print("[RUNNER] Nichts zu tun.")
+        return
+
+    for job, date_str in due:
+        print(f"[RUNNER] Führe Job aus: {date_str}")
+        run_booking_logic(date_str, job['time_start'], job['time_end'], job['category'], 4, job_id=job["id"])
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--process-jobs", action="store_true", help="Run scheduled jobs")
+    args = parser.parse_args()
+    
+    if args.process_jobs:
+        process_jobs()
+    else:
+        try:
+            start_wizard()
+        except KeyboardInterrupt:
+            print("\nAbbruch.")

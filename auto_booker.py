@@ -153,18 +153,31 @@ def perform_login(page, email, password):
     print(f"   [LOGIN] Starte Login für {email}...")
     try:
         page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=60000)
+        
+        try:
+            page.wait_for_load_state("domcontentloaded")
+        except:
+            pass
+        
         time.sleep(2)
         if "select" in page.url or page.locator("text=Bibliothek wählen").count() > 0:
              print("   [LOGIN DEBUG] Standortwahl erkannt (/select). Setze vonRoll...")
              page.goto("https://raumreservation.ub.unibe.ch/set/1") 
              time.sleep(1)
              page.goto("https://raumreservation.ub.unibe.ch/event/add")
-             time.sleep(2)
+             
+             try:
+                 page.wait_for_load_state("domcontentloaded")
+             except:
+                 pass
+             
+             time.sleep(3)
 
         if "/event/add" in page.url and "wayf" not in page.url and "login" not in page.url: return True
         
-        if page.locator("text=Login").count() > 0: page.click("text=Login")
-        elif page.locator(".timeline-cell-clickable").count() > 0: page.locator(".timeline-cell-clickable").first.click()
+        if page.locator("text=Login").count() > 0: 
+            page.click("text=Login")
+            time.sleep(2)
 
         if "wayf" in page.url or "login" in page.url or "eduid" in page.url:
             page.wait_for_selector("#username", state="visible", timeout=10000)
@@ -182,38 +195,47 @@ def perform_login(page, email, password):
     return False
 
 def scan_reservations(page):
-    """Liest die Tabelle 'Meine Reservationen' aus (ROBUST)."""
     bookings = []
     try:
-        # FIX: URL ist /reservation (Einzahl)!
+        # KORREKTUR: reservation (Singular)
         target_url = "https://raumreservation.ub.unibe.ch/reservation"
         print(f"   [SCAN] Navigiere zu: {target_url}")
         page.goto(target_url)
-        page.wait_for_load_state("networkidle")
-        time.sleep(3) # Warten, bis Tabelle da ist
         
-        rows = page.locator("tbody tr").all()
-        print(f"   [SCAN] Finde {len(rows)} Einträge in Tabelle...")
+        try:
+            page.wait_for_load_state("networkidle")
+        except:
+            pass
+            
+        time.sleep(3) # Warten
         
-        for row in rows:
-            txt = row.inner_text().replace("\n", " ")
-            parts = txt.split()
-            # Simple Heuristik: Suche nach Datumsformat DD.MM.YYYY
-            if len(parts) > 3 and "." in parts[0] and ":" in parts[1]:
-                date_str = parts[0]
-                # Zeitformat oft "HH:MM-HH:MM"
-                time_range = parts[1]
-                times = time_range.split("-")
-                
-                if len(times) == 2:
-                    room = "Unbekannt"
-                    if "A-" in txt: room = "A-" + txt.split("A-")[1].split()[0]
-                    elif "D-" in txt: room = "D-" + txt.split("D-")[1].split()[0]
+        rows_data = page.evaluate("""() => {
+            return Array.from(document.querySelectorAll("table tbody tr")).map(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length < 3) return null;
+                return {
+                    date: cols[0].innerText.trim(),
+                    time: cols[1].innerText.trim(),
+                    room: cols[2].innerText.trim()
+                };
+            }).filter(row => row !== null);
+        }""")
+        
+        print(f"   [SCAN] Finde {len(rows_data)} Einträge in Tabelle...")
+        
+        for r in rows_data:
+            if "-" in r['time']:
+                parts = r['time'].split("-")
+                if len(parts) == 2:
+                    room = r['room']
+                    # Raumcode säubern falls nötig
+                    if "A-" in room: room = "A-" + room.split("A-")[1].split()[0]
+                    elif "D-" in room: room = "D-" + room.split("D-")[1].split()[0]
                     
                     bookings.append({
-                        "date": date_str, 
-                        "start": times[0].strip(), 
-                        "end": times[1].strip(), 
+                        "date": r['date'], 
+                        "start": parts[0].strip(), 
+                        "end": parts[1].strip(), 
                         "room": room
                     })
     except Exception as e: print(f"   [SCAN ERROR] {e}")
@@ -277,8 +299,11 @@ def execute_booking_step(step, account, date_str):
                 page.fill("#event_duration", str(step['end'] - step['start']))
                 page.keyboard.press("Enter")
                 page.fill("#event_title", "Lernen")
-                try: page.check('input[name="event[purpose]"][value="Other"]')
-                except: pass
+                
+                try:
+                    page.check('input[name="event[purpose]"][value="Other"]')
+                except:
+                    pass
                 
                 page.click("#event_submit")
                 

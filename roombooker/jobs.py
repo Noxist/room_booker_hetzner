@@ -1,106 +1,72 @@
+import json
 import uuid
-import datetime
-from datetime import timedelta
-from roombooker.storage import StorageManager
+from datetime import datetime, timedelta
+from .config import BASE_DIR
+
+JOBS_FILE = BASE_DIR / "jobs.json"
 
 class JobManager:
     def __init__(self):
-        self.storage = StorageManager()
-        self.jobs = self.storage.get_jobs()
+        self._load()
 
-    def save(self):
-        self.storage.save_json(self.storage.jobs_path, self.jobs)
+    def _load(self):
+        if JOBS_FILE.exists():
+            with open(JOBS_FILE, "r") as f: self.jobs = json.load(f)
+        else:
+            self.jobs = []
 
-    def add_job(self, type, start, end, category, days=None, target_date=None):
+    def _save(self):
+        with open(JOBS_FILE, "w") as f: json.dump(self.jobs, f, indent=2)
+
+    def add_job(self, type, **kwargs):
         job = {
-            "id": str(uuid.uuid4())[:8],
-            "type": type,  # "recurring" or "onetime"
-            "time_start": start,
-            "time_end": end,
-            "category": category,
-            "status": "active",
-            "last_booked": None, # Speichert das Datum der letzten erfolgreichen Buchung
-            "created_at": datetime.datetime.now().strftime("%d.%m.%Y")
+            "id": str(uuid.uuid4()),
+            "type": type, # "recurring" or "onetime"
+            "active": True,
+            "last_booked": None,
+            **kwargs
         }
-        
-        if type == "recurring":
-            job["days"] = days  # ["Mon", "Tue", ...]
-        elif type == "onetime":
-            job["target_date"] = target_date
-            
         self.jobs.append(job)
-        self.save()
-        print(f"[JOBS] Neuer Job gespeichert (ID: {job['id']})")
-        return job
-
-    def delete_job(self, job_id):
-        self.jobs = [j for j in self.jobs if j["id"] != job_id]
-        self.save()
-        print(f"[JOBS] Job {job_id} gelöscht.")
-
-    def get_active_jobs(self):
-        return [j for j in self.jobs if j.get("status") == "active"]
+        self._save()
+        print(f"[JOBS] Job erstellt: {job}")
 
     def get_due_jobs(self):
-        """
-        Filtert Jobs, die HEUTE ausgeführt werden müssen.
-        Regel: Wir buchen exakt 14 Tage im Voraus (Midnight Sniper)
-        oder füllen Lücken für Onetime-Events.
-        Returns: Liste von Tupeln (job, date_string_to_book)
-        """
-        due_items = []
-        today = datetime.date.today()
-        # Das Uni-Fenster öffnet sich meist 14 Tage im Voraus
-        target_horizon_date = today + timedelta(days=14)
-        
-        # Hilfs-Mapping für Wochentage
-        # 0=Mon, 1=Tue, ...
-        weekday_map = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        
-        for job in self.get_active_jobs():
-            # --- TYP 1: SERIEN (Recurring) ---
-            if job["type"] == "recurring":
-                # Wir prüfen primär das Datum in 14 Tagen (Sniper-Logik)
-                horizon_weekday = weekday_map[target_horizon_date.weekday()]
-                
-                if horizon_weekday in job["days"]:
-                    date_str = target_horizon_date.strftime("%d.%m.%Y")
-                    
-                    # Check: Haben wir genau diesen Tag schon gebucht?
-                    if job.get("last_booked") == date_str:
-                        continue # Schon erledigt
-                        
-                    due_items.append((job, date_str))
+        """Gibt Jobs zurück, die HEUTE gebucht werden müssen (14-Tage-Fenster)."""
+        due = []
+        today = datetime.now()
+        max_future = today + timedelta(days=14)
 
-            # --- TYP 2: EINMALIG (Onetime) ---
-            elif job["type"] == "onetime":
-                t_date = datetime.datetime.strptime(job["target_date"], "%d.%m.%Y").date()
-                date_str = job["target_date"]
-
-                # Check 1: Ist das Datum schon vorbei?
-                if t_date < today:
-                    print(f"[JOBS] Onetime Job {job['id']} ist abgelaufen (Datum war {date_str}). Deaktiviere...")
-                    job["status"] = "expired"
-                    self.save()
-                    continue
-
-                # Check 2: Ist es schon gebucht?
-                if job.get("last_booked") == date_str:
-                    continue 
-
-                # Check 3: Ist es innerhalb des 14-Tage Fensters?
-                # Wir erlauben hier auch Gap-Filling (z.B. morgen), nicht nur exakt 14 Tage
-                days_until = (t_date - today).days
-                if 0 <= days_until <= 14:
-                    due_items.append((job, date_str))
-                else:
-                    # Zu weit in der Zukunft -> Lokal ignorieren
-                    pass 
-
-        return due_items
-
-    def mark_executed(self, job_id, date_str):
         for job in self.jobs:
-            if job["id"] == job_id:
-                job["last_booked"] = date_str
-        self.save()
+            if not job.get("active", True): continue
+
+            target_date_str = None
+            
+            if job["type"] == "onetime":
+                target_date_str = job["target_date"]
+            
+            # (Recurring Logik vereinfacht für V1)
+            
+            # CHECK: Ist Datum im Zeitfenster?
+            if target_date_str:
+                d_parts = target_date_str.split(".")
+                dt_target = datetime(int(d_parts[2]), int(d_parts[1]), int(d_parts[0]))
+                
+                if dt_target.date() <= max_future.date():
+                    # Ist es in der Vergangenheit?
+                    if dt_target.date() < today.date():
+                        print(f"[JOBS] Job {target_date_str} ist abgelaufen.")
+                        job["active"] = False
+                    elif job.get("last_booked") != target_date_str:
+                        due.append((job, target_date_str))
+                else:
+                    print(f"[SMART] Job für {target_date_str} noch nicht fällig (>14 Tage).")
+
+        self._save()
+        return due
+    
+    def mark_done(self, job_id, date_str):
+        for j in self.jobs:
+            if j["id"] == job_id:
+                j["last_booked"] = date_str
+                if j["type"] == "onetime": j["active"] = False
+        self._save()

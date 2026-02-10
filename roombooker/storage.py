@@ -1,49 +1,141 @@
 import json
 import os
+from dataclasses import asdict
 from pathlib import Path
+from typing import Dict, List, Optional
 
-def resolve_data_dir():
-    path = os.getenv("ROOMBOOKER_DATA_DIR", "./data")
-    p = Path(path)
-    p.mkdir(parents=True, exist_ok=True)
-    return p
+# Wir nutzen relative Imports oder absolute, je nach Environment. 
+# Hier sicherheitshalber absolute Imports passend zum Modul.
+from roombooker.config import BLUEPRINTS_FILE, ROOMS_FILE, SETTINGS_FILE
+from roombooker.models import Account, Job, JobRequest, Settings
 
-class StorageManager:
-    def __init__(self):
-        self.data_dir = resolve_data_dir()
-        self.history_path = self.data_dir / "booking_history.json"
-        self.settings_path = self.data_dir / "settings.json"
-        self.weights_path = self.data_dir / "weights.json"
-        self.categories_path = self.data_dir / "categories.json"
-        self.jobs_path = self.data_dir / "jobs.json"
-        self.google_creds = self.data_dir / "google_credentials.json"
-        self.google_token = self.data_dir / "token.json"
+class SettingsStore:
+    @staticmethod
+    def load() -> Settings:
+        if not SETTINGS_FILE.exists():
+            return Settings(accounts=[Account()])
+        try:
+            data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            # Fallback falls accounts key fehlt
+            acc_data = data.get("accounts", [])
+            accounts = [Account(**acc) for acc in acc_data] if acc_data else [Account()]
+            
+            return Settings(
+                accounts=accounts,
+                simulation=data.get("simulation", True),
+                theme=data.get("theme", "Dark"),
+            )
+        except Exception:
+            return Settings(accounts=[Account()])
 
-    def load_json(self, path, default=None):
-        if path.exists():
+    @staticmethod
+    def save(settings: Settings) -> None:
+        data = asdict(settings)
+        SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+class RoomStore:
+    @staticmethod
+    def load() -> Dict[str, str]:
+        if ROOMS_FILE.exists():
             try:
-                with open(path, "r") as f: return json.load(f)
-            except json.JSONDecodeError: pass
-        return default or {}
+                return json.loads(ROOMS_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                return {}
+        return {}
 
-    def save_json(self, path, data):
-        with open(path, "w") as f: json.dump(data, f, indent=2)
+    @staticmethod
+    def save(room_map: Dict[str, str]) -> None:
+        ROOMS_FILE.write_text(json.dumps(room_map, indent=2), encoding="utf-8")
 
-    def get_history(self): return self.load_json(self.history_path)
-    def save_history(self, h): self.save_json(self.history_path, h)
-    
-    def get_settings(self): return self.load_json(self.settings_path)
-    
-    def get_calendar_id(self):
-        # Priorität: settings.json > Env Var > 'primary'
-        settings = self.get_settings()
-        return settings.get("calendar_id", os.environ.get("GOOGLE_CALENDAR_ID", "primary"))
 
-    def get_weights(self): return self.load_json(self.weights_path)
-    def get_categories(self): return self.load_json(self.categories_path)
+class BlueprintStore:
+    @staticmethod
+    def load() -> Dict[str, List[Job]]:
+        if not BLUEPRINTS_FILE.exists():
+            return {}
+        try:
+            data = json.loads(BLUEPRINTS_FILE.read_text(encoding="utf-8"))
+            return {name: [Job.from_dict(j) for j in jobs] for name, jobs in data.items()}
+        except Exception:
+            return {}
+
+    @staticmethod
+    def save(blueprints: Dict[str, List[Job]]) -> None:
+        payload = {name: [job.to_dict() for job in jobs] for name, jobs in blueprints.items()}
+        BLUEPRINTS_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def resolve_data_dir() -> Path:
+    # Versucht erst Env Var, dann lokales 'data', dann '/app/data'
+    if os.path.exists("data"):
+        return Path("data")
+    return Path(os.environ.get("ROOMBOOKER_DATA_DIR", "/app/data"))
+
+
+def read_json_file(path: Path) -> Optional[object]:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def load_accounts(settings_path: Optional[Path] = None) -> List[Account]:
+    """Lädt Accounts aus der settings.json"""
+    target = settings_path or (resolve_data_dir() / "settings.json")
     
-    def get_jobs(self): return self.load_json(self.jobs_path, [])
-    def add_job(self, job_data):
-        jobs = self.get_jobs()
-        jobs.append(job_data)
-        self.save_json(self.jobs_path, jobs)
+    # Fallback: Wenn Settings-Datei nicht da, leere Liste
+    if not target.exists():
+        return []
+        
+    payload = read_json_file(target)
+    if not isinstance(payload, dict):
+        return []
+        
+    accounts_data = payload.get("accounts", [])
+    if not isinstance(accounts_data, list):
+        return []
+        
+    # Sicherstellen, dass Account Objekte erstellt werden
+    valid_accounts = []
+    for acc in accounts_data:
+        if isinstance(acc, dict):
+            try:
+                valid_accounts.append(Account(**acc))
+            except: pass
+            
+    return valid_accounts
+
+
+def load_jobs(jobs_path: Optional[Path] = None) -> List[JobRequest]:
+    target = jobs_path or (resolve_data_dir() / "jobs.json")
+    payload = read_json_file(target)
+    if not isinstance(payload, list):
+        return []
+    jobs: List[JobRequest] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        try:
+            jobs.append(
+                JobRequest(
+                    active=item.get("active", True),
+                    day=item.get("day", "Montag"),
+                    start=item.get("start", "08:00"),
+                    end=item.get("end", "18:00"),
+                    rooms=list(item.get("rooms", [])),
+                    summary=item.get("summary"),
+                )
+            )
+        except: pass
+    return jobs
+
+
+def load_rooms(rooms_path: Optional[Path] = None) -> Dict[str, str]:
+    target = rooms_path or (resolve_data_dir() / "rooms.json")
+    payload = read_json_file(target)
+    if not isinstance(payload, dict):
+        return {}
+    return {str(name): str(value) for name, value in payload.items()}

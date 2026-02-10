@@ -1,50 +1,49 @@
-import random
-import time
-from datetime import datetime
-from pathlib import Path
-from typing import Callable
+from datetime import datetime, timedelta
 
+def smart_parse_date(user_input):
+    """
+    Macht aus Eingaben ein sauberes DD.MM.YYYY
+    - Leer -> Datum von morgen
+    - "14.02" -> "14.02.2026" (Aktuelles Jahr)
+    """
+    now = datetime.now()
+    user_input = user_input.strip()
 
-def human_type(page, selector: str, text: str) -> None:
-    try:
-        page.focus(selector)
-        for char in text:
-            page.keyboard.type(char, delay=random.randint(20, 60))
-    except Exception:
-        pass
+    if not user_input:
+        tomorrow = now + timedelta(days=1)
+        return tomorrow.strftime("%d.%m.%Y")
 
+    parts = user_input.split(".")
+    if len(parts) == 2:
+        return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{now.year}"
+    
+    if len(parts) == 3:
+        year = parts[2]
+        if len(year) == 2: year = "20" + year
+        return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{year}"
 
-def human_sleep(min_s: float = 0.5, max_s: float = 1.5) -> None:
-    time.sleep(random.uniform(min_s, max_s))
+    return user_input
 
+def smart_parse_time(user_input):
+    """
+    Macht aus Eingaben ein sauberes HH:MM
+    - "8" -> "08:00"
+    - "930" -> "09:30"
+    """
+    user_input = user_input.strip().replace(".", ":")
+    
+    if not user_input: return ""
 
-class OutputRedirector:
-    def __init__(self, callback: Callable[[str], None]):
-        self.callback = callback
+    if ":" not in user_input and len(user_input) <= 2:
+        return f"{int(user_input):02d}:00"
+    
+    if ":" not in user_input and len(user_input) > 2:
+        h = user_input[:-2]
+        m = user_input[-2:]
+        return f"{int(h):02d}:{int(m):02d}"
 
-    def write(self, text: str) -> None:
-        if text and text.strip():
-            self.callback(text.strip())
+    if ":" in user_input:
+        h, m = user_input.split(":")
+        return f"{int(h):02d}:{int(m):02d}"
 
-    def flush(self) -> None:
-        pass
-
-    def isatty(self) -> bool:
-        return False
-
-
-class Logger:
-    def __init__(self, queue_obj, log_file: Path) -> None:
-        self.queue = queue_obj
-        self.log_file = log_file
-
-    def log(self, message: str) -> None:
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        full_msg = f"[{timestamp}] {message}"
-        print(full_msg)
-        try:
-            with self.log_file.open("a", encoding="utf-8") as handle:
-                handle.write(full_msg + "\n")
-        except Exception:
-            pass
-        self.queue.put(full_msg)
+    return user_input

@@ -5,8 +5,11 @@ from googleapiclient.discovery import build
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
+# Deine Kalender-ID als Konstante
+TARGET_CALENDAR_ID = "3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com"
+
 class CalendarSync:
-    def __init__(self, service_account_file, calendar_id="primary", logger=None):
+    def __init__(self, service_account_file, calendar_id=TARGET_CALENDAR_ID, logger=None):
         self.logger = logger
         self.calendar_id = calendar_id
         if not os.path.exists(service_account_file):
@@ -25,7 +28,6 @@ class CalendarSync:
         """Fasst aufeinanderfolgende Buchungen zusammen."""
         if not slots: return []
         
-        # 1. Hilfsfunktion für Datetime
         parsed_slots = []
         for s in slots:
             try:
@@ -33,13 +35,13 @@ class CalendarSync:
                 dt_end = datetime.datetime.strptime(f"{s['date']} {s['end']}", "%d.%m.%Y %H:%M")
                 s['_dt_start'] = dt_start
                 s['_dt_end'] = dt_end
-                s['_accounts'] = {s.get('account', 'Unbekannt')} # Set für Accounts
+                s['_accounts'] = {s.get('account', 'Unbekannt')} 
                 parsed_slots.append(s)
             except: 
                 print(f"[SKIP] Formatfehler bei: {s}")
                 continue
 
-        # 2. Sortieren (Raum -> Startzeit)
+        # Sortieren: Raum -> Startzeit
         parsed_slots.sort(key=lambda x: (x['room'], x['_dt_start']))
 
         merged = []
@@ -52,23 +54,19 @@ class CalendarSync:
             if (curr['room'] == next_s['room'] and 
                 curr['_dt_start'].date() == next_s['_dt_start'].date()):
                 
-                # Check: Grenzen sie aneinander oder überlappen sie?
-                # Toleranz: 0 Minuten (Ende == Start) oder Überlappung
+                # Check: Angrenzend oder Überlappend?
                 if curr['_dt_end'] >= next_s['_dt_start']:
-                    # MERGE!
-                    # Neues Ende ist das spätere der beiden
+                    # Merge!
                     if next_s['_dt_end'] > curr['_dt_end']:
                         curr['_dt_end'] = next_s['_dt_end']
                     
-                    # Accounts zusammenführen
                     curr['_accounts'].update(next_s['_accounts'])
                     continue
 
-            # Kein Merge möglich -> Alten speichern, neuen als current setzen
             merged.append(curr)
             curr = next_s
         
-        merged.append(curr) # Letzten nicht vergessen
+        merged.append(curr)
         return merged
 
     def sync_slots(self, raw_slots):
@@ -76,24 +74,19 @@ class CalendarSync:
             print("[CAL-WARN] Kein Service verfügbar.")
             return
 
-        # 1. Zusammenfassen
         merged_slots = self._merge_slots(raw_slots)
         print(f"[CAL-SYNC] {len(raw_slots)} Rohdaten -> {len(merged_slots)} Events nach Merge.")
+        print(f"[CAL-SYNC] Ziel-Kalender: {self.calendar_id}")
         
         for slot in merged_slots:
             try:
                 dt_start = slot['_dt_start']
                 dt_end = slot['_dt_end']
                 room = slot['room']
-                
-                # Accounts schön formatieren
                 acc_list = ", ".join(sorted(list(slot['_accounts'])))
-                
-                # Titel: "A-204 (Lernen)"
                 summary = f"{room} (Lernen)"
 
-                # Duplikat-Check (Verhindert doppelte Einträge beim Testen)
-                # Wir suchen Events, die zur gleichen Zeit starten
+                # Duplikat-Check im ZIEL-KALENDER
                 events = self.service.events().list(
                     calendarId=self.calendar_id, 
                     timeMin=dt_start.isoformat() + "Z", 
@@ -101,8 +94,6 @@ class CalendarSync:
                     singleEvents=True
                 ).execute()
                 
-                # Einfacher Check: Wenn schon ein Event da ist, das so heißt -> SKIP
-                # (Smart Update wäre komplexer, für MVP reicht Skip)
                 duplicate = False
                 for e in events.get('items', []):
                     if room in e.get('summary', ''):
@@ -113,14 +104,13 @@ class CalendarSync:
                     print(f"   [SKIP] Event existiert schon: {room} {dt_start.strftime('%H:%M')}")
                     continue
 
-                # Event erstellen
                 event_body = {
                     'summary': summary,
                     'location': 'Bibliothek vonRoll',
                     'description': f"Automatisches Booking.\nAccounts: {acc_list}",
                     'start': {'dateTime': dt_start.isoformat(), 'timeZone': 'Europe/Zurich'},
                     'end': {'dateTime': dt_end.isoformat(), 'timeZone': 'Europe/Zurich'},
-                    'colorId': '5' # Gelb (Optional)
+                    'colorId': '5' 
                 }
                 
                 self.service.events().insert(calendarId=self.calendar_id, body=event_body).execute()

@@ -4209,3 +4209,126 @@ KeyError: 'id'
 2026-02-11 23:37:51,932 | 172.20.0.3 - - [11/Feb/2026 23:37:51] "[32mPOST /book HTTP/1.1[0m" 302 -
 2026-02-11 23:37:52,014 | 172.20.0.3 - - [11/Feb/2026 23:37:52] "GET / HTTP/1.1" 200 -
 2026-02-11 23:38:04,046 | 172.20.0.3 - - [11/Feb/2026 23:38:04] "GET / HTTP/1.1" 200 -
+2026-02-11 23:41:50,871 | 172.20.0.3 - - [11/Feb/2026 23:41:50] "GET / HTTP/1.1" 200 -
+2026-02-11 23:44:42,780 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:44:42,781 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:44:42,781 | Scheduler started
+2026-02-11 23:44:42,785 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-11 23:44:42,785 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:44:46,180 | 172.20.0.3 - - [11/Feb/2026 23:44:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:44:59,852 | 172.20.0.3 - - [11/Feb/2026 23:44:59] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 23:44:59,927 | 172.20.0.3 - - [11/Feb/2026 23:44:59] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 23:45:08,581 | 172.20.0.3 - - [11/Feb/2026 23:45:08] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 23:45:08,625 | 172.20.0.3 - - [11/Feb/2026 23:45:08] "GET / HTTP/1.1" 200 -
+2026-02-11 23:45:16,841 | 172.20.0.3 - - [11/Feb/2026 23:45:16] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 23:45:16,892 | 172.20.0.3 - - [11/Feb/2026 23:45:16] "GET / HTTP/1.1" 200 -
+2026-02-11 23:45:19,615 | 172.20.0.3 - - [11/Feb/2026 23:45:19] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:45:27,176 | 172.20.0.3 - - [11/Feb/2026 23:45:27] "GET / HTTP/1.1" 200 -
+2026-02-11 23:46:05,854 | 172.20.0.3 - - [11/Feb/2026 23:46:05] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 23:46:05,912 | 172.20.0.3 - - [11/Feb/2026 23:46:05] "GET / HTTP/1.1" 200 -
+2026-02-11 23:46:06,883 | 172.20.0.3 - - [11/Feb/2026 23:46:06] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:46:10,492 | 172.20.0.3 - - [11/Feb/2026 23:46:10] "[32mGET /jobs/delete/441462be-2de6-4a1b-ba42-1152e4ae0328 HTTP/1.1[0m" 302 -
+2026-02-11 23:46:10,582 | 172.20.0.3 - - [11/Feb/2026 23:46:10] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:46:17,253 | 172.20.0.3 - - [11/Feb/2026 23:46:17] "[32mGET /jobs/delete/f9f88bf8-174b-4373-859f-0ca2a7be1344 HTTP/1.1[0m" 302 -
+2026-02-11 23:46:17,336 | 172.20.0.3 - - [11/Feb/2026 23:46:17] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:46:18,261 | 172.20.0.3 - - [11/Feb/2026 23:46:18] "GET / HTTP/1.1" 200 -
+2026-02-11 23:46:35,337 | 172.20.0.3 - - [11/Feb/2026 23:46:35] "GET / HTTP/1.1" 200 -
+2026-02-11 23:46:41,195 | 172.20.0.3 - - [11/Feb/2026 23:46:41] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:46:44,901 | 172.20.0.3 - - [11/Feb/2026 23:46:44] "[32mGET /jobs/delete/134e5cb5-a592-40ae-a175-b7da86e65ee8 HTTP/1.1[0m" 302 -
+2026-02-11 23:46:45,000 | 172.20.0.3 - - [11/Feb/2026 23:46:45] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 23:46:46,028 | 172.20.0.3 - - [11/Feb/2026 23:46:46] "GET / HTTP/1.1" 200 -
+2026-02-11 23:46:54,208 | 172.20.0.3 - - [11/Feb/2026 23:46:54] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 23:46:54,251 | 172.20.0.3 - - [11/Feb/2026 23:46:54] "GET / HTTP/1.1" 200 -
+2026-02-11 23:53:53,190 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:53:53,190 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:53:53,191 | Scheduler started
+2026-02-11 23:53:53,195 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-11 23:53:53,196 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:54:46,046 | 172.20.0.3 - - [11/Feb/2026 23:54:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:54:46,052 | 172.20.0.3 - - [11/Feb/2026 23:54:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:55:46,039 | 172.20.0.3 - - [11/Feb/2026 23:55:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:55:46,042 | 172.20.0.3 - - [11/Feb/2026 23:55:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:19,369 | 172.20.0.3 - - [11/Feb/2026 23:56:19] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:19,863 | 172.20.0.3 - - [11/Feb/2026 23:56:19] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:20,434 | 172.20.0.3 - - [11/Feb/2026 23:56:20] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:21,010 | 172.20.0.3 - - [11/Feb/2026 23:56:21] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:23,013 | 172.20.0.3 - - [11/Feb/2026 23:56:23] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:23,016 | 172.20.0.3 - - [11/Feb/2026 23:56:23] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:25,014 | 172.20.0.3 - - [11/Feb/2026 23:56:25] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:25,017 | 172.20.0.3 - - [11/Feb/2026 23:56:25] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:27,012 | 172.20.0.3 - - [11/Feb/2026 23:56:27] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:27,019 | 172.20.0.3 - - [11/Feb/2026 23:56:27] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:29,010 | 172.20.0.3 - - [11/Feb/2026 23:56:29] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:29,012 | 172.20.0.3 - - [11/Feb/2026 23:56:29] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:31,016 | 172.20.0.3 - - [11/Feb/2026 23:56:31] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:31,019 | 172.20.0.3 - - [11/Feb/2026 23:56:31] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:33,011 | 172.20.0.3 - - [11/Feb/2026 23:56:33] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:33,014 | 172.20.0.3 - - [11/Feb/2026 23:56:33] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:35,004 | 172.20.0.3 - - [11/Feb/2026 23:56:35] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:35,006 | 172.20.0.3 - - [11/Feb/2026 23:56:35] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:37,020 | 172.20.0.3 - - [11/Feb/2026 23:56:37] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:37,023 | 172.20.0.3 - - [11/Feb/2026 23:56:37] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:39,011 | 172.20.0.3 - - [11/Feb/2026 23:56:39] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:39,014 | 172.20.0.3 - - [11/Feb/2026 23:56:39] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:41,003 | 172.20.0.3 - - [11/Feb/2026 23:56:41] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:41,006 | 172.20.0.3 - - [11/Feb/2026 23:56:41] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:43,053 | 172.20.0.3 - - [11/Feb/2026 23:56:43] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:43,058 | 172.20.0.3 - - [11/Feb/2026 23:56:43] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:45,007 | 172.20.0.3 - - [11/Feb/2026 23:56:45] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:45,010 | 172.20.0.3 - - [11/Feb/2026 23:56:45] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:47,009 | 172.20.0.3 - - [11/Feb/2026 23:56:47] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:47,012 | 172.20.0.3 - - [11/Feb/2026 23:56:47] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:49,023 | 172.20.0.3 - - [11/Feb/2026 23:56:49] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:49,025 | 172.20.0.3 - - [11/Feb/2026 23:56:49] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:51,013 | 172.20.0.3 - - [11/Feb/2026 23:56:51] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:51,017 | 172.20.0.3 - - [11/Feb/2026 23:56:51] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:53,005 | 172.20.0.3 - - [11/Feb/2026 23:56:53] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:53,008 | 172.20.0.3 - - [11/Feb/2026 23:56:53] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:55,017 | 172.20.0.3 - - [11/Feb/2026 23:56:55] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:55,020 | 172.20.0.3 - - [11/Feb/2026 23:56:55] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:57,014 | 172.20.0.3 - - [11/Feb/2026 23:56:57] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:56:57,017 | 172.20.0.3 - - [11/Feb/2026 23:56:57] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:59,014 | 172.20.0.3 - - [11/Feb/2026 23:56:59] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:56:59,017 | 172.20.0.3 - - [11/Feb/2026 23:56:59] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:01,017 | 172.20.0.3 - - [11/Feb/2026 23:57:01] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:01,021 | 172.20.0.3 - - [11/Feb/2026 23:57:01] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:03,002 | 172.20.0.3 - - [11/Feb/2026 23:57:03] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:03,017 | 172.20.0.3 - - [11/Feb/2026 23:57:03] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:05,004 | 172.20.0.3 - - [11/Feb/2026 23:57:05] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:05,008 | 172.20.0.3 - - [11/Feb/2026 23:57:05] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:07,060 | 172.20.0.3 - - [11/Feb/2026 23:57:07] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:07,063 | 172.20.0.3 - - [11/Feb/2026 23:57:07] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:09,004 | 172.20.0.3 - - [11/Feb/2026 23:57:09] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:09,008 | 172.20.0.3 - - [11/Feb/2026 23:57:09] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:11,013 | 172.20.0.3 - - [11/Feb/2026 23:57:11] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:11,014 | 172.20.0.3 - - [11/Feb/2026 23:57:11] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:13,018 | 172.20.0.3 - - [11/Feb/2026 23:57:13] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:13,021 | 172.20.0.3 - - [11/Feb/2026 23:57:13] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:15,000 | 172.20.0.3 - - [11/Feb/2026 23:57:15] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:15,003 | 172.20.0.3 - - [11/Feb/2026 23:57:15] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:17,011 | 172.20.0.3 - - [11/Feb/2026 23:57:17] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:17,014 | 172.20.0.3 - - [11/Feb/2026 23:57:17] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:19,010 | 172.20.0.3 - - [11/Feb/2026 23:57:19] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:19,013 | 172.20.0.3 - - [11/Feb/2026 23:57:19] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:57:46,131 | 172.20.0.3 - - [11/Feb/2026 23:57:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:57:46,134 | 172.20.0.3 - - [11/Feb/2026 23:57:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-11 23:58:46,017 | 172.20.0.3 - - [11/Feb/2026 23:58:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:58:46,020 | 172.20.0.3 - - [11/Feb/2026 23:58:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:00:40,756 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:00:40,756 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:00:40,756 | Scheduler started
+2026-02-12 00:00:40,761 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:00:40,761 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:00:46,045 | 172.20.0.3 - - [12/Feb/2026 00:00:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:00:46,051 | 172.20.0.3 - - [12/Feb/2026 00:00:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:01:46,036 | 172.20.0.3 - - [12/Feb/2026 00:01:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:01:46,039 | 172.20.0.3 - - [12/Feb/2026 00:01:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -

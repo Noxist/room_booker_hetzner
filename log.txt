@@ -4177,3 +4177,35 @@ KeyError: 'id'
 2026-02-11 23:06:46,053 | 172.21.0.3 - - [11/Feb/2026 23:06:46] "GET /login?next=/api/status HTTP/1.1" 200 -
 2026-02-11 23:07:46,036 | 172.21.0.3 - - [11/Feb/2026 23:07:46] "GET /login?next=/api/status HTTP/1.1" 200 -
 2026-02-11 23:08:46,047 | 172.21.0.3 - - [11/Feb/2026 23:08:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:28:47,232 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:28:47,233 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:28:47,233 | Scheduler started
+2026-02-11 23:28:47,241 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-11 23:28:47,241 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:31:27,209 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:31:27,210 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:31:27,210 | Scheduler started
+2026-02-11 23:31:27,219 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-11 23:31:27,219 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:35:44,682 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:35:44,683 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:35:44,683 | Scheduler started
+2026-02-11 23:35:44,688 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-11 23:35:44,688 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:37:29,307 | 172.20.0.3 - - [11/Feb/2026 23:37:29] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 23:37:29,448 | 172.20.0.3 - - [11/Feb/2026 23:37:29] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 23:37:29,842 | 172.20.0.3 - - [11/Feb/2026 23:37:29] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 23:37:36,251 | 172.20.0.3 - - [11/Feb/2026 23:37:36] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 23:37:36,320 | 172.20.0.3 - - [11/Feb/2026 23:37:36] "GET / HTTP/1.1" 200 -
+2026-02-11 23:37:51,932 | 172.20.0.3 - - [11/Feb/2026 23:37:51] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 23:37:52,014 | 172.20.0.3 - - [11/Feb/2026 23:37:52] "GET / HTTP/1.1" 200 -
+2026-02-11 23:38:04,046 | 172.20.0.3 - - [11/Feb/2026 23:38:04] "GET / HTTP/1.1" 200 -

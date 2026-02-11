@@ -22,15 +22,12 @@ class StorageManager:
         try:
             with open(SETTINGS_FILE, 'r') as f:
                 data = json.load(f)
-                # FIX: Erkennt nun auch die Struktur { "accounts": [...] }
                 if isinstance(data, dict) and "accounts" in data:
                     return data["accounts"]
-                # Fallback für alte Struktur (direkte Liste)
                 return data if isinstance(data, list) else []
         except: return []
 
     def save_settings(self, data):
-        # Wir versuchen, die existierende Struktur beizubehalten
         try:
             current = {}
             if os.path.exists(SETTINGS_FILE):
@@ -38,18 +35,15 @@ class StorageManager:
                     loaded = json.load(f)
                     if isinstance(loaded, dict): current = loaded
             
-            # Wenn die Datei vorher ein Dict war, speichern wir es wieder so
             if isinstance(current, dict) and "accounts" in current:
                 current["accounts"] = data
                 to_save = current
             else:
-                # Sonst speichern wir einfach die Liste (Kompatibilitätsmodus)
                 to_save = data
                 
             with open(SETTINGS_FILE, 'w') as f: 
                 json.dump(to_save, f, indent=2)
         except:
-            # Notfall-Fallback
             with open(SETTINGS_FILE, 'w') as f: 
                 json.dump(data, f, indent=2)
 

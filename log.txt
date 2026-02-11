@@ -3914,3 +3914,6 @@ KeyError: 'id'
 2026-02-11 17:47:34,575 | INFO | 172.21.0.3 - - [11/Feb/2026 17:47:34] "GET / HTTP/1.1" 200 -
 2026-02-11 17:50:07,005 | INFO | 172.21.0.3 - - [11/Feb/2026 17:50:07] "GET /jobs HTTP/1.1" 200 -
 2026-02-11 17:54:21,920 | INFO | 172.21.0.3 - - [11/Feb/2026 17:54:21] "GET /accounts HTTP/1.1" 200 -
+2026-02-11 17:59:11,041 | INFO | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 17:14:11 UTC)" (scheduled at 2026-02-11 16:59:11.040882+00:00)
+2026-02-11 17:59:11,042 | INFO | [SCHEDULER] Prüfe Jobs...
+2026-02-11 17:59:11,042 | INFO | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 17:14:11 UTC)" executed successfully

@@ -4,7 +4,7 @@ import threading
 import logging
 import time
 from datetime import datetime, timezone
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from dotenv import load_dotenv, set_key
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,14 +20,14 @@ from main import run_booking_logic, run_sync
 DATA_DIR = "/root/auto_reserve_data"
 os.environ["ROOMBOOKER_DATA_DIR"] = DATA_DIR 
 ENV_FILE = ".env"
+STATUS_FILE = os.path.join(DATA_DIR, "web_status.txt")
 
-# --- LOGGING ---
+# --- LOGGING FILTER ---
 class CleanLogFilter(logging.Filter):
     def filter(self, record):
         msg = record.getMessage()
-        if "GET /api/logs" in msg: return False
+        if "GET /api/" in msg: return False # API Polls raus
         if "GET /static/" in msg: return False
-        if "GET /logs" in msg: return False
         return True
 
 logging.basicConfig(
@@ -56,17 +56,20 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id): return User(user_id)
 
-# --- EXECUTION ---
+# --- SAFE RUNNER ---
 def safe_run_booking(date_str, start_str, end_str, cat, count, job_id=None):
-    logging.info(f"[EXEC] >>> Start: {date_str} ({start_str}-{end_str}) [Job: {job_id}]")
+    logging.info(f"[EXEC] >>> Start: {date_str} ({start_str}-{end_str})")
     try:
         if not os.path.exists(os.path.join(DATA_DIR, "categories.json")):
-            logging.error("[EXEC] FEHLER: categories.json fehlt!")
+            logging.error("[EXEC] categories.json fehlt!")
             return
         run_booking_logic(date_str, start_str, end_str, cat, count, job_id)
-        logging.info("[EXEC] <<< Fertig.")
     except Exception as e:
         logging.error(f"[EXEC] CRASH: {e}", exc_info=True)
+        # Status Error schreiben
+        try:
+            with open(STATUS_FILE, "w") as f: f.write(f"error|Systemfehler: {str(e)[:50]}...")
+        except: pass
 
 # --- SCHEDULER ---
 def check_scheduled_jobs():
@@ -85,7 +88,6 @@ try:
     scheduler = BackgroundScheduler(timezone=pytz.utc)
     scheduler.add_job(func=check_scheduled_jobs, trigger="interval", minutes=15)
     scheduler.start()
-    logging.info("[SYSTEM] Scheduler OK (UTC).")
 except: pass
 
 # --- ROUTES ---
@@ -109,8 +111,21 @@ def logout():
 def index():
     sm = StorageManager()
     cats = sm.get_categories()
-    if not cats: logging.warning("[WEB] Keine Kategorien geladen.")
-    return render_template('index.html', categories=cats, jobs=JobManager().jobs)
+    return render_template('index.html', categories=cats) # Keine Jobs hier nötig
+
+@app.route('/api/status')
+@login_required
+def get_status():
+    """Gibt den aktuellen Status für das Frontend zurück."""
+    try:
+        if os.path.exists(STATUS_FILE):
+            with open(STATUS_FILE, "r") as f:
+                content = f.read().strip().split("|", 1)
+                if len(content) == 2:
+                    return jsonify({"state": content[0], "msg": content[1]})
+        return jsonify({"state": "idle", "msg": "Bereit."})
+    except:
+        return jsonify({"state": "idle", "msg": "Bereit."})
 
 @app.route('/book', methods=['POST'])
 @login_required
@@ -129,17 +144,17 @@ def book():
         d, s, e, request.form.get('category'), request.form.get('frequency')
     )
     
-    logging.info(f"[WEB] Job erstellt: {d} {s}-{e}")
+    # Initiale Statusmeldung setzen
+    with open(STATUS_FILE, "w") as f: f.write(f"info|Starte Prozess für {d}...")
+
     threading.Thread(target=safe_run_booking, args=(d, s, e, job['category'], 4, job['id'])).start()
     
-    flash('Gespeichert & Gestartet.', 'success')
     return redirect(url_for('index'))
 
 @app.route('/sync')
 @login_required
 def sync():
     threading.Thread(target=run_sync).start()
-    flash('Sync gestartet', 'info')
     return redirect(url_for('index'))
 
 @app.route('/jobs')
@@ -150,10 +165,8 @@ def jobs(): return render_template('jobs.html', jobs=JobManager().jobs)
 @login_required
 def delete_job(job_id):
     jm = JobManager()
-    # FIX: Sicher filtern (nur Jobs die eine ID haben und nicht die gesuchte sind)
     jm.jobs = [j for j in jm.jobs if j.get('id') != job_id]
     jm.save_jobs()
-    flash('Gelöscht.', 'warning')
     return redirect(url_for('jobs'))
 
 @app.route('/jobs/toggle/<job_id>')
@@ -197,7 +210,7 @@ def api_logs():
         sys.stdout.flush()
         if os.path.exists("log.txt"):
             with open("log.txt", "r") as f:
-                lines = [l for l in f.readlines() if "GET /api/logs" not in l and "GET /static" not in l]
+                lines = [l for l in f.readlines() if "GET /api/" not in l]
                 return "".join(lines[-int(request.args.get('lines', 200)):])
     except: pass
     return "Lade..."

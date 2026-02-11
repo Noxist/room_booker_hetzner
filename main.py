@@ -1,240 +1,124 @@
 import sys
+import time
 import argparse
+import random
 import json
 import os
-import time
-from datetime import datetime, timedelta
+from roombooker.booking_engine import BookingEngine
 from roombooker.storage import StorageManager
-from roombooker.intelligence import BookingIntelligence
-from roombooker.browser import BrowserEngine, m2t, t2m
-from roombooker.calendar_sync import CalendarSync 
+from roombooker.calendar_sync import CalendarSync
 from roombooker.jobs import JobManager
-from roombooker.config import CREDENTIALS_FILE, BASE_DIR
-from roombooker.utils import smart_parse_date, smart_parse_time
 
-def append_to_cache(booking_data):
-    """Schreibt eine neue Buchung sofort in die lokale last_scan.json."""
-    cache_file = BASE_DIR / "last_scan.json"
-    data = []
-    if cache_file.exists():
-        try:
-            with open(cache_file, "r") as f: data = json.load(f)
-        except: pass
-    
-    # Füge neue Buchung hinzu
-    data.append(booking_data)
-    
+# Helper für Web-Status (wird von app.py ausgelesen)
+STATUS_FILE = os.path.join(os.getenv("ROOMBOOKER_DATA_DIR", "."), "web_status.txt")
+
+def set_web_status(msg, state="info"):
+    """Schreibt Status für die Webseite (info, success, error)"""
     try:
-        with open(cache_file, "w") as f: json.dump(data, f, indent=2)
-        # print(f"[CACHE] Lokales Gedächtnis aktualisiert: {booking_data['time']}")
+        with open(STATUS_FILE, "w") as f:
+            f.write(f"{state}|{msg}")
+    except: pass
+
+def run_sync():
+    set_web_status("Synchronisiere Kalender...", "info")
+    print("[SYNC] Starte manuellen Sync...")
+    try:
+        CalendarSync().sync_all()
+        print("[SYNC] Fertig.")
+        set_web_status("Kalender synchronisiert ✅", "success")
     except Exception as e:
-        print(f"[CACHE ERROR] Konnte nicht speichern: {e}")
+        print(f"[SYNC] Fehler: {e}")
+        set_web_status(f"Sync Fehler: {e}", "error")
 
-def load_cached_bookings(date_str):
-    """Liest den Cache für ein bestimmtes Datum."""
-    cache_file = BASE_DIR / "last_scan.json"
-    if cache_file.exists():
-        try:
-            with open(cache_file, "r") as f: 
-                all_cached = json.load(f)
-                # Filter: Datum muss passen
-                return [b for b in all_cached if b.get('date', '') == date_str]
-        except: pass
-    return []
+def check_overlap(start1, end1, start2, end2):
+    """Gibt True zurück, wenn sich die Zeiten überlappen."""
+    return max(start1, start2) < min(end1, end2)
 
-def run_booking_logic(date_str, start_str, end_str, category, num_accounts, job_id=None):
-    store = StorageManager()
-    brain = BookingIntelligence(store)
-    browser = BrowserEngine(headless=True)
+def run_booking_logic(date_str, start_time, end_time, category_key, num_accounts, job_id=None):
+    set_web_status(f"Analysiere Planung für {date_str}...", "info")
+    print(f"\n[LOGIC] Starte Planung für {date_str} ({start_time} - {end_time}) | Kat: {category_key}")
     
-    # Liste für den automatischen Kalender-Upload
-    newly_booked_slots = []
+    sm = StorageManager()
+    settings = sm.get_settings()
+    last_scan = sm.load_last_scan() # Wir laden den Cache!
     
-    req_start = t2m(start_str)
-    req_end = t2m(end_str)
+    # --- SMART LOGIC: Accounts filtern ---
+    available_accounts = []
     
-    print(f"\n[LOGIC] Starte Planung für {date_str} ({start_str} - {end_str}) | Kat: {category}")
+    print(f"[LOGIC] Prüfe {len(settings)} Accounts gegen Cache ({len(last_scan)} Einträge)...")
     
-    # 1. LIVE-CHECK / CACHE
-    existing_bookings = load_cached_bookings(date_str)
-    
-    # Wenn Cache komplett leer/fehlt -> Einmaliger Live-Sync zur Sicherheit
-    if not existing_bookings and not (BASE_DIR / "last_scan.json").exists():
-        print(f"[LOGIC] Kein Cache vorhanden. Hole einmalig aktuelle Reservationen...")
-        all_accounts = store.get_settings()
-        if all_accounts:
-            browser.get_my_reservations(all_accounts[0])
-            existing_bookings = load_cached_bookings(date_str)
+    for acc in settings:
+        email = acc['email']
+        is_blocked = False
+        
+        for entry in last_scan:
+            # Wenn Eintrag vom gleichen Account am gleichen Tag ist
+            if entry.get('account') == email and entry.get('date') == date_str:
+                # Prüfe Zeitüberlappung
+                if check_overlap(start_time, end_time, entry['start'], entry['end']):
+                    print(f"   -> Überlappung bei {email}: {entry['start']}-{entry['end']} ist belegt.")
+                    is_blocked = True
+                    break
+        
+        if not is_blocked:
+            available_accounts.append(acc)
+            
+    if not available_accounts:
+        msg = f"{date_str}: Alle Accounts sind um diese Zeit schon belegt! ❌"
+        print(f"[LOGIC] {msg}")
+        set_web_status(msg, "error")
+        return
 
-    if existing_bookings:
-        print(f"[LOGIC] {len(existing_bookings)} bestehende Buchungen im Cache gefunden.")
-    else:
-        print("[LOGIC] Keine Vorbuchungen im Cache (Tag gilt als frei).")
-
-    # 2. Lücken berechnen (Gap Filling)
-    needed_slots = brain.calculate_remaining_time(req_start, req_end, existing_bookings)
+    print(f"[LOGIC] {len(available_accounts)} Accounts sind frei für diesen Slot.")
     
-    if not needed_slots:
-        print(f"[INFO] {date_str}: Alles bereits abgedeckt! ✅")
+    # Engine starten mit gefilterten Accounts
+    engine = BookingEngine(sm.base_dir)
+    engine.settings = available_accounts # ÜBERSCHREIBEN mit smarter Liste
+    
+    # Scan
+    set_web_status("Prüfe Raum-Verfügbarkeit...", "info")
+    target_rooms = sm.get_rooms_by_category(category_key)
+    rooms_state = engine.browser.scan_grid(date_str, target_rooms)
+    
+    # Entscheidung
+    needed = engine.intelligence.calculate_needed_slots(start_time, end_time, rooms_state, last_scan)
+    
+    if not needed:
+        msg = f"Alles bereits abgedeckt! ✅"
+        print(f"[INFO] {date_str}: {msg}")
+        set_web_status(msg, "success")
+        
+        # Job als erledigt markieren, auch wenn nichts gebucht wurde (weil schon voll)
         if job_id: JobManager().mark_done(job_id, date_str)
         return
 
-    # 3. Kategorie laden
-    cats = store.get_categories()
-    if category not in cats:
-        print(f"[WARN] Kategorie '{category}' unbekannt. Nutze 'default'.")
-        category = "default"
+    set_web_status(f"Versuche {len(needed)} Buchung(en)...", "info")
+    
+    # Buchen
+    success_count = 0
+    for slot in needed:
+        # Hier nimmt er jetzt automatisch den nächsten FREIEN Account aus unserer Smart-Liste
+        if engine.book_slot(slot, date_str):
+            success_count += 1
+            set_web_status(f"Gebucht: {slot['room']} ({slot['start']}-{slot['end']}) ✅", "success")
+    
+    if success_count > 0:
+        # Job Update
+        if job_id: JobManager().mark_done(job_id, date_str)
         
-    cat_data = cats[category]
-    target_rooms = cat_data.get("rooms", [])
-    print(f"[SETUP] Modus: {cat_data.get('title')} ({len(target_rooms)} Räume)")
-
-    # 4. Grid Scannen
-    print(f"[SCAN] Scanne Verfügbarkeit im Buchungssystem...")
-    rooms_state = browser.scan_grid(date_str, target_rooms)
-    
-    all_accounts = store.get_settings()
-    if num_accounts > 0: all_accounts = all_accounts[:num_accounts]
-    
-    # 5. Planen & Buchen
-    final_todos = []
-    for n_start, n_end in needed_slots:
-        sub_gaps = brain.calculate_gaps(date_str, n_start, n_end)
-        for sub in sub_gaps: final_todos.append(sub)
-    
-    if not final_todos:
-        print("[INFO] Keine offenen Slots zu buchen.")
-        return
-
-    print("\n" + "="*40)
-    print(f"      PLANUNG: {len(final_todos)} Slots offen")
-    print("="*40)
-
-    account_index = 0
-    
-    for curr_start, curr_end in final_todos:
-        curr = curr_start
-        while curr < curr_end:
-            best = None
-            limit_search = curr_end
-            
-            for room, bookings in rooms_state.items():
-                next_block = limit_search
-                for b in sorted(bookings, key=lambda x: x['start']):
-                    if b['end'] <= curr: continue
-                    if b['start'] < next_block: next_block = b['start']
-                
-                actual_end = min(next_block, curr + 240)
-                if (actual_end - curr) >= 30:
-                    score = brain.score_room(room, curr, actual_end, date_str)
-                    if not best or score > best['score']:
-                        best = {"room": room, "start": curr, "end": actual_end, "score": score}
-            
-            if not best:
-                print(f"   [SKIP] Kein Raum frei um {m2t(curr)}")
-                curr += 30
-                continue
-            
-            acc = all_accounts[account_index % len(all_accounts)]
-            print(f">>> BUCHE {best['room']} ({m2t(best['start'])}-{m2t(best['end'])}) [{acc['email']}]")
-            
-            if browser.perform_booking(date_str, best['room'], best['start'], best['end'], acc):
-                brain.record_booking(date_str, best['room'], best['start'], best['end'], acc['email'])
-                
-                # DATEN FÜR CACHE & CALENDAR VORBEREITEN
-                slot_data = {
-                    "date": date_str,
-                    "start": m2t(best['start']),
-                    "end": m2t(best['end']),
-                    "room": best['room'],
-                    "account": acc['email']
-                }
-                
-                # 1. SOFORT IN DEN CACHE SCHREIBEN (Damit der nächste Run es weiß)
-                append_to_cache(slot_data)
-                
-                # 2. Merken für Google Sync am Ende
-                newly_booked_slots.append(slot_data)
-                
-                curr = best['end']
-                account_index += 1 
-            else:
-                print("   [FAIL] Fehler. Nächster Account...")
-                account_index += 1
-
-    # 6. AUTO-SYNC ZU GOOGLE
-    if newly_booked_slots:
+        # Sync
         print("\n[AUTO-SYNC] Lade neue Buchungen in den Kalender hoch...")
-        try:
-            syncer = CalendarSync(str(CREDENTIALS_FILE))
-            syncer.sync_slots(newly_booked_slots)
-        except Exception as e:
-            print(f"[SYNC ERROR] Upload fehlgeschlagen: {e}")
-
-    if job_id: JobManager().mark_done(job_id, date_str)
-
-def run_sync():
-    # Beim manuellen Sync leeren wir den Cache und laden frisch
-    cache_file = BASE_DIR / "last_scan.json"
-    if cache_file.exists(): os.remove(cache_file)
-    
-    print("--- FULL SYNC START ---")
-    store = StorageManager(); browser = BrowserEngine(headless=True)
-    syncer = CalendarSync(str(CREDENTIALS_FILE))
-    all_events = []
-    for acc in store.get_settings():
-        if not acc.get("active", True): continue
-        print(f"[SYNC] Lade Reservationen für {acc['email']}...")
-        all_events.extend(browser.get_my_reservations(acc))
-    if all_events: syncer.sync_slots(all_events)
-    print("--- SYNC DONE ---")
-
-def start_wizard():
-    print("\n--- ROOM BOOKER WIZARD (Instant Cache) ---")
-    print("[1] Einmalige Buchung")
-    print("[2] Zukünftige Buchung planen")
-    print("[3] Jobs verwalten")
-    print("[4] Manueller Full-Sync")
-    print("[q] Beenden")
-    
-    c = input("Auswahl: ").strip()
-    
-    if c == "1" or c == "2":
-        d_raw = input(f"Datum (Leer = Morgen): "); date_str = smart_parse_date(d_raw)
-        s_raw = input("Start (z.B. 8, 8:30): "); start_str = smart_parse_time(s_raw)
-        e_raw = input("Ende  (z.B. 16, 20): "); end_str = smart_parse_time(e_raw)
-        
-        print(f"-> {date_str} | {start_str} bis {end_str}")
-        
-        sm = StorageManager()
-        cats = sm.get_categories()
-        print("\nKategorien:")
-        cat_keys = list(cats.keys())
-        for idx, (key, val) in enumerate(cats.items()):
-            print(f" [{idx+1}] {key.ljust(10)}: {val.get('title')}")
-        
-        k_raw = input(f"Wahl (1-{len(cats)}, Default=default): ").strip()
-        category = "default"
-        if k_raw.isdigit() and 0 < int(k_raw) <= len(cat_keys): category = cat_keys[int(k_raw)-1]
-        elif k_raw in cat_keys: category = k_raw
-            
-        if c == "1":
-            run_booking_logic(date_str, start_str, end_str, category, 4)
-        else:
-            JobManager().add_job("onetime", target_date=date_str, time_start=start_str, time_end=end_str, category=category)
-            print("[OK] Job gespeichert.")
-
-    elif c == "3":
-        for j in JobManager().jobs: print(f"- {j['type']} {j.get('target_date')}")
-    elif c == "4": run_sync()
+        set_web_status("Aktualisiere Kalender...", "info")
+        CalendarSync().sync_all()
+        set_web_status(f"Fertig! {success_count} Buchungen erstellt. ✅", "success")
+    else:
+        set_web_status("Keine Buchung möglich (Fehler oder voll). ❌", "error")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--process-jobs", action="store_true")
     args = parser.parse_args()
+
     if args.process_jobs:
-        jm = JobManager(); due = jm.get_due_jobs()
-        for j, d in due: run_booking_logic(d, j['time_start'], j['time_end'], j['category'], 4, job_id=j["id"])
-    else:
-        try: start_wizard()
-        except KeyboardInterrupt: print("\nAbbruch.")
+        # CLI Mode (Cronjob)
+        pass

@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6 col-lg-5">
+    <div class="card border-warning border-opacity-25 shadow-lg">
+      <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold text-center py-3">
+        <i class="bi bi-key-fill me-2"></i> Web-Passwort ändern
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="mb-3">
+             <label class="form-label text-muted small fw-bold">AKTUELLES PASSWORT</label>
+            <input type="password" name="current_pw" class="form-control" required>
+          </div>
+          <hr class="border-secondary border-opacity-25 my-4">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">NEUES PASSWORT</label>
+            <input type="password" name="new_pw" class="form-control" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">WIEDERHOLEN</label>
+            <input type="password" name="confirm_pw" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">Ändern & Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

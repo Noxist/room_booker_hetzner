@@ -1,17 +1,21 @@
-FROM mcr.microsoft.com/playwright/python:v1.41.2-jammy
+FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
 
+# Arbeitsverzeichnis
 WORKDIR /app
 
-# Systemvariablen für Playwright setzen, damit es die vorinstallierten Browser findet
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV PYTHONUNBUFFERED=1
-
-# Dependencies installieren
+# Abhängigkeiten installieren
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Code kopieren
+# Zeitzone auf Zürich setzen
+ENV TZ=Europe/Zurich
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# App-Code kopieren
 COPY . .
 
-# Container am Leben halten
-CMD ["tail", "-f", "/dev/null"]
+# Port freigeben
+EXPOSE 5000
+
+# Start-Befehl
+CMD ["python3", "app.py"]

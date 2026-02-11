@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold m-0">System Logs</h3>
+    <div class="text-muted small"><span id="statusIndicator" class="text-success">●</span> Live</div>
+</div>
+<div class="card bg-black border-secondary shadow-sm">
+  <div class="card-body p-0">
+    <pre id="logContainer" class="m-0 p-3 text-success font-monospace" style="height: 75vh; overflow-y: scroll; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;">Lade...</pre>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const logContainer = document.getElementById('logContainer');
+    let autoScroll = true;
+
+    // Wenn User scrollt, Auto-Scroll deaktivieren
+    logContainer.addEventListener('scroll', () => {
+        if (logContainer.scrollTop + logContainer.clientHeight >= logContainer.scrollHeight - 20) {
+            autoScroll = true;
+        } else {
+            autoScroll = false;
+        }
+    });
+
+    function fetchLogs() {
+        fetch('/api/logs?lines=500')
+            .then(res => res.text())
+            .then(data => {
+                logContainer.innerText = data;
+                if(autoScroll) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+                document.getElementById('statusIndicator').className = "text-success";
+            })
+            .catch(err => {
+                document.getElementById('statusIndicator').className = "text-danger";
+            });
+    }
+    
+    // Alle 2 Sekunden Log holen
+    setInterval(fetchLogs, 2000);
+    fetchLogs();
+</script>
+{% endblock %}

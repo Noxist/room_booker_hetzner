@@ -1,5 +1,8 @@
-playwright==1.41.2
-customtkinter
+flask
+flask-login
+python-dotenv
+playwright
 google-api-python-client
-google-auth
-paho-mqtt
+google-auth-httplib2
+google-auth-oauthlib
+apscheduler

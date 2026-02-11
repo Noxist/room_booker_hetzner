@@ -1,257 +1,233 @@
-import streamlit as st
 import os
-import time
-import datetime
 import sys
-from playwright.sync_api import sync_playwright
+import threading
+import logging
+import time
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from dotenv import load_dotenv, set_key
+from apscheduler.schedulers.background import BackgroundScheduler
 
-# --- SYSTEM LOGGING ---
-def system_log(msg):
-    ts = datetime.datetime.now().strftime("%H:%M:%S")
-    print(f"[{ts}] {msg}")
-    sys.stdout.flush()
+# Import Logic
+from roombooker.storage import StorageManager
+from roombooker.jobs import JobManager
+from roombooker.utils import smart_parse_date, smart_parse_time
+from main import run_booking_logic, run_sync
 
-system_log("--- SYSTEM START (V4.1) ---")
+# --- LOGGING SETUP ---
+# Speichert Logs in Datei UND zeigt sie in Docker logs an
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[
+        logging.FileHandler("log.txt"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
-# --- CONFIGURATION ---
+# Setup
+load_dotenv()
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+DATA_DIR = os.getenv("ROOMBOOKER_DATA_DIR", "auto_reserve_data")
+ENV_FILE = ".env"
+
+# Login Config
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+class User(UserMixin):
+    def __init__(self, id): self.id = id
+
+@login_manager.user_loader
+def load_user(user_id): return User(user_id)
+
+# --- BACKGROUND SCHEDULER ---
+def check_scheduled_jobs():
+    """Wird alle 15 Minuten ausgeführt."""
+    logging.info(f"[SCHEDULER] Prüfe anstehende Jobs...")
+    try:
+        jm = JobManager()
+        due_list = jm.get_due_jobs()
+        if not due_list:
+            logging.info("[SCHEDULER] Keine fälligen Jobs gefunden.")
+            return
+
+        logging.info(f"[SCHEDULER] {len(due_list)} Jobs sind fällig. Starte Verarbeitung...")
+        for job, target_date in due_list:
+            logging.info(f"   -> Starte Job: {target_date} ({job['time_start']}-{job['time_end']})")
+            run_booking_logic(
+                target_date, 
+                job['time_start'], 
+                job['time_end'], 
+                job['category'], 
+                4, # Num accounts
+                job_id=job["id"]
+            )
+    except Exception as e:
+        logging.error(f"[SCHEDULER ERROR] {e}")
+
+# FIX: Zeitzone explizit setzen, um tzlocal-Fehler zu vermeiden
 try:
-    st.set_page_config(
-        page_title="Room Booker Pro", 
-        layout="centered", 
-        initial_sidebar_state="collapsed"
-    )
-except: pass
+    scheduler = BackgroundScheduler(timezone="Europe/Zurich")
+    scheduler.add_job(func=check_scheduled_jobs, trigger="interval", minutes=15)
+    scheduler.start()
+    logging.info("[SYSTEM] Scheduler erfolgreich gestartet.")
+except Exception as e:
+    logging.error(f"[SYSTEM] Konnte Scheduler nicht starten: {e}")
 
-# --- SESSION STATE SETUP ---
-if "room_cache" not in st.session_state: st.session_state.room_cache = []
-if "cookies" not in st.session_state: st.session_state.cookies = None 
+# --- ROUTES ---
 
-# --- HELPER FUNCTIONS ---
-def get_accounts():
-    accs = []
-    for i in range(1, 6):
-        email = os.environ.get(f"MY_EMAIL_{i}", "").strip()
-        pw = os.environ.get(f"MY_PASSWORD_{i}", "").strip()
-        if email and pw:
-            accs.append({"email": email, "password": pw})
-    return accs
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        pw = request.form.get('password')
+        actual_pw = os.getenv("WEB_PASSWORD", "admin123")
+        if pw == actual_pw:
+            login_user(User(1))
+            return redirect(url_for('index'))
+        flash('Passwort falsch', 'danger')
+    return render_template('login.html')
 
-APP_PASSWORD = os.environ.get("WEB_ACCESS_PASSWORD", "").strip()
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
-# --- AUTHENTICATION SCREEN ---
-if APP_PASSWORD:
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
+@app.route('/')
+@login_required
+def index():
+    sm = StorageManager()
+    cats = sm.get_categories()
+    jm = JobManager()
+    return render_template('index.html', categories=cats, jobs=jm.jobs)
 
-    if not st.session_state.authenticated:
-        st.markdown("### Access Control")
-        pwd = st.text_input("Password", type="password")
-        if st.button("Login", type="primary", use_container_width=True):
-            if pwd == APP_PASSWORD:
-                st.session_state.authenticated = True
-                st.rerun()
-            else:
-                st.error("Access denied.")
-        st.stop()
+@app.route('/book', methods=['POST'])
+@login_required
+def book():
+    d_raw = request.form.get('date')
+    s_raw = request.form.get('start')
+    e_raw = request.form.get('end')
+    cat = request.form.get('category')
+    freq = request.form.get('frequency', 'onetime')
 
-# --- CORE LOGIC ---
-class RoomBot:
-    def log(self, msg, container=None):
-        system_log(msg)
-        if container:
-            container.text(f">> {msg}")
+    date_str = smart_parse_date(d_raw)
+    start_str = smart_parse_time(s_raw)
+    end_str = smart_parse_time(e_raw)
 
-    def get_context(self, p):
-        browser = p.chromium.launch(headless=True)
-        if st.session_state.cookies:
-            system_log("Using existing session cookies...")
-            context = browser.new_context(locale="de-CH", storage_state=st.session_state.cookies)
-        else:
-            system_log("Creating new session...")
-            context = browser.new_context(locale="de-CH")
-        return browser, context
+    if not start_str or not end_str:
+        flash('Ungültige Zeitangabe!', 'danger')
+        return redirect(url_for('index'))
 
-    def _handle_auth(self, page, account):
-        if "login" in page.url or "wayf" in page.url or "eduid" in page.url:
-            system_log("Authentication required.")
-            try:
-                page.wait_for_selector("input", timeout=5000)
-                user_field = "input[name='j_username'], #username"
-                if page.is_visible(user_field):
-                    page.fill(user_field, account['email'])
-                
-                if page.is_visible("input[type='password']"):
-                    page.fill("input[type='password']", account['password'])
-                    page.click("button[name='_eventId_proceed']", force=True)
-                else:
-                    page.keyboard.press("Enter")
-                    time.sleep(2)
-                    if page.is_visible("input[type='password']"):
-                        page.fill("input[type='password']", account['password'])
-                        page.click("button[name='_eventId_proceed']", force=True)
-                
-                page.wait_for_url("**/event/**", timeout=45000)
-                return True
-            except Exception as e:
-                system_log(f"Auth error: {e}")
-        return True
-
-    def _ensure_location_and_page(self, page):
-        if "/select" in page.url:
-            try:
-                page.click("main a[href*='/set/1']", force=True) # vonRoll
-                page.wait_for_url("**/event/**", timeout=10000)
-            except: pass
-        
-        if "/event/add" not in page.url:
-            page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=45000)
-            page.wait_for_load_state("domcontentloaded")
-
-    def extract_rooms_multi_method(self, page, ui_log):
-        """5 Methods to extract room data."""
-        methods = [
-            ("JS Selector #event_room", "() => Object.fromEntries(Array.from(document.querySelector('#event_room')?.options || []).filter(o => o.value).map(o => [o.innerText.strip(), o.value]))"),
-            ("JS Generic Select", "() => { const s = Array.from(document.querySelectorAll('select')).find(x => x.options.length > 5); return s ? Object.fromEntries(Array.from(s.options).filter(o => o.value).map(o => [o.innerText.strip(), o.value])) : {}; }"),
-            ("Playwright Locator", None),
-            ("DOM Attribute Scan", "() => { const r = {}; document.querySelectorAll('option').forEach(o => { if(o.value && o.value.length < 5) r[o.innerText.trim()] = o.value; }); return r; }"),
-            ("Hardcoded Database", None)
-        ]
-
-        for i, (name, script) in enumerate(methods, 1):
-            try:
-                res = {}
-                if script:
-                    res = page.evaluate(script)
-                elif name == "Playwright Locator":
-                    opts = page.locator("#event_room option").all()
-                    for o in opts:
-                        t, v = o.inner_text(), o.get_attribute("value")
-                        if v: res[t.strip()] = v
-                elif name == "Hardcoded Database":
-                    res = {"vonRoll: Gruppenraum 001": "1", "vonRoll: Gruppenraum 002": "2", "vonRoll: Lounge": "11"}
-                
-                if res and len(res) > 2:
-                    self.log(f"Method {i} ({name}) SUCCESS. Found {len(res)} rooms.", ui_log)
-                    return res
-                else:
-                    self.log(f"Method {i} ({name}) failed or empty.", ui_log)
-            except Exception as e:
-                self.log(f"Method {i} ({name}) error: {str(e)[:50]}", ui_log)
-        
-        return {}
-
-    def run_scan(self, account, ui_log):
-        with sync_playwright() as p:
-            browser, context = self.get_context(p)
-            try:
-                page = context.new_page()
-                page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=45000)
-                self._handle_auth(page, account)
-                self._ensure_location_and_page(page)
-                
-                rooms = self.extract_rooms_multi_method(page, ui_log)
-                if rooms:
-                    st.session_state.cookies = context.storage_state()
-                    return rooms
-            except Exception as e:
-                self.log(f"Process error: {e}", ui_log)
-            finally:
-                browser.close()
-        return {}
-
-    def run_booking(self, date_str, start, end, targets, accounts, is_sim, ui_log):
-        # Time Splitting
-        tasks = []
-        fmt = "%H:%M"
-        t_curr = datetime.datetime.strptime(start, fmt)
-        t_end = datetime.datetime.strptime(end, fmt)
-        while t_curr < t_end:
-            t_next = t_curr + datetime.timedelta(hours=4)
-            if t_next > t_end: t_next = t_end
-            tasks.append({"start": t_curr.strftime(fmt), "end": t_next.strftime(fmt)})
-            t_curr = t_next
-
-        with sync_playwright() as p:
-            browser, context = self.get_context(p)
-            for i, task in enumerate(tasks):
-                acc = accounts[i % len(accounts)]
-                self.log(f"Block {i+1}: {task['start']} - {task['end']}", ui_log)
-                try:
-                    page = context.new_page()
-                    page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=45000)
-                    self._handle_auth(page, acc)
-                    self._ensure_location_and_page(page)
-
-                    room_map = self.extract_rooms_multi_method(page, None)
-                    success = False
-                    for r_name in targets:
-                        if r_name in room_map:
-                            rid = room_map[r_name]
-                            self.log(f"Trying {r_name}...", ui_log)
-                            page.goto("https://raumreservation.ub.unibe.ch/event/add")
-                            page.select_option("#event_room", value=rid)
-                            page.fill("#event_startDate", f"{date_str} {task['start']}")
-                            page.keyboard.press("Enter")
-                            
-                            dur = int((datetime.datetime.strptime(task['end'], fmt) - datetime.datetime.strptime(task['start'], fmt)).total_seconds() / 60)
-                            page.evaluate(f"document.getElementById('event_duration').value = '{dur}'; document.getElementById('event_duration').dispatchEvent(new Event('change', {{bubbles: true}}));")
-                            page.fill("#event_title", "Study")
-                            
-                            if is_sim:
-                                self.log("Simulation success.", ui_log)
-                                success = True; break
-                            else:
-                                page.click("#event_submit")
-                                try:
-                                    page.wait_for_url("**/event**", timeout=5000)
-                                    if "/add" not in page.url:
-                                        self.log(f"Success: {r_name}", ui_log); success = True; break
-                                except: pass
-                    
-                    if not success: self.log("No rooms available in this block.", ui_log)
-                    st.session_state.cookies = context.storage_state()
-                    page.close()
-                except Exception as e:
-                    self.log(f"Block error: {e}", ui_log)
-            browser.close()
-
-# --- UI ---
-accounts = get_accounts()
-st.title("Room Booker Pro")
-
-if not accounts:
-    st.error("No accounts found in Environment Variables.")
-    st.stop()
-
-with st.expander("Rooms Database", expanded=not st.session_state.room_cache):
-    if st.button("Refresh Room List", use_container_width=True):
-        with st.status("Scanning...", expanded=True) as status:
-            log_box = st.empty()
-            res = RoomBot().run_scan(accounts[0], log_box)
-            if res:
-                st.session_state.room_cache = list(res.keys())
-                status.update(label="Scan Complete", state="complete")
-            else: status.update(label="Scan Failed", state="error")
-
-room_options = st.session_state.room_cache if st.session_state.room_cache else ["Scan required"]
-
-with st.form("main_form"):
-    st.subheader("Reservation")
-    c1, c2 = st.columns([1, 2])
-    with c1: date_val = st.date_input("Date", datetime.datetime.now() + datetime.timedelta(days=1))
-    with c2:
-        cc1, cc2 = st.columns(2)
-        with cc1: start_val = st.text_input("Start", "08:00")
-        with cc2: end_val = st.text_input("End", "18:00")
+    # Job erstellen
+    jm = JobManager()
+    job = jm.add_job("recurring" if freq != "onetime" else "onetime", 
+                     target_date=date_str, 
+                     time_start=start_str, 
+                     time_end=end_str, 
+                     category=cat,
+                     frequency=freq)
     
-    target_rooms = st.multiselect("Preferred Rooms", room_options)
-    sim_mode = st.toggle("Simulation Mode", value=True)
+    # Logging für sofortiges Feedback
+    logging.info(f"[WEB] Neuer Job ({freq}) erstellt: {date_str} {start_str}-{end_str}")
     
-    if st.form_submit_button("Start Process", type="primary", use_container_width=True):
-        if not target_rooms or "Scan" in room_options[0]:
-            st.error("Please update room list and select rooms.")
-        else:
-            with st.status("Executing...", expanded=True) as status:
-                log_box = st.empty()
-                RoomBot().run_booking(date_val.strftime("%d.%m.%Y"), start_val, end_val, target_rooms, accounts, sim_mode, log_box)
-                status.update(label="Process Finished", state="complete")
+    # SOFORT AUSFÜHREN
+    flash(f'Job gespeichert. Starte sofortigen Buchungsversuch...', 'success')
+    threading.Thread(target=run_booking_logic, args=(date_str, start_str, end_str, cat, 4, job['id'])).start()
+    
+    return redirect(url_for('index'))
+
+@app.route('/sync')
+@login_required
+def sync():
+    threading.Thread(target=run_sync).start()
+    flash('Sync gestartet...', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/jobs')
+@login_required
+def jobs():
+    return render_template('jobs.html', jobs=JobManager().jobs)
+
+@app.route('/jobs/delete/<job_id>')
+@login_required
+def delete_job(job_id):
+    jm = JobManager()
+    jm.jobs = [j for j in jm.jobs if j['id'] != job_id]
+    jm.save_jobs()
+    flash('Job gelöscht.', 'warning')
+    return redirect(url_for('jobs'))
+
+@app.route('/jobs/toggle/<job_id>')
+@login_required
+def toggle_job(job_id):
+    jm = JobManager()
+    for j in jm.jobs:
+        if j['id'] == job_id:
+            j['active'] = not j.get('active', True)
+    jm.save_jobs()
+    return redirect(url_for('jobs'))
+
+@app.route('/accounts', methods=['GET', 'POST'])
+@login_required
+def accounts():
+    sm = StorageManager()
+    if request.method == 'POST':
+        email = request.form.get('email')
+        pw = request.form.get('password')
+        settings = sm.get_settings()
+        settings.append({"email": email, "password": pw, "active": True})
+        sm.save_settings(settings)
+        flash('Account gespeichert.', 'success')
+        return redirect(url_for('accounts'))
+    return render_template('accounts.html', accounts=sm.get_settings())
+
+@app.route('/accounts/delete/<int:idx>')
+@login_required
+def delete_account(idx):
+    sm = StorageManager()
+    settings = sm.get_settings()
+    if 0 <= idx < len(settings):
+        settings.pop(idx)
+        sm.save_settings(settings)
+        flash('Account entfernt.', 'warning')
+    return redirect(url_for('accounts'))
+
+@app.route('/logs')
+@login_required
+def logs():
+    return render_template('logs.html')
+
+@app.route('/api/logs')
+@login_required
+def api_logs():
+    lines = request.args.get('lines', default=200, type=int)
+    log_content = ""
+    try:
+        # Sicherstellen, dass alles auf die Platte geschrieben wurde
+        sys.stdout.flush()
+        if os.path.exists("log.txt"):
+            with open("log.txt", "r") as f: 
+                log_content = "".join(f.readlines()[-lines:])
+        else: log_content = "Warte auf Log..."
+    except: log_content = "Fehler beim Lesen."
+    return log_content
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        new = request.form.get('new_pw')
+        conf = request.form.get('confirm_pw')
+        if new == conf and new:
+            set_key(ENV_FILE, "WEB_PASSWORD", new)
+            os.environ["WEB_PASSWORD"] = new
+            flash('Passwort geändert.', 'success')
+            return redirect(url_for('logout'))
+        flash('Fehler beim Ändern.', 'danger')
+    return render_template('settings.html')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, use_reloader=False)

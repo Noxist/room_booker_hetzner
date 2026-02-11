@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card h-100">
+      <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="mb-0 fw-bold">Gespeicherte Accounts</h5>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for acc in accounts %}
+          <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center py-3 px-4 border-secondary border-opacity-25">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px;">
+                    <i class="bi bi-person-fill h5 m-0 text-primary"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">{{ acc.email }}</div>
+                    <div class="small text-muted">Aktiv</div>
+                </div>
+            </div>
+            <a href="/accounts/delete/{{ loop.index0 }}" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Account entfernen?')"><i class="bi bi-trash"></i></a>
+          </li>
+          {% else %}
+          <li class="list-group-item bg-transparent text-muted text-center py-5">Keine Accounts hinterlegt.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card border-primary border-opacity-25 h-100">
+      <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold pt-3 px-3">
+        <i class="bi bi-person-plus-fill me-2"></i> Account hinzufügen
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">E-MAIL (Edu-ID)</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">PASSWORT</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Speichern</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

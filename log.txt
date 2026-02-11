@@ -21,3 +21,1236 @@
     "room": "Gruppenraum C-116"
   }
 ]
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+2026-02-11 08:05:52,305 - Konnte Scheduler nicht starten: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+2026-02-11 08:05:52,310 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 08:05:52,310 - [33mPress CTRL+C to quit[0m
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+Traceback (most recent call last):
+  File "/app/app.py", line 80, in <module>
+    scheduler = BackgroundScheduler()
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 125, in __init__
+    self.configure(gconfig, **options)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 174, in configure
+    self._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/background.py", line 27, in _configure
+    super()._configure(config)
+  File "/usr/local/lib/python3.10/dist-packages/apscheduler/schedulers/base.py", line 903, in _configure
+    self.timezone = astimezone(config.pop("timezone", None)) or get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 237, in get_localzone
+    _cache_tz = _get_localzone()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/unix.py", line 190, in _get_localzone
+    tzenv = utils._tz_from_env()
+  File "/usr/local/lib/python3.10/dist-packages/tzlocal/utils.py", line 105, in _tz_from_env
+    raise zoneinfo.ZoneInfoNotFoundError(
+zoneinfo._common.ZoneInfoNotFoundError: 'tzlocal() does not support non-zoneinfo timezones like Europe/Zurich. \nPlease use a timezone in the form of Continent/City'
+2026-02-11 08:12:25,469 - [SYSTEM] Konnte Scheduler nicht starten: 'No time zone found with key Europe/Zurich'
+2026-02-11 08:12:25,475 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 08:12:25,475 - [33mPress CTRL+C to quit[0m
+2026-02-11 08:13:18,869 - 172.21.0.3 - - [11/Feb/2026 08:13:18] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 08:13:19,031 - 172.21.0.3 - - [11/Feb/2026 08:13:19] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 08:13:19,314 - 172.21.0.3 - - [11/Feb/2026 08:13:19] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-11 08:13:19,724 - 172.21.0.3 - - [11/Feb/2026 08:13:19] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 08:15:35,611 - 172.21.0.3 - - [11/Feb/2026 08:15:35] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 08:15:35,688 - 172.21.0.3 - - [11/Feb/2026 08:15:35] "GET / HTTP/1.1" 200 -
+2026-02-11 08:15:35,886 - 172.21.0.3 - - [11/Feb/2026 08:15:35] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:15:36,007 - 172.21.0.3 - - [11/Feb/2026 08:15:36] "GET /api/logs?lines=15&t=1770797735491 HTTP/1.1" 200 -
+2026-02-11 08:15:38,024 - 172.21.0.3 - - [11/Feb/2026 08:15:38] "GET /api/logs?lines=15&t=1770797737495 HTTP/1.1" 200 -
+2026-02-11 08:15:41,155 - 172.21.0.3 - - [11/Feb/2026 08:15:41] "GET /api/logs?lines=15&t=1770797740437 HTTP/1.1" 200 -
+2026-02-11 08:15:42,967 - 172.21.0.3 - - [11/Feb/2026 08:15:42] "GET /api/logs?lines=15&t=1770797742447 HTTP/1.1" 200 -
+2026-02-11 08:15:44,963 - 172.21.0.3 - - [11/Feb/2026 08:15:44] "GET /api/logs?lines=15&t=1770797744437 HTTP/1.1" 200 -
+2026-02-11 08:15:47,003 - 172.21.0.3 - - [11/Feb/2026 08:15:47] "GET /api/logs?lines=15&t=1770797746445 HTTP/1.1" 200 -
+2026-02-11 08:15:48,982 - 172.21.0.3 - - [11/Feb/2026 08:15:48] "GET /api/logs?lines=15&t=1770797748434 HTTP/1.1" 200 -
+2026-02-11 08:15:50,974 - 172.21.0.3 - - [11/Feb/2026 08:15:50] "GET /api/logs?lines=15&t=1770797750444 HTTP/1.1" 200 -
+2026-02-11 08:15:52,991 - 172.21.0.3 - - [11/Feb/2026 08:15:52] "GET /api/logs?lines=15&t=1770797752447 HTTP/1.1" 200 -
+2026-02-11 08:15:54,976 - 172.21.0.3 - - [11/Feb/2026 08:15:54] "GET /api/logs?lines=15&t=1770797754448 HTTP/1.1" 200 -
+2026-02-11 08:15:56,956 - 172.21.0.3 - - [11/Feb/2026 08:15:56] "GET /api/logs?lines=15&t=1770797756446 HTTP/1.1" 200 -
+2026-02-11 08:15:58,977 - 172.21.0.3 - - [11/Feb/2026 08:15:58] "GET /api/logs?lines=15&t=1770797758442 HTTP/1.1" 200 -
+2026-02-11 08:16:00,959 - 172.21.0.3 - - [11/Feb/2026 08:16:00] "GET /api/logs?lines=15&t=1770797760439 HTTP/1.1" 200 -
+2026-02-11 08:16:02,980 - 172.21.0.3 - - [11/Feb/2026 08:16:02] "GET /api/logs?lines=15&t=1770797762444 HTTP/1.1" 200 -
+2026-02-11 08:16:04,958 - 172.21.0.3 - - [11/Feb/2026 08:16:04] "GET /api/logs?lines=15&t=1770797764433 HTTP/1.1" 200 -
+2026-02-11 08:16:07,023 - 172.21.0.3 - - [11/Feb/2026 08:16:07] "GET /api/logs?lines=15&t=1770797766438 HTTP/1.1" 200 -
+2026-02-11 08:16:08,967 - 172.21.0.3 - - [11/Feb/2026 08:16:08] "GET /api/logs?lines=15&t=1770797768447 HTTP/1.1" 200 -
+2026-02-11 08:16:10,970 - 172.21.0.3 - - [11/Feb/2026 08:16:10] "GET /api/logs?lines=15&t=1770797770446 HTTP/1.1" 200 -
+2026-02-11 08:16:12,967 - 172.21.0.3 - - [11/Feb/2026 08:16:12] "GET /api/logs?lines=15&t=1770797772446 HTTP/1.1" 200 -
+2026-02-11 08:16:14,955 - 172.21.0.3 - - [11/Feb/2026 08:16:14] "GET /api/logs?lines=15&t=1770797774434 HTTP/1.1" 200 -
+2026-02-11 08:16:16,984 - 172.21.0.3 - - [11/Feb/2026 08:16:16] "GET /api/logs?lines=15&t=1770797776449 HTTP/1.1" 200 -
+2026-02-11 08:16:18,960 - 172.21.0.3 - - [11/Feb/2026 08:16:18] "GET /api/logs?lines=15&t=1770797778439 HTTP/1.1" 200 -
+2026-02-11 08:16:20,955 - 172.21.0.3 - - [11/Feb/2026 08:16:20] "GET /api/logs?lines=15&t=1770797780443 HTTP/1.1" 200 -
+2026-02-11 08:16:22,966 - 172.21.0.3 - - [11/Feb/2026 08:16:22] "GET /api/logs?lines=15&t=1770797782440 HTTP/1.1" 200 -
+2026-02-11 08:16:24,962 - 172.21.0.3 - - [11/Feb/2026 08:16:24] "GET /api/logs?lines=15&t=1770797784446 HTTP/1.1" 200 -
+2026-02-11 08:16:26,971 - 172.21.0.3 - - [11/Feb/2026 08:16:26] "GET /api/logs?lines=15&t=1770797786437 HTTP/1.1" 200 -
+2026-02-11 08:16:28,969 - 172.21.0.3 - - [11/Feb/2026 08:16:28] "GET /api/logs?lines=15&t=1770797788449 HTTP/1.1" 200 -
+2026-02-11 08:16:30,964 - 172.21.0.3 - - [11/Feb/2026 08:16:30] "GET /api/logs?lines=15&t=1770797790445 HTTP/1.1" 200 -
+2026-02-11 08:16:32,996 - 172.21.0.3 - - [11/Feb/2026 08:16:32] "GET /api/logs?lines=15&t=1770797792447 HTTP/1.1" 200 -
+2026-02-11 08:16:34,979 - 172.21.0.3 - - [11/Feb/2026 08:16:34] "GET /api/logs?lines=15&t=1770797794462 HTTP/1.1" 200 -
+2026-02-11 08:16:36,954 - 172.21.0.3 - - [11/Feb/2026 08:16:36] "GET /api/logs?lines=15&t=1770797796446 HTTP/1.1" 200 -
+2026-02-11 08:16:38,968 - 172.21.0.3 - - [11/Feb/2026 08:16:38] "GET /api/logs?lines=15&t=1770797798447 HTTP/1.1" 200 -
+2026-02-11 08:16:48,001 - 172.21.0.3 - - [11/Feb/2026 08:16:48] "GET /api/logs?lines=15&t=1770797807444 HTTP/1.1" 200 -
+2026-02-11 08:17:44,390 - 172.21.0.3 - - [11/Feb/2026 08:17:44] "GET /api/logs?lines=15&t=1770797863785 HTTP/1.1" 200 -
+2026-02-11 08:17:46,978 - 172.21.0.3 - - [11/Feb/2026 08:17:46] "GET /api/logs?lines=15&t=1770797866469 HTTP/1.1" 200 -
+2026-02-11 08:17:48,967 - 172.21.0.3 - - [11/Feb/2026 08:17:48] "GET /api/logs?lines=15&t=1770797868466 HTTP/1.1" 200 -
+2026-02-11 08:17:51,014 - 172.21.0.3 - - [11/Feb/2026 08:17:51] "GET /api/logs?lines=15&t=1770797870468 HTTP/1.1" 200 -
+2026-02-11 08:17:52,120 - 172.21.0.3 - - [11/Feb/2026 08:17:52] "GET /api/logs?lines=15&t=1770797871528 HTTP/1.1" 200 -
+2026-02-11 08:17:52,498 - 172.21.0.3 - - [11/Feb/2026 08:17:52] "GET / HTTP/1.1" 200 -
+2026-02-11 08:17:52,683 - 172.21.0.3 - - [11/Feb/2026 08:17:52] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:17:52,848 - 172.21.0.3 - - [11/Feb/2026 08:17:52] "GET /api/logs?lines=15&t=1770797872333 HTTP/1.1" 200 -
+2026-02-11 08:17:54,834 - 172.21.0.3 - - [11/Feb/2026 08:17:54] "GET /api/logs?lines=15&t=1770797874343 HTTP/1.1" 200 -
+2026-02-11 08:17:56,910 - 172.21.0.3 - - [11/Feb/2026 08:17:56] "GET /api/logs?lines=15&t=1770797876345 HTTP/1.1" 200 -
+2026-02-11 08:17:58,842 - 172.21.0.3 - - [11/Feb/2026 08:17:58] "GET /api/logs?lines=15&t=1770797878340 HTTP/1.1" 200 -
+2026-02-11 08:18:00,944 - 172.21.0.3 - - [11/Feb/2026 08:18:00] "GET /api/logs?lines=15&t=1770797880335 HTTP/1.1" 200 -
+2026-02-11 08:18:02,858 - 172.21.0.3 - - [11/Feb/2026 08:18:02] "GET /api/logs?lines=15&t=1770797882333 HTTP/1.1" 200 -
+2026-02-11 08:18:04,909 - 172.21.0.3 - - [11/Feb/2026 08:18:04] "GET /api/logs?lines=15&t=1770797884334 HTTP/1.1" 200 -
+2026-02-11 08:18:06,156 - 172.21.0.3 - - [11/Feb/2026 08:18:06] "GET /logs HTTP/1.1" 200 -
+2026-02-11 08:18:06,330 - 172.21.0.3 - - [11/Feb/2026 08:18:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:06,415 - 172.21.0.3 - - [11/Feb/2026 08:18:06] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:08,451 - 172.21.0.3 - - [11/Feb/2026 08:18:08] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:10,513 - 172.21.0.3 - - [11/Feb/2026 08:18:10] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:12,500 - 172.21.0.3 - - [11/Feb/2026 08:18:12] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:14,449 - 172.21.0.3 - - [11/Feb/2026 08:18:14] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:16,428 - 172.21.0.3 - - [11/Feb/2026 08:18:16] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:17,187 - 172.21.0.3 - - [11/Feb/2026 08:18:17] "GET / HTTP/1.1" 200 -
+2026-02-11 08:18:17,389 - 172.21.0.3 - - [11/Feb/2026 08:18:17] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:17,511 - 172.21.0.3 - - [11/Feb/2026 08:18:17] "GET /api/logs?lines=15&t=1770797897004 HTTP/1.1" 200 -
+2026-02-11 08:18:18,626 - 172.21.0.3 - - [11/Feb/2026 08:18:18] "GET /accounts HTTP/1.1" 200 -
+2026-02-11 08:18:18,790 - 172.21.0.3 - - [11/Feb/2026 08:18:18] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:22,369 - 172.21.0.3 - - [11/Feb/2026 08:18:22] "GET / HTTP/1.1" 200 -
+2026-02-11 08:18:22,529 - 172.21.0.3 - - [11/Feb/2026 08:18:22] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:22,771 - 172.21.0.3 - - [11/Feb/2026 08:18:22] "GET /api/logs?lines=15&t=1770797902253 HTTP/1.1" 200 -
+2026-02-11 08:18:24,759 - 172.21.0.3 - - [11/Feb/2026 08:18:24] "GET /api/logs?lines=15&t=1770797904253 HTTP/1.1" 200 -
+2026-02-11 08:18:26,805 - 172.21.0.3 - - [11/Feb/2026 08:18:26] "GET /api/logs?lines=15&t=1770797906256 HTTP/1.1" 200 -
+2026-02-11 08:18:28,797 - 172.21.0.3 - - [11/Feb/2026 08:18:28] "GET /api/logs?lines=15&t=1770797908262 HTTP/1.1" 200 -
+2026-02-11 08:18:30,939 - 172.21.0.3 - - [11/Feb/2026 08:18:30] "GET /api/logs?lines=15&t=1770797910262 HTTP/1.1" 200 -
+2026-02-11 08:18:32,786 - 172.21.0.3 - - [11/Feb/2026 08:18:32] "GET /api/logs?lines=15&t=1770797912262 HTTP/1.1" 200 -
+2026-02-11 08:18:34,838 - 172.21.0.3 - - [11/Feb/2026 08:18:34] "GET /api/logs?lines=15&t=1770797914263 HTTP/1.1" 200 -
+2026-02-11 08:18:36,793 - 172.21.0.3 - - [11/Feb/2026 08:18:36] "GET /api/logs?lines=15&t=1770797916269 HTTP/1.1" 200 -
+2026-02-11 08:18:38,752 - 172.21.0.3 - - [11/Feb/2026 08:18:38] "GET /api/logs?lines=15&t=1770797918260 HTTP/1.1" 200 -
+2026-02-11 08:18:40,757 - 172.21.0.3 - - [11/Feb/2026 08:18:40] "GET /api/logs?lines=15&t=1770797920254 HTTP/1.1" 200 -
+2026-02-11 08:18:42,838 - 172.21.0.3 - - [11/Feb/2026 08:18:42] "GET /api/logs?lines=15&t=1770797922268 HTTP/1.1" 200 -
+2026-02-11 08:18:44,863 - 172.21.0.3 - - [11/Feb/2026 08:18:44] "GET /api/logs?lines=15&t=1770797924273 HTTP/1.1" 200 -
+2026-02-11 08:18:46,777 - 172.21.0.3 - - [11/Feb/2026 08:18:46] "GET /api/logs?lines=15&t=1770797926270 HTTP/1.1" 200 -
+2026-02-11 08:18:47,509 - [WEB] Neuer Job (weekly) erstellt: 19.02.2026 10:00-21:00
+2026-02-11 08:18:47,510 - 172.21.0.3 - - [11/Feb/2026 08:18:47] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 08:18:47,596 - 172.21.0.3 - - [11/Feb/2026 08:18:47] "GET / HTTP/1.1" 200 -
+2026-02-11 08:18:47,715 - 172.21.0.3 - - [11/Feb/2026 08:18:47] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:47,814 - 172.21.0.3 - - [11/Feb/2026 08:18:47] "GET /api/logs?lines=15&t=1770797927305 HTTP/1.1" 200 -
+2026-02-11 08:18:49,811 - 172.21.0.3 - - [11/Feb/2026 08:18:49] "GET /api/logs?lines=15&t=1770797929307 HTTP/1.1" 200 -
+2026-02-11 08:18:51,906 - 172.21.0.3 - - [11/Feb/2026 08:18:51] "GET /api/logs?lines=15&t=1770797931319 HTTP/1.1" 200 -
+2026-02-11 08:18:53,813 - 172.21.0.3 - - [11/Feb/2026 08:18:53] "GET /api/logs?lines=15&t=1770797933313 HTTP/1.1" 200 -
+2026-02-11 08:18:54,030 - 172.21.0.3 - - [11/Feb/2026 08:18:54] "GET /logs HTTP/1.1" 200 -
+2026-02-11 08:18:54,159 - 172.21.0.3 - - [11/Feb/2026 08:18:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:18:54,243 - 172.21.0.3 - - [11/Feb/2026 08:18:54] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:56,242 - 172.21.0.3 - - [11/Feb/2026 08:18:56] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:18:57,827 - 172.21.0.3 - - [11/Feb/2026 08:18:57] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 08:18:57,971 - 172.21.0.3 - - [11/Feb/2026 08:18:57] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:03,420 - 172.21.0.3 - - [11/Feb/2026 08:19:03] "GET / HTTP/1.1" 200 -
+2026-02-11 08:19:03,548 - 172.21.0.3 - - [11/Feb/2026 08:19:03] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:03,639 - 172.21.0.3 - - [11/Feb/2026 08:19:03] "GET /api/logs?lines=15&t=1770797943153 HTTP/1.1" 200 -
+2026-02-11 08:19:05,687 - 172.21.0.3 - - [11/Feb/2026 08:19:05] "GET /api/logs?lines=15&t=1770797945159 HTTP/1.1" 200 -
+2026-02-11 08:19:07,115 - 172.21.0.3 - - [11/Feb/2026 08:19:07] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 08:19:07,237 - 172.21.0.3 - - [11/Feb/2026 08:19:07] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:08,463 - 172.21.0.3 - - [11/Feb/2026 08:19:08] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 08:19:08,584 - 172.21.0.3 - - [11/Feb/2026 08:19:08] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:09,889 - 172.21.0.3 - - [11/Feb/2026 08:19:09] "GET /logs HTTP/1.1" 200 -
+2026-02-11 08:19:10,029 - 172.21.0.3 - - [11/Feb/2026 08:19:10] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:10,112 - 172.21.0.3 - - [11/Feb/2026 08:19:10] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:12,186 - 172.21.0.3 - - [11/Feb/2026 08:19:12] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:14,130 - 172.21.0.3 - - [11/Feb/2026 08:19:14] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:16,128 - 172.21.0.3 - - [11/Feb/2026 08:19:16] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:18,168 - 172.21.0.3 - - [11/Feb/2026 08:19:18] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:20,115 - 172.21.0.3 - - [11/Feb/2026 08:19:20] "GET /api/logs?lines=500 HTTP/1.1" 200 -
+2026-02-11 08:19:22,003 - 172.21.0.3 - - [11/Feb/2026 08:19:22] "GET / HTTP/1.1" 200 -
+2026-02-11 08:19:22,123 - 172.21.0.3 - - [11/Feb/2026 08:19:22] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:22,217 - 172.21.0.3 - - [11/Feb/2026 08:19:22] "GET /api/logs?lines=15&t=1770797961722 HTTP/1.1" 200 -
+2026-02-11 08:19:24,258 - 172.21.0.3 - - [11/Feb/2026 08:19:24] "GET /api/logs?lines=15&t=1770797963725 HTTP/1.1" 200 -
+2026-02-11 08:19:26,314 - 172.21.0.3 - - [11/Feb/2026 08:19:26] "GET /api/logs?lines=15&t=1770797965724 HTTP/1.1" 200 -
+2026-02-11 08:19:26,737 - 172.21.0.3 - - [11/Feb/2026 08:19:26] "[32mGET /sync HTTP/1.1[0m" 302 -
+2026-02-11 08:19:26,844 - 172.21.0.3 - - [11/Feb/2026 08:19:26] "GET / HTTP/1.1" 200 -
+2026-02-11 08:19:26,968 - 172.21.0.3 - - [11/Feb/2026 08:19:26] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:27,042 - 172.21.0.3 - - [11/Feb/2026 08:19:27] "GET /api/logs?lines=15&t=1770797966562 HTTP/1.1" 200 -
+2026-02-11 08:19:29,106 - 172.21.0.3 - - [11/Feb/2026 08:19:29] "GET /api/logs?lines=15&t=1770797968572 HTTP/1.1" 200 -
+2026-02-11 08:19:31,111 - 172.21.0.3 - - [11/Feb/2026 08:19:31] "GET /api/logs?lines=15&t=1770797970575 HTTP/1.1" 200 -
+2026-02-11 08:19:33,083 - 172.21.0.3 - - [11/Feb/2026 08:19:33] "GET /api/logs?lines=15&t=1770797972566 HTTP/1.1" 200 -
+2026-02-11 08:19:35,076 - 172.21.0.3 - - [11/Feb/2026 08:19:35] "GET /api/logs?lines=15&t=1770797974569 HTTP/1.1" 200 -
+2026-02-11 08:19:37,106 - 172.21.0.3 - - [11/Feb/2026 08:19:37] "GET /api/logs?lines=15&t=1770797976571 HTTP/1.1" 200 -
+2026-02-11 08:19:39,107 - 172.21.0.3 - - [11/Feb/2026 08:19:39] "GET /api/logs?lines=15&t=1770797978562 HTTP/1.1" 200 -
+2026-02-11 08:19:41,150 - 172.21.0.3 - - [11/Feb/2026 08:19:41] "GET /api/logs?lines=15&t=1770797980570 HTTP/1.1" 200 -
+2026-02-11 08:19:43,120 - 172.21.0.3 - - [11/Feb/2026 08:19:43] "GET /api/logs?lines=15&t=1770797982577 HTTP/1.1" 200 -
+2026-02-11 08:19:45,068 - 172.21.0.3 - - [11/Feb/2026 08:19:45] "GET /api/logs?lines=15&t=1770797984583 HTTP/1.1" 200 -
+2026-02-11 08:19:46,873 - 172.21.0.3 - - [11/Feb/2026 08:19:46] "[32mGET /sync HTTP/1.1[0m" 302 -
+2026-02-11 08:19:46,954 - 172.21.0.3 - - [11/Feb/2026 08:19:46] "GET / HTTP/1.1" 200 -
+2026-02-11 08:19:47,071 - 172.21.0.3 - - [11/Feb/2026 08:19:47] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:47,160 - 172.21.0.3 - - [11/Feb/2026 08:19:47] "GET /api/logs?lines=15&t=1770797986681 HTTP/1.1" 200 -
+2026-02-11 08:19:49,227 - 172.21.0.3 - - [11/Feb/2026 08:19:49] "GET /api/logs?lines=15&t=1770797988696 HTTP/1.1" 200 -
+2026-02-11 08:19:50,556 - 172.21.0.3 - - [11/Feb/2026 08:19:50] "[32mGET /sync HTTP/1.1[0m" 302 -
+2026-02-11 08:19:50,625 - 172.21.0.3 - - [11/Feb/2026 08:19:50] "GET / HTTP/1.1" 200 -
+2026-02-11 08:19:50,763 - 172.21.0.3 - - [11/Feb/2026 08:19:50] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:19:50,836 - 172.21.0.3 - - [11/Feb/2026 08:19:50] "GET /api/logs?lines=15&t=1770797990368 HTTP/1.1" 200 -
+2026-02-11 08:19:52,946 - 172.21.0.3 - - [11/Feb/2026 08:19:52] "GET /api/logs?lines=15&t=1770797992381 HTTP/1.1" 200 -
+2026-02-11 08:19:54,856 - 172.21.0.3 - - [11/Feb/2026 08:19:54] "GET /api/logs?lines=15&t=1770797994382 HTTP/1.1" 200 -
+2026-02-11 08:19:56,904 - 172.21.0.3 - - [11/Feb/2026 08:19:56] "GET /api/logs?lines=15&t=1770797996373 HTTP/1.1" 200 -
+2026-02-11 08:19:58,922 - 172.21.0.3 - - [11/Feb/2026 08:19:58] "GET /api/logs?lines=15&t=1770797998374 HTTP/1.1" 200 -
+2026-02-11 08:20:00,905 - 172.21.0.3 - - [11/Feb/2026 08:20:00] "GET /api/logs?lines=15&t=1770798000378 HTTP/1.1" 200 -
+2026-02-11 08:20:02,863 - 172.21.0.3 - - [11/Feb/2026 08:20:02] "GET /api/logs?lines=15&t=1770798002375 HTTP/1.1" 200 -
+2026-02-11 08:20:03,637 - 172.21.0.3 - - [11/Feb/2026 08:20:03] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 08:20:03,782 - 172.21.0.3 - - [11/Feb/2026 08:20:03] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:21:23,537 - 172.21.0.3 - - [11/Feb/2026 08:21:23] "GET / HTTP/1.1" 200 -
+2026-02-11 08:21:23,725 - 172.21.0.3 - - [11/Feb/2026 08:21:23] "GET /api/logs?lines=15&t=1770798083263 HTTP/1.1" 200 -
+2026-02-11 08:21:25,750 - 172.21.0.3 - - [11/Feb/2026 08:21:25] "GET /api/logs?lines=15&t=1770798085278 HTTP/1.1" 200 -
+2026-02-11 08:21:27,731 - 172.21.0.3 - - [11/Feb/2026 08:21:27] "GET /api/logs?lines=15&t=1770798087265 HTTP/1.1" 200 -
+2026-02-11 08:21:29,812 - 172.21.0.3 - - [11/Feb/2026 08:21:29] "GET /api/logs?lines=15&t=1770798089268 HTTP/1.1" 200 -
+2026-02-11 08:21:31,769 - 172.21.0.3 - - [11/Feb/2026 08:21:31] "GET /api/logs?lines=15&t=1770798091275 HTTP/1.1" 200 -
+2026-02-11 08:21:33,731 - 172.21.0.3 - - [11/Feb/2026 08:21:33] "GET /api/logs?lines=15&t=1770798093267 HTTP/1.1" 200 -
+2026-02-11 08:53:47,174 - 172.21.0.3 - - [11/Feb/2026 08:53:47] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 08:53:47,317 - 172.21.0.3 - - [11/Feb/2026 08:53:47] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 08:53:47,659 - 172.21.0.3 - - [11/Feb/2026 08:53:47] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 08:53:54,237 - 172.21.0.3 - - [11/Feb/2026 08:53:54] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 08:53:54,298 - 172.21.0.3 - - [11/Feb/2026 08:53:54] "GET / HTTP/1.1" 200 -
+2026-02-11 08:53:54,428 - 172.21.0.3 - - [11/Feb/2026 08:53:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-02-11 08:53:54,644 - 172.21.0.3 - - [11/Feb/2026 08:53:54] "GET /api/logs?lines=15&t=1770800033354 HTTP/1.1" 200 -
+2026-02-11 08:53:56,547 - 172.21.0.3 - - [11/Feb/2026 08:53:56] "GET /api/logs?lines=15&t=1770800035369 HTTP/1.1" 200 -
+2026-02-11 08:53:58,539 - 172.21.0.3 - - [11/Feb/2026 08:53:58] "GET /api/logs?lines=15&t=1770800037363 HTTP/1.1" 200 -
+2026-02-11 08:54:00,542 - 172.21.0.3 - - [11/Feb/2026 08:54:00] "GET /api/logs?lines=15&t=1770800039355 HTTP/1.1" 200 -
+2026-02-11 08:54:02,554 - 172.21.0.3 - - [11/Feb/2026 08:54:02] "GET /api/logs?lines=15&t=1770800041362 HTTP/1.1" 200 -
+2026-02-11 08:54:04,533 - 172.21.0.3 - - [11/Feb/2026 08:54:04] "GET /api/logs?lines=15&t=1770800043356 HTTP/1.1" 200 -
+2026-02-11 08:54:06,543 - 172.21.0.3 - - [11/Feb/2026 08:54:06] "GET /api/logs?lines=15&t=1770800045359 HTTP/1.1" 200 -
+2026-02-11 08:54:08,532 - 172.21.0.3 - - [11/Feb/2026 08:54:08] "GET /api/logs?lines=15&t=1770800047355 HTTP/1.1" 200 -
+2026-02-11 08:54:10,538 - 172.21.0.3 - - [11/Feb/2026 08:54:10] "GET /api/logs?lines=15&t=1770800049357 HTTP/1.1" 200 -
+2026-02-11 08:54:12,567 - 172.21.0.3 - - [11/Feb/2026 08:54:12] "GET /api/logs?lines=15&t=1770800051366 HTTP/1.1" 200 -
+2026-02-11 08:54:14,555 - 172.21.0.3 - - [11/Feb/2026 08:54:14] "GET /api/logs?lines=15&t=1770800053367 HTTP/1.1" 200 -
+2026-02-11 08:54:16,547 - 172.21.0.3 - - [11/Feb/2026 08:54:16] "GET /api/logs?lines=15&t=1770800055369 HTTP/1.1" 200 -
+2026-02-11 08:54:18,562 - 172.21.0.3 - - [11/Feb/2026 08:54:18] "GET /api/logs?lines=15&t=1770800057369 HTTP/1.1" 200 -
+2026-02-11 08:54:20,537 - 172.21.0.3 - - [11/Feb/2026 08:54:20] "GET /api/logs?lines=15&t=1770800059358 HTTP/1.1" 200 -
+2026-02-11 08:54:22,554 - 172.21.0.3 - - [11/Feb/2026 08:54:22] "GET /api/logs?lines=15&t=1770800061354 HTTP/1.1" 200 -
+2026-02-11 08:54:24,554 - 172.21.0.3 - - [11/Feb/2026 08:54:24] "GET /api/logs?lines=15&t=1770800063364 HTTP/1.1" 200 -
+2026-02-11 08:54:26,537 - 172.21.0.3 - - [11/Feb/2026 08:54:26] "GET /api/logs?lines=15&t=1770800065361 HTTP/1.1" 200 -
+2026-02-11 08:54:28,627 - 172.21.0.3 - - [11/Feb/2026 08:54:28] "GET /api/logs?lines=15&t=1770800067365 HTTP/1.1" 200 -
+2026-02-11 08:54:30,575 - 172.21.0.3 - - [11/Feb/2026 08:54:30] "GET /api/logs?lines=15&t=1770800069386 HTTP/1.1" 200 -
+2026-02-11 08:54:32,571 - 172.21.0.3 - - [11/Feb/2026 08:54:32] "GET /api/logs?lines=15&t=1770800071387 HTTP/1.1" 200 -
+2026-02-11 08:54:34,562 - 172.21.0.3 - - [11/Feb/2026 08:54:34] "GET /api/logs?lines=15&t=1770800073389 HTTP/1.1" 200 -
+2026-02-11 08:54:36,561 - 172.21.0.3 - - [11/Feb/2026 08:54:36] "GET /api/logs?lines=15&t=1770800075364 HTTP/1.1" 200 -
+2026-02-11 08:54:38,567 - 172.21.0.3 - - [11/Feb/2026 08:54:38] "GET /api/logs?lines=15&t=1770800077384 HTTP/1.1" 200 -
+2026-02-11 08:54:40,557 - 172.21.0.3 - - [11/Feb/2026 08:54:40] "GET /api/logs?lines=15&t=1770800079382 HTTP/1.1" 200 -
+2026-02-11 08:54:42,579 - 172.21.0.3 - - [11/Feb/2026 08:54:42] "GET /api/logs?lines=15&t=1770800081383 HTTP/1.1" 200 -
+2026-02-11 08:54:44,773 - 172.21.0.3 - - [11/Feb/2026 08:54:44] "GET /api/logs?lines=15&t=1770800083380 HTTP/1.1" 200 -
+2026-02-11 08:54:46,636 - 172.21.0.3 - - [11/Feb/2026 08:54:46] "GET /api/logs?lines=15&t=1770800085456 HTTP/1.1" 200 -
+2026-02-11 08:54:48,590 - 172.21.0.3 - - [11/Feb/2026 08:54:48] "GET /api/logs?lines=15&t=1770800087384 HTTP/1.1" 200 -
+2026-02-11 08:54:50,577 - 172.21.0.3 - - [11/Feb/2026 08:54:50] "GET /api/logs?lines=15&t=1770800089389 HTTP/1.1" 200 -
+2026-02-11 08:54:52,594 - 172.21.0.3 - - [11/Feb/2026 08:54:52] "GET /api/logs?lines=15&t=1770800091387 HTTP/1.1" 200 -
+2026-02-11 08:54:54,573 - 172.21.0.3 - - [11/Feb/2026 08:54:54] "GET /api/logs?lines=15&t=1770800093389 HTTP/1.1" 200 -
+2026-02-11 08:54:56,601 - 172.21.0.3 - - [11/Feb/2026 08:54:56] "GET /api/logs?lines=15&t=1770800095400 HTTP/1.1" 200 -
+2026-02-11 08:54:58,584 - 172.21.0.3 - - [11/Feb/2026 08:54:58] "GET /api/logs?lines=15&t=1770800097394 HTTP/1.1" 200 -
+2026-02-11 08:55:00,646 - 172.21.0.3 - - [11/Feb/2026 08:55:00] "GET /api/logs?lines=15&t=1770800099390 HTTP/1.1" 200 -
+2026-02-11 08:55:02,565 - 172.21.0.3 - - [11/Feb/2026 08:55:02] "GET /api/logs?lines=15&t=1770800101383 HTTP/1.1" 200 -
+2026-02-11 08:55:04,565 - 172.21.0.3 - - [11/Feb/2026 08:55:04] "GET /api/logs?lines=15&t=1770800103384 HTTP/1.1" 200 -
+2026-02-11 08:55:06,575 - 172.21.0.3 - - [11/Feb/2026 08:55:06] "GET /api/logs?lines=15&t=1770800105393 HTTP/1.1" 200 -
+2026-02-11 08:55:08,569 - 172.21.0.3 - - [11/Feb/2026 08:55:08] "GET /api/logs?lines=15&t=1770800107394 HTTP/1.1" 200 -
+2026-02-11 08:55:10,572 - 172.21.0.3 - - [11/Feb/2026 08:55:10] "GET /api/logs?lines=15&t=1770800109390 HTTP/1.1" 200 -
+2026-02-11 08:55:12,573 - 172.21.0.3 - - [11/Feb/2026 08:55:12] "GET /api/logs?lines=15&t=1770800111388 HTTP/1.1" 200 -
+2026-02-11 08:55:14,597 - 172.21.0.3 - - [11/Feb/2026 08:55:14] "GET /api/logs?lines=15&t=1770800113391 HTTP/1.1" 200 -
+2026-02-11 08:55:16,951 - 172.21.0.3 - - [11/Feb/2026 08:55:16] "GET /api/logs?lines=15&t=1770800115736 HTTP/1.1" 200 -
+2026-02-11 08:55:18,603 - 172.21.0.3 - - [11/Feb/2026 08:55:18] "GET /api/logs?lines=15&t=1770800117401 HTTP/1.1" 200 -
+2026-02-11 08:55:20,570 - 172.21.0.3 - - [11/Feb/2026 08:55:20] "GET /api/logs?lines=15&t=1770800119392 HTTP/1.1" 200 -
+2026-02-11 08:55:22,567 - 172.21.0.3 - - [11/Feb/2026 08:55:22] "GET /api/logs?lines=15&t=1770800121383 HTTP/1.1" 200 -
+2026-02-11 08:55:24,575 - 172.21.0.3 - - [11/Feb/2026 08:55:24] "GET /api/logs?lines=15&t=1770800123388 HTTP/1.1" 200 -
+2026-02-11 08:55:26,570 - 172.21.0.3 - - [11/Feb/2026 08:55:26] "GET /api/logs?lines=15&t=1770800125386 HTTP/1.1" 200 -
+2026-02-11 08:55:28,567 - 172.21.0.3 - - [11/Feb/2026 08:55:28] "GET /api/logs?lines=15&t=1770800127392 HTTP/1.1" 200 -
+2026-02-11 08:55:30,571 - 172.21.0.3 - - [11/Feb/2026 08:55:30] "GET /api/logs?lines=15&t=1770800129383 HTTP/1.1" 200 -
+2026-02-11 08:55:32,574 - 172.21.0.3 - - [11/Feb/2026 08:55:32] "GET /api/logs?lines=15&t=1770800131392 HTTP/1.1" 200 -
+2026-02-11 08:55:34,559 - 172.21.0.3 - - [11/Feb/2026 08:55:34] "GET /api/logs?lines=15&t=1770800133381 HTTP/1.1" 200 -
+2026-02-11 08:55:36,562 - 172.21.0.3 - - [11/Feb/2026 08:55:36] "GET /api/logs?lines=15&t=1770800135383 HTTP/1.1" 200 -
+2026-02-11 08:55:38,586 - 172.21.0.3 - - [11/Feb/2026 08:55:38] "GET /api/logs?lines=15&t=1770800137393 HTTP/1.1" 200 -
+2026-02-11 08:55:40,562 - 172.21.0.3 - - [11/Feb/2026 08:55:40] "GET /api/logs?lines=15&t=1770800139389 HTTP/1.1" 200 -
+2026-02-11 08:55:45,567 - 172.21.0.3 - - [11/Feb/2026 08:55:45] "GET /api/logs?lines=15&t=1770800144382 HTTP/1.1" 200 -
+2026-02-11 08:56:45,681 - 172.21.0.3 - - [11/Feb/2026 08:56:45] "GET /api/logs?lines=15&t=1770800204380 HTTP/1.1" 200 -
+2026-02-11 08:57:45,594 - 172.21.0.3 - - [11/Feb/2026 08:57:45] "GET /api/logs?lines=15&t=1770800264382 HTTP/1.1" 200 -
+2026-02-11 08:58:45,669 - 172.21.0.3 - - [11/Feb/2026 08:58:45] "GET /api/logs?lines=15&t=1770800324391 HTTP/1.1" 200 -
+2026-02-11 08:59:45,619 - 172.21.0.3 - - [11/Feb/2026 08:59:45] "GET /api/logs?lines=15&t=1770800384390 HTTP/1.1" 200 -
+2026-02-11 09:00:45,597 - 172.21.0.3 - - [11/Feb/2026 09:00:45] "GET /api/logs?lines=15&t=1770800444384 HTTP/1.1" 200 -
+2026-02-11 09:01:08,370 - 172.21.0.3 - - [11/Feb/2026 09:01:08] "GET /api/logs?lines=15&t=1770800467093 HTTP/1.1" 200 -
+2026-02-11 09:01:08,548 - 172.21.0.3 - - [11/Feb/2026 09:01:08] "GET /api/logs?lines=15&t=1770800467363 HTTP/1.1" 200 -
+2026-02-11 09:01:10,557 - 172.21.0.3 - - [11/Feb/2026 09:01:10] "GET /api/logs?lines=15&t=1770800469356 HTTP/1.1" 200 -
+2026-02-11 09:01:12,582 - 172.21.0.3 - - [11/Feb/2026 09:01:12] "GET /api/logs?lines=15&t=1770800471388 HTTP/1.1" 200 -
+2026-02-11 09:01:14,591 - 172.21.0.3 - - [11/Feb/2026 09:01:14] "GET /api/logs?lines=15&t=1770800473395 HTTP/1.1" 200 -
+2026-02-11 09:01:16,582 - 172.21.0.3 - - [11/Feb/2026 09:01:16] "GET /api/logs?lines=15&t=1770800475387 HTTP/1.1" 200 -
+2026-02-11 09:01:18,604 - 172.21.0.3 - - [11/Feb/2026 09:01:18] "GET /api/logs?lines=15&t=1770800477390 HTTP/1.1" 200 -
+2026-02-11 09:01:20,595 - 172.21.0.3 - - [11/Feb/2026 09:01:20] "GET /api/logs?lines=15&t=1770800479392 HTTP/1.1" 200 -
+2026-02-11 09:01:22,614 - 172.21.0.3 - - [11/Feb/2026 09:01:22] "GET /api/logs?lines=15&t=1770800481398 HTTP/1.1" 200 -
+2026-02-11 09:01:24,570 - 172.21.0.3 - - [11/Feb/2026 09:01:24] "GET /api/logs?lines=15&t=1770800483385 HTTP/1.1" 200 -
+2026-02-11 09:01:26,572 - 172.21.0.3 - - [11/Feb/2026 09:01:26] "GET /api/logs?lines=15&t=1770800485392 HTTP/1.1" 200 -
+2026-02-11 09:01:28,575 - 172.21.0.3 - - [11/Feb/2026 09:01:28] "GET /api/logs?lines=15&t=1770800487400 HTTP/1.1" 200 -
+2026-02-11 09:01:30,579 - 172.21.0.3 - - [11/Feb/2026 09:01:30] "GET /api/logs?lines=15&t=1770800489395 HTTP/1.1" 200 -
+2026-02-11 09:01:32,582 - 172.21.0.3 - - [11/Feb/2026 09:01:32] "GET /api/logs?lines=15&t=1770800491394 HTTP/1.1" 200 -
+2026-02-11 09:01:34,588 - 172.21.0.3 - - [11/Feb/2026 09:01:34] "GET /api/logs?lines=15&t=1770800493396 HTTP/1.1" 200 -
+2026-02-11 09:01:36,567 - 172.21.0.3 - - [11/Feb/2026 09:01:36] "GET /api/logs?lines=15&t=1770800495389 HTTP/1.1" 200 -
+2026-02-11 09:01:38,585 - 172.21.0.3 - - [11/Feb/2026 09:01:38] "GET /api/logs?lines=15&t=1770800497394 HTTP/1.1" 200 -
+2026-02-11 09:01:40,576 - 172.21.0.3 - - [11/Feb/2026 09:01:40] "GET /api/logs?lines=15&t=1770800499382 HTTP/1.1" 200 -
+2026-02-11 09:01:42,572 - 172.21.0.3 - - [11/Feb/2026 09:01:42] "GET /api/logs?lines=15&t=1770800501393 HTTP/1.1" 200 -
+2026-02-11 09:01:44,589 - 172.21.0.3 - - [11/Feb/2026 09:01:44] "GET /api/logs?lines=15&t=1770800503395 HTTP/1.1" 200 -
+2026-02-11 09:01:46,622 - 172.21.0.3 - - [11/Feb/2026 09:01:46] "GET /api/logs?lines=15&t=1770800505417 HTTP/1.1" 200 -
+2026-02-11 09:01:48,578 - 172.21.0.3 - - [11/Feb/2026 09:01:48] "GET /api/logs?lines=15&t=1770800507397 HTTP/1.1" 200 -
+2026-02-11 09:01:50,567 - 172.21.0.3 - - [11/Feb/2026 09:01:50] "GET /api/logs?lines=15&t=1770800509380 HTTP/1.1" 200 -
+2026-02-11 09:01:52,573 - 172.21.0.3 - - [11/Feb/2026 09:01:52] "GET /api/logs?lines=15&t=1770800511390 HTTP/1.1" 200 -
+2026-02-11 09:01:54,584 - 172.21.0.3 - - [11/Feb/2026 09:01:54] "GET /api/logs?lines=15&t=1770800513387 HTTP/1.1" 200 -
+2026-02-11 09:01:56,576 - 172.21.0.3 - - [11/Feb/2026 09:01:56] "GET /api/logs?lines=15&t=1770800515386 HTTP/1.1" 200 -
+2026-02-11 09:01:58,571 - 172.21.0.3 - - [11/Feb/2026 09:01:58] "GET /api/logs?lines=15&t=1770800517393 HTTP/1.1" 200 -
+2026-02-11 09:02:00,568 - 172.21.0.3 - - [11/Feb/2026 09:02:00] "GET /api/logs?lines=15&t=1770800519391 HTTP/1.1" 200 -
+2026-02-11 09:02:02,570 - 172.21.0.3 - - [11/Feb/2026 09:02:02] "GET /api/logs?lines=15&t=1770800521386 HTTP/1.1" 200 -
+2026-02-11 09:02:04,564 - 172.21.0.3 - - [11/Feb/2026 09:02:04] "GET /api/logs?lines=15&t=1770800523384 HTTP/1.1" 200 -
+2026-02-11 09:02:06,576 - 172.21.0.3 - - [11/Feb/2026 09:02:06] "GET /api/logs?lines=15&t=1770800525389 HTTP/1.1" 200 -
+2026-02-11 09:02:08,576 - 172.21.0.3 - - [11/Feb/2026 09:02:08] "GET /api/logs?lines=15&t=1770800527393 HTTP/1.1" 200 -
+2026-02-11 09:02:10,581 - 172.21.0.3 - - [11/Feb/2026 09:02:10] "GET /api/logs?lines=15&t=1770800529393 HTTP/1.1" 200 -
+2026-02-11 09:02:45,656 - 172.21.0.3 - - [11/Feb/2026 09:02:45] "GET /api/logs?lines=15&t=1770800564384 HTTP/1.1" 200 -
+2026-02-11 09:03:45,621 - 172.21.0.3 - - [11/Feb/2026 09:03:45] "GET /api/logs?lines=15&t=1770800624389 HTTP/1.1" 200 -
+2026-02-11 09:04:45,589 - 172.21.0.3 - - [11/Feb/2026 09:04:45] "GET /api/logs?lines=15&t=1770800684388 HTTP/1.1" 200 -
+2026-02-11 09:04:57,229 - 172.21.0.3 - - [11/Feb/2026 09:04:57] "GET /api/logs?lines=15&t=1770800695937 HTTP/1.1" 200 -
+2026-02-11 09:04:58,576 - 172.21.0.3 - - [11/Feb/2026 09:04:58] "GET /api/logs?lines=15&t=1770800697391 HTTP/1.1" 200 -
+2026-02-11 09:05:00,598 - 172.21.0.3 - - [11/Feb/2026 09:05:00] "GET /api/logs?lines=15&t=1770800699386 HTTP/1.1" 200 -
+2026-02-11 09:05:02,600 - 172.21.0.3 - - [11/Feb/2026 09:05:02] "GET /api/logs?lines=15&t=1770800701393 HTTP/1.1" 200 -
+2026-02-11 09:05:04,564 - 172.21.0.3 - - [11/Feb/2026 09:05:04] "GET /api/logs?lines=15&t=1770800703382 HTTP/1.1" 200 -
+2026-02-11 09:05:06,579 - 172.21.0.3 - - [11/Feb/2026 09:05:06] "GET /api/logs?lines=15&t=1770800705386 HTTP/1.1" 200 -
+2026-02-11 09:05:08,594 - 172.21.0.3 - - [11/Feb/2026 09:05:08] "GET /api/logs?lines=15&t=1770800707386 HTTP/1.1" 200 -
+2026-02-11 09:05:10,572 - 172.21.0.3 - - [11/Feb/2026 09:05:10] "GET /api/logs?lines=15&t=1770800709387 HTTP/1.1" 200 -
+2026-02-11 09:05:12,573 - 172.21.0.3 - - [11/Feb/2026 09:05:12] "GET /api/logs?lines=15&t=1770800711388 HTTP/1.1" 200 -
+2026-02-11 09:05:14,580 - 172.21.0.3 - - [11/Feb/2026 09:05:14] "GET /api/logs?lines=15&t=1770800713384 HTTP/1.1" 200 -
+2026-02-11 09:05:16,581 - 172.21.0.3 - - [11/Feb/2026 09:05:16] "GET /api/logs?lines=15&t=1770800715383 HTTP/1.1" 200 -
+2026-02-11 09:05:18,593 - 172.21.0.3 - - [11/Feb/2026 09:05:18] "GET /api/logs?lines=15&t=1770800717398 HTTP/1.1" 200 -
+2026-02-11 09:05:20,583 - 172.21.0.3 - - [11/Feb/2026 09:05:20] "GET /api/logs?lines=15&t=1770800719394 HTTP/1.1" 200 -
+2026-02-11 09:05:22,592 - 172.21.0.3 - - [11/Feb/2026 09:05:22] "GET /api/logs?lines=15&t=1770800721395 HTTP/1.1" 200 -
+2026-02-11 09:05:24,647 - 172.21.0.3 - - [11/Feb/2026 09:05:24] "GET /api/logs?lines=15&t=1770800723424 HTTP/1.1" 200 -
+2026-02-11 09:05:26,588 - 172.21.0.3 - - [11/Feb/2026 09:05:26] "GET /api/logs?lines=15&t=1770800725387 HTTP/1.1" 200 -
+2026-02-11 09:05:28,585 - 172.21.0.3 - - [11/Feb/2026 09:05:28] "GET /api/logs?lines=15&t=1770800727393 HTTP/1.1" 200 -
+2026-02-11 09:05:30,566 - 172.21.0.3 - - [11/Feb/2026 09:05:30] "GET /api/logs?lines=15&t=1770800729381 HTTP/1.1" 200 -
+2026-02-11 09:05:32,594 - 172.21.0.3 - - [11/Feb/2026 09:05:32] "GET /api/logs?lines=15&t=1770800731390 HTTP/1.1" 200 -
+2026-02-11 09:05:34,574 - 172.21.0.3 - - [11/Feb/2026 09:05:34] "GET /api/logs?lines=15&t=1770800733383 HTTP/1.1" 200 -
+2026-02-11 09:05:36,569 - 172.21.0.3 - - [11/Feb/2026 09:05:36] "GET /api/logs?lines=15&t=1770800735391 HTTP/1.1" 200 -
+2026-02-11 09:05:38,576 - 172.21.0.3 - - [11/Feb/2026 09:05:38] "GET /api/logs?lines=15&t=1770800737388 HTTP/1.1" 200 -
+2026-02-11 09:05:40,599 - 172.21.0.3 - - [11/Feb/2026 09:05:40] "GET /api/logs?lines=15&t=1770800739389 HTTP/1.1" 200 -
+2026-02-11 09:05:42,587 - 172.21.0.3 - - [11/Feb/2026 09:05:42] "GET /api/logs?lines=15&t=1770800741402 HTTP/1.1" 200 -
+2026-02-11 09:05:44,581 - 172.21.0.3 - - [11/Feb/2026 09:05:44] "GET /api/logs?lines=15&t=1770800743392 HTTP/1.1" 200 -
+2026-02-11 09:05:46,584 - 172.21.0.3 - - [11/Feb/2026 09:05:46] "GET /api/logs?lines=15&t=1770800745394 HTTP/1.1" 200 -
+2026-02-11 09:05:48,580 - 172.21.0.3 - - [11/Feb/2026 09:05:48] "GET /api/logs?lines=15&t=1770800747394 HTTP/1.1" 200 -
+2026-02-11 09:05:50,581 - 172.21.0.3 - - [11/Feb/2026 09:05:50] "GET /api/logs?lines=15&t=1770800749389 HTTP/1.1" 200 -
+2026-02-11 09:05:52,582 - 172.21.0.3 - - [11/Feb/2026 09:05:52] "GET /api/logs?lines=15&t=1770800751396 HTTP/1.1" 200 -
+2026-02-11 09:05:54,570 - 172.21.0.3 - - [11/Feb/2026 09:05:54] "GET /api/logs?lines=15&t=1770800753382 HTTP/1.1" 200 -
+2026-02-11 09:05:56,581 - 172.21.0.3 - - [11/Feb/2026 09:05:56] "GET /api/logs?lines=15&t=1770800755380 HTTP/1.1" 200 -
+2026-02-11 09:06:45,667 - 172.21.0.3 - - [11/Feb/2026 09:06:45] "GET /api/logs?lines=15&t=1770800804388 HTTP/1.1" 200 -
+2026-02-11 09:07:16,496 - 172.21.0.3 - - [11/Feb/2026 09:07:16] "GET /api/logs?lines=15&t=1770800835228 HTTP/1.1" 200 -
+2026-02-11 09:07:16,541 - 172.21.0.3 - - [11/Feb/2026 09:07:16] "GET /api/logs?lines=15&t=1770800835357 HTTP/1.1" 200 -
+2026-02-11 09:07:18,571 - 172.21.0.3 - - [11/Feb/2026 09:07:18] "GET /api/logs?lines=15&t=1770800837383 HTTP/1.1" 200 -
+2026-02-11 09:07:20,573 - 172.21.0.3 - - [11/Feb/2026 09:07:20] "GET /api/logs?lines=15&t=1770800839382 HTTP/1.1" 200 -
+2026-02-11 09:07:22,587 - 172.21.0.3 - - [11/Feb/2026 09:07:22] "GET /api/logs?lines=15&t=1770800841390 HTTP/1.1" 200 -
+2026-02-11 09:07:24,578 - 172.21.0.3 - - [11/Feb/2026 09:07:24] "GET /api/logs?lines=15&t=1770800843394 HTTP/1.1" 200 -
+2026-02-11 09:07:26,571 - 172.21.0.3 - - [11/Feb/2026 09:07:26] "GET /api/logs?lines=15&t=1770800845388 HTTP/1.1" 200 -
+2026-02-11 09:07:28,571 - 172.21.0.3 - - [11/Feb/2026 09:07:28] "GET /api/logs?lines=15&t=1770800847380 HTTP/1.1" 200 -
+2026-02-11 09:07:30,580 - 172.21.0.3 - - [11/Feb/2026 09:07:30] "GET /api/logs?lines=15&t=1770800849392 HTTP/1.1" 200 -
+2026-02-11 09:07:32,569 - 172.21.0.3 - - [11/Feb/2026 09:07:32] "GET /api/logs?lines=15&t=1770800851382 HTTP/1.1" 200 -
+2026-02-11 09:07:34,598 - 172.21.0.3 - - [11/Feb/2026 09:07:34] "GET /api/logs?lines=15&t=1770800853389 HTTP/1.1" 200 -
+2026-02-11 09:07:36,576 - 172.21.0.3 - - [11/Feb/2026 09:07:36] "GET /api/logs?lines=15&t=1770800855386 HTTP/1.1" 200 -
+2026-02-11 09:07:38,573 - 172.21.0.3 - - [11/Feb/2026 09:07:38] "GET /api/logs?lines=15&t=1770800857390 HTTP/1.1" 200 -
+2026-02-11 09:07:40,593 - 172.21.0.3 - - [11/Feb/2026 09:07:40] "GET /api/logs?lines=15&t=1770800859391 HTTP/1.1" 200 -
+2026-02-11 09:07:42,582 - 172.21.0.3 - - [11/Feb/2026 09:07:42] "GET /api/logs?lines=15&t=1770800861399 HTTP/1.1" 200 -
+2026-02-11 09:07:44,566 - 172.21.0.3 - - [11/Feb/2026 09:07:44] "GET /api/logs?lines=15&t=1770800863386 HTTP/1.1" 200 -
+2026-02-11 09:07:46,576 - 172.21.0.3 - - [11/Feb/2026 09:07:46] "GET /api/logs?lines=15&t=1770800865383 HTTP/1.1" 200 -
+2026-02-11 09:07:48,580 - 172.21.0.3 - - [11/Feb/2026 09:07:48] "GET /api/logs?lines=15&t=1770800867396 HTTP/1.1" 200 -
+2026-02-11 09:07:50,579 - 172.21.0.3 - - [11/Feb/2026 09:07:50] "GET /api/logs?lines=15&t=1770800869395 HTTP/1.1" 200 -
+2026-02-11 09:07:52,585 - 172.21.0.3 - - [11/Feb/2026 09:07:52] "GET /api/logs?lines=15&t=1770800871394 HTTP/1.1" 200 -
+2026-02-11 09:07:54,568 - 172.21.0.3 - - [11/Feb/2026 09:07:54] "GET /api/logs?lines=15&t=1770800873382 HTTP/1.1" 200 -
+2026-02-11 09:07:56,567 - 172.21.0.3 - - [11/Feb/2026 09:07:56] "GET /api/logs?lines=15&t=1770800875386 HTTP/1.1" 200 -
+2026-02-11 09:07:58,576 - 172.21.0.3 - - [11/Feb/2026 09:07:58] "GET /api/logs?lines=15&t=1770800877391 HTTP/1.1" 200 -
+2026-02-11 09:08:00,569 - 172.21.0.3 - - [11/Feb/2026 09:08:00] "GET /api/logs?lines=15&t=1770800879390 HTTP/1.1" 200 -
+2026-02-11 09:08:02,582 - 172.21.0.3 - - [11/Feb/2026 09:08:02] "GET /api/logs?lines=15&t=1770800881394 HTTP/1.1" 200 -
+2026-02-11 09:08:04,578 - 172.21.0.3 - - [11/Feb/2026 09:08:04] "GET /api/logs?lines=15&t=1770800883391 HTTP/1.1" 200 -
+2026-02-11 09:08:06,581 - 172.21.0.3 - - [11/Feb/2026 09:08:06] "GET /api/logs?lines=15&t=1770800885393 HTTP/1.1" 200 -
+2026-02-11 09:08:08,583 - 172.21.0.3 - - [11/Feb/2026 09:08:08] "GET /api/logs?lines=15&t=1770800887393 HTTP/1.1" 200 -
+2026-02-11 09:08:10,576 - 172.21.0.3 - - [11/Feb/2026 09:08:10] "GET /api/logs?lines=15&t=1770800889381 HTTP/1.1" 200 -
+2026-02-11 09:08:12,565 - 172.21.0.3 - - [11/Feb/2026 09:08:12] "GET /api/logs?lines=15&t=1770800891381 HTTP/1.1" 200 -
+2026-02-11 09:08:14,576 - 172.21.0.3 - - [11/Feb/2026 09:08:14] "GET /api/logs?lines=15&t=1770800893392 HTTP/1.1" 200 -
+2026-02-11 09:08:16,609 - 172.21.0.3 - - [11/Feb/2026 09:08:16] "GET /api/logs?lines=15&t=1770800895382 HTTP/1.1" 200 -
+2026-02-11 09:08:18,575 - 172.21.0.3 - - [11/Feb/2026 09:08:18] "GET /api/logs?lines=15&t=1770800897390 HTTP/1.1" 200 -
+2026-02-11 09:08:20,581 - 172.21.0.3 - - [11/Feb/2026 09:08:20] "GET /api/logs?lines=15&t=1770800899397 HTTP/1.1" 200 -
+2026-02-11 09:08:22,581 - 172.21.0.3 - - [11/Feb/2026 09:08:22] "GET /api/logs?lines=15&t=1770800901382 HTTP/1.1" 200 -
+2026-02-11 09:08:24,603 - 172.21.0.3 - - [11/Feb/2026 09:08:24] "GET /api/logs?lines=15&t=1770800903394 HTTP/1.1" 200 -
+2026-02-11 09:08:26,581 - 172.21.0.3 - - [11/Feb/2026 09:08:26] "GET /api/logs?lines=15&t=1770800905388 HTTP/1.1" 200 -
+2026-02-11 09:08:28,587 - 172.21.0.3 - - [11/Feb/2026 09:08:28] "GET /api/logs?lines=15&t=1770800907394 HTTP/1.1" 200 -
+2026-02-11 09:08:30,574 - 172.21.0.3 - - [11/Feb/2026 09:08:30] "GET /api/logs?lines=15&t=1770800909388 HTTP/1.1" 200 -
+2026-02-11 09:08:32,579 - 172.21.0.3 - - [11/Feb/2026 09:08:32] "GET /api/logs?lines=15&t=1770800911396 HTTP/1.1" 200 -
+2026-02-11 09:08:34,594 - 172.21.0.3 - - [11/Feb/2026 09:08:34] "GET /api/logs?lines=15&t=1770800913392 HTTP/1.1" 200 -
+2026-02-11 09:08:36,572 - 172.21.0.3 - - [11/Feb/2026 09:08:36] "GET /api/logs?lines=15&t=1770800915388 HTTP/1.1" 200 -
+2026-02-11 09:08:38,584 - 172.21.0.3 - - [11/Feb/2026 09:08:38] "GET /api/logs?lines=15&t=1770800917396 HTTP/1.1" 200 -
+2026-02-11 09:08:45,585 - 172.21.0.3 - - [11/Feb/2026 09:08:45] "GET /api/logs?lines=15&t=1770800924389 HTTP/1.1" 200 -
+2026-02-11 09:09:45,675 - 172.21.0.3 - - [11/Feb/2026 09:09:45] "GET /api/logs?lines=15&t=1770800984384 HTTP/1.1" 200 -
+2026-02-11 09:10:37,694 - 172.21.0.3 - - [11/Feb/2026 09:10:37] "GET /api/logs?lines=15&t=1770801036411 HTTP/1.1" 200 -
+2026-02-11 09:10:38,574 - 172.21.0.3 - - [11/Feb/2026 09:10:38] "GET /api/logs?lines=15&t=1770801037387 HTTP/1.1" 200 -
+2026-02-11 09:10:40,578 - 172.21.0.3 - - [11/Feb/2026 09:10:40] "GET /api/logs?lines=15&t=1770801039391 HTTP/1.1" 200 -
+2026-02-11 09:10:42,601 - 172.21.0.3 - - [11/Feb/2026 09:10:42] "GET /api/logs?lines=15&t=1770801041399 HTTP/1.1" 200 -
+2026-02-11 09:10:44,579 - 172.21.0.3 - - [11/Feb/2026 09:10:44] "GET /api/logs?lines=15&t=1770801043389 HTTP/1.1" 200 -
+2026-02-11 09:10:46,570 - 172.21.0.3 - - [11/Feb/2026 09:10:46] "GET /api/logs?lines=15&t=1770801045385 HTTP/1.1" 200 -
+2026-02-11 09:10:48,573 - 172.21.0.3 - - [11/Feb/2026 09:10:48] "GET /api/logs?lines=15&t=1770801047391 HTTP/1.1" 200 -
+2026-02-11 09:10:50,581 - 172.21.0.3 - - [11/Feb/2026 09:10:50] "GET /api/logs?lines=15&t=1770801049385 HTTP/1.1" 200 -
+2026-02-11 09:10:52,565 - 172.21.0.3 - - [11/Feb/2026 09:10:52] "GET /api/logs?lines=15&t=1770801051387 HTTP/1.1" 200 -
+2026-02-11 09:10:54,577 - 172.21.0.3 - - [11/Feb/2026 09:10:54] "GET /api/logs?lines=15&t=1770801053388 HTTP/1.1" 200 -
+2026-02-11 09:10:56,590 - 172.21.0.3 - - [11/Feb/2026 09:10:56] "GET /api/logs?lines=15&t=1770801055397 HTTP/1.1" 200 -
+2026-02-11 09:10:58,572 - 172.21.0.3 - - [11/Feb/2026 09:10:58] "GET /api/logs?lines=15&t=1770801057392 HTTP/1.1" 200 -
+2026-02-11 09:11:00,585 - 172.21.0.3 - - [11/Feb/2026 09:11:00] "GET /api/logs?lines=15&t=1770801059402 HTTP/1.1" 200 -
+2026-02-11 09:11:02,587 - 172.21.0.3 - - [11/Feb/2026 09:11:02] "GET /api/logs?lines=15&t=1770801061393 HTTP/1.1" 200 -
+2026-02-11 09:11:04,566 - 172.21.0.3 - - [11/Feb/2026 09:11:04] "GET /api/logs?lines=15&t=1770801063380 HTTP/1.1" 200 -
+2026-02-11 09:11:06,574 - 172.21.0.3 - - [11/Feb/2026 09:11:06] "GET /api/logs?lines=15&t=1770801065389 HTTP/1.1" 200 -
+2026-02-11 09:11:08,599 - 172.21.0.3 - - [11/Feb/2026 09:11:08] "GET /api/logs?lines=15&t=1770801067390 HTTP/1.1" 200 -
+2026-02-11 09:11:10,572 - 172.21.0.3 - - [11/Feb/2026 09:11:10] "GET /api/logs?lines=15&t=1770801069387 HTTP/1.1" 200 -
+2026-02-11 09:11:12,589 - 172.21.0.3 - - [11/Feb/2026 09:11:12] "GET /api/logs?lines=15&t=1770801071393 HTTP/1.1" 200 -
+2026-02-11 09:11:14,576 - 172.21.0.3 - - [11/Feb/2026 09:11:14] "GET /api/logs?lines=15&t=1770801073386 HTTP/1.1" 200 -
+2026-02-11 09:11:16,572 - 172.21.0.3 - - [11/Feb/2026 09:11:16] "GET /api/logs?lines=15&t=1770801075389 HTTP/1.1" 200 -
+2026-02-11 09:11:18,577 - 172.21.0.3 - - [11/Feb/2026 09:11:18] "GET /api/logs?lines=15&t=1770801077393 HTTP/1.1" 200 -
+2026-02-11 09:11:20,552 - 172.21.0.3 - - [11/Feb/2026 09:11:20] "GET /api/logs?lines=15&t=1770801079364 HTTP/1.1" 200 -
+2026-02-11 09:11:22,583 - 172.21.0.3 - - [11/Feb/2026 09:11:22] "GET /api/logs?lines=15&t=1770801081399 HTTP/1.1" 200 -
+2026-02-11 09:11:24,574 - 172.21.0.3 - - [11/Feb/2026 09:11:24] "GET /api/logs?lines=15&t=1770801083389 HTTP/1.1" 200 -
+2026-02-11 09:11:26,590 - 172.21.0.3 - - [11/Feb/2026 09:11:26] "GET /api/logs?lines=15&t=1770801085380 HTTP/1.1" 200 -
+2026-02-11 09:11:28,544 - 172.21.0.3 - - [11/Feb/2026 09:11:28] "GET /api/logs?lines=15&t=1770801087368 HTTP/1.1" 200 -
+2026-02-11 09:11:30,536 - 172.21.0.3 - - [11/Feb/2026 09:11:30] "GET /api/logs?lines=15&t=1770801089356 HTTP/1.1" 200 -
+2026-02-11 09:11:32,601 - 172.21.0.3 - - [11/Feb/2026 09:11:32] "GET /api/logs?lines=15&t=1770801091360 HTTP/1.1" 200 -
+2026-02-11 09:11:34,573 - 172.21.0.3 - - [11/Feb/2026 09:11:34] "GET /api/logs?lines=15&t=1770801093356 HTTP/1.1" 200 -
+2026-02-11 09:11:36,544 - 172.21.0.3 - - [11/Feb/2026 09:11:36] "GET /api/logs?lines=15&t=1770801095355 HTTP/1.1" 200 -
+2026-02-11 09:11:38,556 - 172.21.0.3 - - [11/Feb/2026 09:11:38] "GET /api/logs?lines=15&t=1770801097365 HTTP/1.1" 200 -
+2026-02-11 09:11:40,602 - 172.21.0.3 - - [11/Feb/2026 09:11:40] "GET /api/logs?lines=15&t=1770801099392 HTTP/1.1" 200 -
+2026-02-11 09:11:42,568 - 172.21.0.3 - - [11/Feb/2026 09:11:42] "GET /api/logs?lines=15&t=1770801101380 HTTP/1.1" 200 -
+2026-02-11 09:11:44,611 - 172.21.0.3 - - [11/Feb/2026 09:11:44] "GET /api/logs?lines=15&t=1770801103393 HTTP/1.1" 200 -
+2026-02-11 09:11:46,571 - 172.21.0.3 - - [11/Feb/2026 09:11:46] "GET /api/logs?lines=15&t=1770801105386 HTTP/1.1" 200 -
+2026-02-11 09:11:48,628 - 172.21.0.3 - - [11/Feb/2026 09:11:48] "GET /api/logs?lines=15&t=1770801107393 HTTP/1.1" 200 -
+2026-02-11 09:11:50,601 - 172.21.0.3 - - [11/Feb/2026 09:11:50] "GET /api/logs?lines=15&t=1770801109396 HTTP/1.1" 200 -
+2026-02-11 09:11:52,568 - 172.21.0.3 - - [11/Feb/2026 09:11:52] "GET /api/logs?lines=15&t=1770801111383 HTTP/1.1" 200 -
+2026-02-11 09:11:54,583 - 172.21.0.3 - - [11/Feb/2026 09:11:54] "GET /api/logs?lines=15&t=1770801113394 HTTP/1.1" 200 -
+2026-02-11 09:11:56,567 - 172.21.0.3 - - [11/Feb/2026 09:11:56] "GET /api/logs?lines=15&t=1770801115380 HTTP/1.1" 200 -
+2026-02-11 09:11:58,577 - 172.21.0.3 - - [11/Feb/2026 09:11:58] "GET /api/logs?lines=15&t=1770801117383 HTTP/1.1" 200 -

@@ -3917,3 +3917,263 @@ KeyError: 'id'
 2026-02-11 17:59:11,041 | INFO | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 17:14:11 UTC)" (scheduled at 2026-02-11 16:59:11.040882+00:00)
 2026-02-11 17:59:11,042 | INFO | [SCHEDULER] Prüfe Jobs...
 2026-02-11 17:59:11,042 | INFO | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 17:14:11 UTC)" executed successfully
+2026-02-11 18:30:23,659 | INFO | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 18:30:23,660 | INFO | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 18:30:23,660 | INFO | Scheduler started
+2026-02-11 18:30:23,666 | INFO | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 18:30:23,666 | INFO | [33mPress CTRL+C to quit[0m
+2026-02-11 18:35:28,462 | INFO | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 18:35:28,463 | INFO | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 18:35:28,463 | INFO | Scheduler started
+2026-02-11 18:35:28,472 | INFO | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 18:35:28,472 | INFO | [33mPress CTRL+C to quit[0m
+2026-02-11 18:38:29,463 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 18:38:29,464 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 18:38:29,464 | Scheduler started
+2026-02-11 18:38:29,471 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 18:38:29,471 | [33mPress CTRL+C to quit[0m
+2026-02-11 18:50:00,990 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 18:50:00,991 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 18:50:00,991 | Scheduler started
+2026-02-11 18:50:00,994 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 18:50:00,994 | [33mPress CTRL+C to quit[0m
+2026-02-11 18:52:23,355 | 185.243.98.42 - - [11/Feb/2026 18:52:23] code 400, message Bad request syntax ('\x03\x00\x00\x13\x0eà\x00\x00\x00\x00\x00\x01\x00\x08\x00')
+2026-02-11 18:52:23,356 | 185.243.98.42 - - [11/Feb/2026 18:52:23] "[35m[1m\x03\x00\x00\x13\x0eà\x00\x00\x00\x00\x00\x01\x00\x08\x00[0m" HTTPStatus.BAD_REQUEST -
+2026-02-11 18:52:23,434 | 185.243.98.42 - - [11/Feb/2026 18:52:23] code 400, message Bad request syntax ('\x03\x00\x00\x13\x0eà\x00\x00\x00\x00\x00\x01\x00\x08\x00')
+2026-02-11 18:52:23,435 | 185.243.98.42 - - [11/Feb/2026 18:52:23] "[35m[1m\x03\x00\x00\x13\x0eà\x00\x00\x00\x00\x00\x01\x00\x08\x00[0m" HTTPStatus.BAD_REQUEST -
+2026-02-11 19:05:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:05:00 UTC)" (scheduled at 2026-02-11 18:05:00.990748+00:00)
+2026-02-11 19:05:00,995 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:20:00 UTC)" executed successfully
+2026-02-11 19:09:57,427 | 165.154.11.149 - - [11/Feb/2026 19:09:57] code 400, message Bad request version ('\x00\x9eÌ¨Ìª\x003\x00=\x00\x16À')
+2026-02-11 19:09:57,427 | 165.154.11.149 - - [11/Feb/2026 19:09:57] "[35m[1m\x16\x03\x01\x00ü\x01\x00\x00ø\x03\x03\x08\x1eí\x84þ\x8e\x1b0õ]\x12ù÷¦pº(\x19..e\x14æ.Å\x08L¹\x96\x90ìf ¯ÚJ\x9e\x90\\êî\x00ëÒÀõ~\x86QÚH^\x0dMC\x0br\x05Ieü¢\x93Ó6\x004Ì¨Ì©À/À0À+À,À\x09\x00\x9eÌ¨Ìª\x003\x00=\x00\x16À[0m" HTTPStatus.BAD_REQUEST -
+2026-02-11 19:10:07,778 | 165.154.11.149 - - [11/Feb/2026 19:10:07] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 19:10:08,122 | 165.154.11.149 - - [11/Feb/2026 19:10:08] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 19:10:08,367 | 165.154.11.149 - - [11/Feb/2026 19:10:08] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 19:10:08,612 | 165.154.11.149 - - [11/Feb/2026 19:10:08] "[33mGET /robots.txt HTTP/1.1[0m" 404 -
+2026-02-11 19:10:08,860 | 165.154.11.149 - - [11/Feb/2026 19:10:08] "[33mGET /sitemap.xml HTTP/1.1[0m" 404 -
+2026-02-11 19:10:09,374 | 165.154.11.149 - - [11/Feb/2026 19:10:09] "[33mGET /config.json HTTP/1.1[0m" 404 -
+2026-02-11 19:20:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:35:00 UTC)" (scheduled at 2026-02-11 18:20:00.990748+00:00)
+2026-02-11 19:20:00,991 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:35:00 UTC)" executed successfully
+2026-02-11 19:35:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:50:00 UTC)" (scheduled at 2026-02-11 18:35:00.990748+00:00)
+2026-02-11 19:35:00,992 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 18:50:00 UTC)" executed successfully
+2026-02-11 19:50:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:05:00 UTC)" (scheduled at 2026-02-11 18:50:00.990748+00:00)
+2026-02-11 19:50:00,992 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:05:00 UTC)" executed successfully
+2026-02-11 20:05:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:20:00 UTC)" (scheduled at 2026-02-11 19:05:00.990748+00:00)
+2026-02-11 20:05:00,992 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:20:00 UTC)" executed successfully
+2026-02-11 20:20:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:35:00 UTC)" (scheduled at 2026-02-11 19:20:00.990748+00:00)
+2026-02-11 20:20:00,991 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:35:00 UTC)" executed successfully
+2026-02-11 20:35:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:50:00 UTC)" (scheduled at 2026-02-11 19:35:00.990748+00:00)
+2026-02-11 20:35:00,991 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 19:50:00 UTC)" executed successfully
+2026-02-11 20:44:11,802 | 176.32.195.85 - - [11/Feb/2026 20:44:11] "[32mGET / HTTP/1.0[0m" 302 -
+2026-02-11 20:44:30,161 | 45.91.64.7 - - [11/Feb/2026 20:44:30] code 400, message Bad request version ('À\x13À')
+2026-02-11 20:44:30,161 | 45.91.64.7 - - [11/Feb/2026 20:44:30] "[35m[1m\x16\x03\x01\x05¨\x01\x00\x05¤\x03\x03\x03\x82\x8dwke\x14\x0f\x9c\x09V\x05\x0e\x10\x82\x985sjú¶\x86\x8c\x97Ïâ(É\x85\x8a\x9c² Ë'f_\x1aÀ¬M\x9d\x1aÐ$ª¤!\x90U¾\x07ÛI9gh.q\x7f\x9b8ñ-Z\x00\x1aÀ+À/À,À0Ì©Ì¨À\x09À\x13À[0m" HTTPStatus.BAD_REQUEST -
+2026-02-11 20:44:30,259 | 45.91.64.7 - - [11/Feb/2026 20:44:30] "[33mGET /aaa9 HTTP/1.1[0m" 404 -
+2026-02-11 20:44:30,369 | 45.91.64.7 - - [11/Feb/2026 20:44:30] code 400, message Bad request version ('À\x13À')
+2026-02-11 20:44:30,370 | 45.91.64.7 - - [11/Feb/2026 20:44:30] "[35m[1m\x16\x03\x01\x05¨\x01\x00\x05¤\x03\x03í5q³\x82\x17Ññ\x0b»g¿J\\zFºø\x9aÛ§pDÔ\x1f\x1aÆ¢\x18\x8b·¸ Ê:á¶\x15<UÃÒîl¶fÔ\x95\x85Qö\x90w\x87Zñ\x90>Ñ\x0e\x84>K\x90s\x00\x1aÀ+À/À,À0Ì©Ì¨À\x09À\x13À[0m" HTTPStatus.BAD_REQUEST -
+2026-02-11 20:44:30,465 | 45.91.64.7 - - [11/Feb/2026 20:44:30] "[33mGET /aab9 HTTP/1.1[0m" 404 -
+2026-02-11 20:50:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:05:00 UTC)" (scheduled at 2026-02-11 19:50:00.990748+00:00)
+2026-02-11 20:50:00,991 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:05:00 UTC)" executed successfully
+2026-02-11 21:05:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:20:00 UTC)" (scheduled at 2026-02-11 20:05:00.990748+00:00)
+2026-02-11 21:05:00,991 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:20:00 UTC)" executed successfully
+2026-02-11 21:20:00,991 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:35:00 UTC)" (scheduled at 2026-02-11 20:20:00.990748+00:00)
+2026-02-11 21:20:00,992 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 20:35:00 UTC)" executed successfully
+2026-02-11 21:33:31,379 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 21:33:31,379 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 21:33:31,379 | Scheduler started
+2026-02-11 21:33:31,383 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 21:33:31,383 | [33mPress CTRL+C to quit[0m
+2026-02-11 21:42:59,125 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 21:42:59,126 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 21:42:59,126 | Scheduler started
+2026-02-11 21:42:59,130 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 21:42:59,131 | [33mPress CTRL+C to quit[0m
+2026-02-11 21:43:00,127 | 172.21.0.3 - - [11/Feb/2026 21:43:00] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:02,187 | 172.21.0.3 - - [11/Feb/2026 21:43:02] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:04,115 | 172.21.0.3 - - [11/Feb/2026 21:43:04] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:06,280 | 172.21.0.3 - - [11/Feb/2026 21:43:06] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:08,169 | 172.21.0.3 - - [11/Feb/2026 21:43:08] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:10,142 | 172.21.0.3 - - [11/Feb/2026 21:43:10] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:12,122 | 172.21.0.3 - - [11/Feb/2026 21:43:12] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:14,156 | 172.21.0.3 - - [11/Feb/2026 21:43:14] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:16,157 | 172.21.0.3 - - [11/Feb/2026 21:43:16] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:18,124 | 172.21.0.3 - - [11/Feb/2026 21:43:18] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:20,136 | 172.21.0.3 - - [11/Feb/2026 21:43:20] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:22,167 | 172.21.0.3 - - [11/Feb/2026 21:43:22] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:24,129 | 172.21.0.3 - - [11/Feb/2026 21:43:24] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:26,264 | 172.21.0.3 - - [11/Feb/2026 21:43:26] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:28,159 | 172.21.0.3 - - [11/Feb/2026 21:43:28] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:43,138 | 172.21.0.3 - - [11/Feb/2026 21:43:43] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:49,498 | 172.21.0.3 - - [11/Feb/2026 21:43:49] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 21:43:50,574 | 172.21.0.3 - - [11/Feb/2026 21:43:50] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 21:43:50,725 | 172.21.0.3 - - [11/Feb/2026 21:43:50] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 21:43:55,130 | 172.21.0.3 - - [11/Feb/2026 21:43:55] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 21:43:55,214 | 172.21.0.3 - - [11/Feb/2026 21:43:55] "GET / HTTP/1.1" 200 -
+2026-02-11 21:44:30,372 | 172.21.0.3 - - [11/Feb/2026 21:44:30] "GET / HTTP/1.1" 200 -
+2026-02-11 21:44:30,870 | 172.21.0.3 - - [11/Feb/2026 21:44:30] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 21:44:33,002 | 172.21.0.3 - - [11/Feb/2026 21:44:33] "GET / HTTP/1.1" 200 -
+2026-02-11 21:44:34,055 | 172.21.0.3 - - [11/Feb/2026 21:44:34] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 21:44:45,909 | 172.21.0.3 - - [11/Feb/2026 21:44:45] "[32mGET /jobs/delete/68d1da70-46df-4819-8117-2aa05de4d42a HTTP/1.1[0m" 302 -
+2026-02-11 21:44:46,023 | 172.21.0.3 - - [11/Feb/2026 21:44:46] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 21:44:55,671 | 172.21.0.3 - - [11/Feb/2026 21:44:55] "GET / HTTP/1.1" 200 -
+2026-02-11 21:45:21,036 | 172.21.0.3 - - [11/Feb/2026 21:45:21] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 21:45:21,116 | 172.21.0.3 - - [11/Feb/2026 21:45:21] "GET / HTTP/1.1" 200 -
+2026-02-11 21:46:43,037 | 172.21.0.3 - - [11/Feb/2026 21:46:43] "GET / HTTP/1.1" 200 -
+2026-02-11 21:46:57,312 | 172.21.0.3 - - [11/Feb/2026 21:46:57] "[32mPOST /book HTTP/1.1[0m" 302 -
+2026-02-11 21:46:57,405 | 172.21.0.3 - - [11/Feb/2026 21:46:57] "GET / HTTP/1.1" 200 -
+2026-02-11 21:47:07,831 | 172.21.0.3 - - [11/Feb/2026 21:47:07] "GET / HTTP/1.1" 200 -
+2026-02-11 21:50:08,834 | 172.21.0.3 - - [11/Feb/2026 21:50:08] "GET /accounts HTTP/1.1" 200 -
+2026-02-11 21:50:09,636 | 172.21.0.3 - - [11/Feb/2026 21:50:09] "GET / HTTP/1.1" 200 -
+2026-02-11 21:50:11,942 | 172.21.0.3 - - [11/Feb/2026 21:50:11] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 21:52:01,462 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 21:52:01,462 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 21:52:01,462 | Scheduler started
+2026-02-11 21:52:01,467 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 21:52:01,467 | [33mPress CTRL+C to quit[0m
+2026-02-11 21:54:02,948 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 21:54:02,948 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 21:54:02,948 | Scheduler started
+2026-02-11 21:54:02,953 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 21:54:02,953 | [33mPress CTRL+C to quit[0m
+2026-02-11 21:54:17,654 | 172.21.0.3 - - [11/Feb/2026 21:54:17] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 21:54:21,766 | 172.21.0.3 - - [11/Feb/2026 21:54:21] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 21:54:21,902 | 172.21.0.3 - - [11/Feb/2026 21:54:21] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 21:54:31,756 | 172.21.0.3 - - [11/Feb/2026 21:54:31] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 21:54:31,845 | 172.21.0.3 - - [11/Feb/2026 21:54:31] "GET / HTTP/1.1" 200 -
+2026-02-11 22:09:02,948 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 21:09:02 UTC)" (scheduled at 2026-02-11 21:09:02.948078+00:00)
+2026-02-11 22:09:02,952 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 21:24:02 UTC)" executed successfully
+2026-02-11 22:13:26,887 | 198.235.24.183 - - [11/Feb/2026 22:13:26] "[32mGET / HTTP/1.0[0m" 302 -
+2026-02-11 22:24:02,948 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 21:39:02 UTC)" (scheduled at 2026-02-11 21:24:02.948078+00:00)
+2026-02-11 22:24:02,950 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-11 21:39:02 UTC)" executed successfully
+2026-02-11 22:33:57,938 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:33:57,939 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:33:57,939 | Scheduler started
+2026-02-11 22:33:57,950 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:33:57,951 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:34:12,119 | 172.21.0.3 - - [11/Feb/2026 22:34:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:34:12,803 | 172.21.0.3 - - [11/Feb/2026 22:34:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:34:15,922 | 172.21.0.3 - - [11/Feb/2026 22:34:15] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 22:34:16,073 | 172.21.0.3 - - [11/Feb/2026 22:34:16] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 22:34:23,702 | 172.21.0.3 - - [11/Feb/2026 22:34:23] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 22:34:23,763 | 172.21.0.3 - - [11/Feb/2026 22:34:23] "GET / HTTP/1.1" 200 -
+2026-02-11 22:36:03,022 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:36:03,022 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:36:03,022 | Scheduler started
+2026-02-11 22:36:03,027 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:36:03,027 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:36:24,726 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:36:24,726 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:36:24,726 | Scheduler started
+2026-02-11 22:36:24,731 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:36:24,731 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:51:19,574 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:51:19,575 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:51:19,575 | Scheduler started
+2026-02-11 22:51:19,580 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:51:19,580 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:52:39,363 | 172.21.0.3 - - [11/Feb/2026 22:52:39] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:52:42,910 | 172.21.0.3 - - [11/Feb/2026 22:52:42] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 22:52:42,990 | 172.21.0.3 - - [11/Feb/2026 22:52:42] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 22:52:50,270 | 172.21.0.3 - - [11/Feb/2026 22:52:50] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 22:52:50,325 | 172.21.0.3 - - [11/Feb/2026 22:52:50] "GET / HTTP/1.1" 200 -
+2026-02-11 22:53:15,394 | 172.21.0.3 - - [11/Feb/2026 22:53:15] "GET / HTTP/1.1" 200 -
+2026-02-11 22:53:21,426 | 172.21.0.3 - - [11/Feb/2026 22:53:21] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 22:53:31,840 | 172.21.0.3 - - [11/Feb/2026 22:53:31] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 22:53:33,948 | 172.21.0.3 - - [11/Feb/2026 22:53:33] "GET /settings HTTP/1.1" 200 -
+2026-02-11 22:54:27,661 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:54:27,661 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:54:27,661 | Scheduler started
+2026-02-11 22:54:27,666 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:54:27,666 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:55:12,388 | 172.21.0.3 - - [11/Feb/2026 22:55:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:55:15,720 | 172.21.0.3 - - [11/Feb/2026 22:55:15] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 22:55:15,809 | 172.21.0.3 - - [11/Feb/2026 22:55:15] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 22:55:21,296 | 172.21.0.3 - - [11/Feb/2026 22:55:21] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 22:55:21,345 | 172.21.0.3 - - [11/Feb/2026 22:55:21] "GET / HTTP/1.1" 200 -
+2026-02-11 22:56:39,834 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:56:39,834 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:56:39,834 | Scheduler started
+2026-02-11 22:56:39,839 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:56:39,839 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:56:56,456 | 172.21.0.3 - - [11/Feb/2026 22:56:56] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:56:59,376 | 172.21.0.3 - - [11/Feb/2026 22:56:59] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 22:56:59,462 | 172.21.0.3 - - [11/Feb/2026 22:56:59] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 22:57:05,608 | 172.21.0.3 - - [11/Feb/2026 22:57:05] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 22:57:05,655 | 172.21.0.3 - - [11/Feb/2026 22:57:05] "GET / HTTP/1.1" 200 -
+2026-02-11 22:57:12,611 | 172.21.0.3 - - [11/Feb/2026 22:57:12] "GET /jobs HTTP/1.1" 200 -
+2026-02-11 22:57:31,595 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 22:57:31,596 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 22:57:31,596 | Scheduler started
+2026-02-11 22:57:31,602 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 22:57:31,602 | [33mPress CTRL+C to quit[0m
+2026-02-11 22:58:44,325 | 172.21.0.3 - - [11/Feb/2026 22:58:44] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-02-11 22:58:59,672 | 172.21.0.3 - - [11/Feb/2026 22:58:59] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-11 22:58:59,751 | 172.21.0.3 - - [11/Feb/2026 22:58:59] "GET /login?next=/ HTTP/1.1" 200 -
+2026-02-11 22:59:02,966 | 172.21.0.3 - - [11/Feb/2026 22:59:02] "[32mPOST /login?next=/ HTTP/1.1[0m" 302 -
+2026-02-11 22:59:03,013 | 172.21.0.3 - - [11/Feb/2026 22:59:03] "GET / HTTP/1.1" 200 -
+2026-02-11 23:02:06,071 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:02:06,072 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:02:06,072 | Scheduler started
+2026-02-11 23:02:06,084 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 23:02:06,084 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:02:46,293 | 172.21.0.3 - - [11/Feb/2026 23:02:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:03:46,047 | 172.21.0.3 - - [11/Feb/2026 23:03:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:04:39,026 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-11 23:04:39,026 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-11 23:04:39,027 | Scheduler started
+2026-02-11 23:04:39,031 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.21.0.2:5000
+2026-02-11 23:04:39,031 | [33mPress CTRL+C to quit[0m
+2026-02-11 23:04:46,064 | 172.21.0.3 - - [11/Feb/2026 23:04:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:05:46,055 | 172.21.0.3 - - [11/Feb/2026 23:05:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:06:46,053 | 172.21.0.3 - - [11/Feb/2026 23:06:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:07:46,036 | 172.21.0.3 - - [11/Feb/2026 23:07:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-11 23:08:46,047 | 172.21.0.3 - - [11/Feb/2026 23:08:46] "GET /login?next=/api/status HTTP/1.1" 200 -

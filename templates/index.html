@@ -1,115 +1,37 @@
 {% extends "layout.html" %}
 {% block content %}
-<div id="statusBanner" class="alert alert-secondary shadow-sm mb-4 d-flex align-items-center" role="alert" style="display:none;">
-    <i id="statusIcon" class="bi bi-info-circle-fill fs-4 me-3"></i>
-    <div>
-        <h5 class="alert-heading mb-0" id="statusText">System bereit</h5>
-    </div>
+<div id="statusBanner" class="alert alert-secondary shadow-sm mb-4 d-flex align-items-center" role="alert">
+    <i id="statusIcon" class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+    <div><h5 class="alert-heading mb-0" id="statusText">Lade Status...</h5></div>
 </div>
-
 <div class="row g-4">
   <div class="col-lg-5">
-    <div class="card h-100 border-0 shadow-sm">
-      <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-        <h5 class="fw-bold mb-0 text-white"><i class="bi bi-plus-lg text-primary me-2"></i>Neue Buchung</h5>
-      </div>
-      <div class="card-body p-4">
+    <div class="card shadow-sm border-0"><div class="card-body p-4">
+        <h5 class="fw-bold mb-3">Buchung</h5>
         <form method="POST" action="/book">
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">DATUM</label>
-            <input type="text" name="date" class="form-control bg-dark text-white border-secondary" placeholder="z.B. 14.02 (Leer = Morgen)">
-          </div>
+          <div class="mb-3"><input type="text" name="date" class="form-control bg-dark text-white" placeholder="Datum (z.B. 14.02)"></div>
           <div class="row mb-3">
-            <div class="col">
-              <label class="form-label text-muted small fw-bold">START</label>
-              <input type="text" name="start" class="form-control bg-dark text-white border-secondary" placeholder="08:00" required>
-            </div>
-            <div class="col">
-              <label class="form-label text-muted small fw-bold">ENDE</label>
-              <input type="text" name="end" class="form-control bg-dark text-white border-secondary" placeholder="12:00" required>
-            </div>
+            <div class="col"><input type="text" name="start" class="form-control bg-dark text-white" placeholder="08:00" required></div>
+            <div class="col"><input type="text" name="end" class="form-control bg-dark text-white" placeholder="12:00" required></div>
           </div>
-          <div class="row mb-4">
-            <div class="col-md-6">
-                <label class="form-label text-muted small fw-bold">KATEGORIE</label>
-                <select name="category" class="form-select bg-dark text-white border-secondary">
-                  {% for k, v in categories.items() %}
-                  <option value="{{ k }}" {% if k == 'default' %}selected{% endif %}>{{ v.title }}</option>
-                  {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-muted small fw-bold">WIEDERHOLUNG</label>
-                <select name="frequency" class="form-select bg-dark text-white border-secondary">
-                  <option value="onetime">Einmalig</option>
-                  <option value="weekly">Wöchentlich</option>
-                  <option value="daily">Täglich</option>
-                </select>
-            </div>
-          </div>
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-lg fw-bold">
-                <i class="bi bi-rocket-takeoff me-2"></i>Starten
-            </button>
-          </div>
+          <div class="mb-3"><select name="category" class="form-select bg-dark text-white">{% for k, v in categories.items() %}<option value="{{ k }}">{{ v.title }}</option>{% endfor %}</select></div>
+          <div class="mb-3"><select name="frequency" class="form-select bg-dark text-white"><option value="onetime">Einmalig</option><option value="weekly">Wöchentlich</option></select></div>
+          <button type="submit" class="btn btn-primary w-100">Starten</button>
         </form>
-      </div>
-    </div>
+    </div></div>
   </div>
-
-  <div class="col-lg-7">
-    <div class="card mb-4 h-100 border-0 shadow-sm">
-      <div class="card-header bg-transparent border-0 pt-3 px-3 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0 text-white"><i class="bi bi-calendar-week text-info me-2"></i>Agenda</h5>
-        <a href="/sync" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Sync</a>
-      </div>
-      <div class="card-body p-0">
-        <div class="ratio ratio-4x3" style="max-height: 500px;">
-            <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FZurich&showPrint=0&mode=AGENDA&title=Raumreservationen&showNav=0&src=M2FhMDI5MmJiMTAxOTU3NjA3M2VlNjUyMWJkZjdmMTJmMWM3OTU3MDNiZTRjZDAyMzMzMjE3YTgwOTM5N2I2ZUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%239e69af" 
-            style="border:0" frameborder="0" scrolling="no"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="col-lg-7"><div class="card shadow-sm border-0"><div class="card-body p-0">
+    <iframe src="https://calendar.google.com/calendar/embed?src=3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com&ctz=Europe%2FZurich" style="border:0; width:100%; height:450px;" frameborder="0"></iframe>
+  </div></div></div>
 </div>
-
-<div class="text-center mt-3">
-    <a href="/logs" class="text-muted small text-decoration-none">Technische Logs anzeigen &rarr;</a>
-</div>
-{% endblock %}
-
-{% block scripts %}
 <script>
 function updateStatus() {
-    fetch('/api/status')
-        .then(res => res.json())
-        .then(data => {
-            const banner = document.getElementById('statusBanner');
-            const text = document.getElementById('statusText');
-            const icon = document.getElementById('statusIcon');
-            
-            if (data.msg === "Bereit." && data.state === "idle") {
-               // Optional: Ausblenden wenn nichts passiert
-               // banner.style.display = 'none';
-               // Oder dezent anzeigen:
-               banner.className = "alert alert-dark shadow-sm mb-4 d-flex align-items-center border-secondary";
-               icon.className = "bi bi-check-circle fs-4 me-3 text-muted";
-            } else if (data.state === 'success') {
-               banner.className = "alert alert-success shadow-sm mb-4 d-flex align-items-center border-0";
-               icon.className = "bi bi-check-circle-fill fs-4 me-3";
-            } else if (data.state === 'error') {
-               banner.className = "alert alert-danger shadow-sm mb-4 d-flex align-items-center border-0";
-               icon.className = "bi bi-exclamation-triangle-fill fs-4 me-3";
-            } else {
-               banner.className = "alert alert-info shadow-sm mb-4 d-flex align-items-center border-0";
-               icon.className = "bi bi-cpu-fill fs-4 me-3"; // Working
-            }
-            
-            text.innerText = data.msg;
-            banner.style.display = 'flex';
-        });
+    fetch('/api/status').then(r=>r.json()).then(d=>{
+        document.getElementById('statusText').innerText=d.msg;
+        const b=document.getElementById('statusBanner');
+        b.className = "alert shadow-sm mb-4 d-flex align-items-center " + (d.state==='success'?"alert-success":d.state==='error'?"alert-danger":"alert-info");
+    });
 }
-setInterval(updateStatus, 2000);
-updateStatus();
+setInterval(updateStatus, 2000); updateStatus();
 </script>
 {% endblock %}

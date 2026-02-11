@@ -1,7 +1,6 @@
 flask
 flask-login
 python-dotenv
-# EXAKT Version 1.40.0, damit es zum Docker-Image passt
 playwright==1.40.0
 google-api-python-client
 google-auth-httplib2

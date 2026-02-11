@@ -1,18 +1,8 @@
 [
   {
-    "id": "b23f6a92-53d1-455a-af30-c9a861df3b03",
+    "id": "010866d4-8045-4c6f-908a-25278fe6a11b",
     "type": "onetime",
-    "active": true,
-    "last_booked": null,
-    "target_date": "19.02.2026",
-    "time_start": "12:00",
-    "time_end": "21:00",
-    "category": "default"
-  },
-  {
-    "id": "e6d6341b-8a64-4814-8bf7-e2979f7c25f2",
-    "type": "recurring",
-    "frequency": "weekly",
+    "frequency": "onetime",
     "target_date": "19.02.2026",
     "time_start": "10:00",
     "time_end": "21:00",

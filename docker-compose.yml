@@ -6,9 +6,11 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./auto_reserve_data:/root/auto_reserve_data
+      # HIER IST DER FIX: Wir binden deinen echten Daten-Ordner ein
+      - /home/leandro/auto_reserve_data:/root/auto_reserve_data
       - .:/app
     environment:
+      # Der Container sucht intern hier (wohin wir gemountet haben)
       - ROOMBOOKER_DATA_DIR=/root/auto_reserve_data
       - PYTHONUNBUFFERED=1
     command: python3 app.py

@@ -2,18 +2,24 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta
-from .config import BASE_DIR
-
-JOBS_FILE = BASE_DIR / "jobs.json"
+# Wir nutzen den Pfad aus der Environment Variable
+DATA_DIR = os.getenv("ROOMBOOKER_DATA_DIR", "/root/auto_reserve_data")
+JOBS_FILE = os.path.join(DATA_DIR, "jobs.json")
 
 class JobManager:
     def __init__(self):
         self.jobs = self.load_jobs()
 
     def load_jobs(self):
-        if not JOBS_FILE.exists(): return []
+        if not os.path.exists(JOBS_FILE): return []
         try:
-            with open(JOBS_FILE, "r") as f: return json.load(f)
+            with open(JOBS_FILE, "r") as f: 
+                data = json.load(f)
+                # Cleanup: Entferne kaputte Einträge ohne ID
+                valid_jobs = []
+                for j in data:
+                    if 'id' in j: valid_jobs.append(j)
+                return valid_jobs
         except: return []
 
     def save_jobs(self):
@@ -22,8 +28,8 @@ class JobManager:
     def add_job(self, job_type, target_date, time_start, time_end, category="default", frequency="onetime"):
         job = {
             "id": str(uuid.uuid4()),
-            "type": job_type,           # "onetime" oder "recurring"
-            "frequency": frequency,     # "daily", "weekly"
+            "type": job_type,
+            "frequency": frequency,
             "target_date": target_date,
             "time_start": time_start,
             "time_end": time_end,
@@ -36,59 +42,48 @@ class JobManager:
         return job
 
     def get_due_jobs(self):
-        """Findet Jobs, die heute/morgen fällig sind."""
         due = []
         today = datetime.now().date()
         
         for job in self.jobs:
             if not job.get("active", True): continue
-            
+            # Sicherheitscheck
+            if 'id' not in job: continue 
+
             try:
                 t_date = datetime.strptime(job["target_date"], "%d.%m.%Y").date()
-                
-                # Uni Bern Regel: Max 14 Tage im Voraus
-                # Wir prüfen: Ist das Datum HEUTE oder in ZUKUNFT (bis +14 Tage)?
                 days_diff = (t_date - today).days
                 
+                # Check: Ist Datum in Zukunft (<14 Tage) oder Heute?
                 if 0 <= days_diff <= 14:
-                    # Check ob schon gebucht für DIESES Datum
                     last = job.get("last_booked")
-                    if last == job["target_date"]:
-                        continue # Schon erledigt
-                    
-                    due.append((job, job["target_date"]))
+                    # Nur buchen wenn noch nicht für dieses Datum erledigt
+                    if last != job["target_date"]:
+                        due.append((job, job["target_date"]))
             except: continue
             
         return due
 
     def mark_done(self, job_id, date_done):
-        """Markiert Job als erledigt und rotiert Datum bei Wiederholung."""
+        found = False
         for job in self.jobs:
-            if job["id"] == job_id:
+            # Safe access
+            if job.get("id") == job_id:
                 job["last_booked"] = date_done
+                found = True
                 
-                # Wiederholungs-Logik
                 freq = job.get("frequency", "onetime")
-                
                 if freq == "weekly":
-                    # Datum + 7 Tage
                     try:
-                        old_date = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_date = old_date + timedelta(days=7)
-                        job["target_date"] = new_date.strftime("%d.%m.%Y")
-                        print(f"[JOB] Wöchentlicher Job rotiert auf: {job['target_date']}")
+                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
+                        job["target_date"] = (d + timedelta(days=7)).strftime("%d.%m.%Y")
                     except: pass
-                    
                 elif freq == "daily":
-                    # Datum + 1 Tag
                     try:
-                        old_date = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_date = old_date + timedelta(days=1)
-                        job["target_date"] = new_date.strftime("%d.%m.%Y")
-                        print(f"[JOB] Täglicher Job rotiert auf: {job['target_date']}")
+                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
+                        job["target_date"] = (d + timedelta(days=1)).strftime("%d.%m.%Y")
                     except: pass
-                
                 elif freq == "onetime":
-                    job["active"] = False # Deaktivieren statt löschen
-                
-        self.save_jobs()
+                    job["active"] = False
+        
+        if found: self.save_jobs()

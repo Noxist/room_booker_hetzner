@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
 
 WORKDIR /app
 
-# Zeitzonen-Datenbank ohne Interaktion installieren
+# Zeitzone installieren (Non-Interactive)
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y tzdata && \

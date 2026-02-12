@@ -23,17 +23,16 @@ def run_sync():
     browser = BrowserEngine(headless=True)
     all_real_bookings = []
 
-    # 1. Alle Accounts scannen
     for acc in accounts:
         if not acc.get('active', True): continue
         print(f"--- Scanne Account: {acc['email']} ---")
         try:
-            bookings = browser.scan_reservations(acc)
+            # WICHTIG: Hier nutzen wir jetzt die neue Methode aus deinem Code
+            bookings = browser.get_my_reservations(acc)
             all_real_bookings.extend(bookings)
         except Exception as e:
             print(f"[ERROR] Scan fehlgeschlagen für {acc['email']}: {e}")
 
-    # 2. Sync mit Google
     print(f"\n[SYNC] Gefundene Reservationen total: {len(all_real_bookings)}")
     if all_real_bookings:
         try:
@@ -63,9 +62,12 @@ def run_booking_logic(date_str, start_time, end_time, category_key, num_accounts
             msg = "Buchung erfolgreich! ✅"
             print(f"[JOB] {msg}")
             set_web_status(msg, "success")
-            if job_id: JobManager().mark_done(job_id, date_str)
-            # Nach Buchung direkt syncen
-            run_sync()
+            
+            if job_id: 
+                print(f"[JOB] Markiere Job {job_id} als erledigt.")
+                JobManager().mark_done(job_id, date_str)
+
+            print("[JOB] Buchung lokal gespeichert.")
         else:
             set_web_status("Konnte nicht vollständig buchen. ⚠️", "warning")
     except Exception as e:

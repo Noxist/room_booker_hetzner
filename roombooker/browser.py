@@ -7,12 +7,14 @@ from .config import URL_LOGIN, URL_SELECT, URL_SET_VONROLL, DEBUG_DIR, BASE_DIR,
 # --- HELPER FUNCTIONS ---
 def m2t(mins): return f"{mins // 60:02d}:{mins % 60:02d}"
 def t2m(t_str):
-    try: h, m = map(int, t_str.split(":")); return h * 60 + m
-    except: return 0
+    try: 
+        h, m = map(int, t_str.split(":"))
+        return h * 60 + m
+    except: 
+        return 0
 
 class BrowserEngine:
     def __init__(self, base_dir=None, headless=None):
-        # Fallback auf Config-Wert wenn nicht explizit gesetzt
         self.headless = headless if headless is not None else HEADLESS
         self.base_dir = base_dir or BASE_DIR
 
@@ -21,7 +23,11 @@ class BrowserEngine:
         try:
             page.goto("https://raumreservation.ub.unibe.ch/event/add", timeout=60000)
             
-            try: page.wait_for_load_state("domcontentloaded"); except: pass
+            try:
+                page.wait_for_load_state("domcontentloaded")
+            except:
+                pass
+            
             time.sleep(2)
             
             # Standort Fix
@@ -30,7 +36,10 @@ class BrowserEngine:
                  page.goto("https://raumreservation.ub.unibe.ch/set/1") 
                  time.sleep(1)
                  page.goto("https://raumreservation.ub.unibe.ch/event/add")
-                 try: page.wait_for_load_state("domcontentloaded"); except: pass
+                 try:
+                     page.wait_for_load_state("domcontentloaded")
+                 except:
+                     pass
                  time.sleep(3)
 
             if "/event/add" in page.url and "wayf" not in page.url and "login" not in page.url:
@@ -63,12 +72,11 @@ class BrowserEngine:
         print(f"[BROWSER] Starte stabilen Prozess für {room}...")
         
         with sync_playwright() as p:
-            # Stabile Argumente für Server-Umgebung
+            # Docker/Server-freundliche Argumente
             browser = p.chromium.launch(
                 headless=self.headless, 
                 args=["--disable-blink-features=AutomationControlled", "--no-sandbox", "--disable-setuid-sandbox"]
             )
-            # Viewport setzen, damit Elemente sichtbar sind
             context = browser.new_context(viewport={"width": 1280, "height": 800})
             page = context.new_page()
             
@@ -77,7 +85,7 @@ class BrowserEngine:
                     page.goto("https://raumreservation.ub.unibe.ch/event/add")
                     page.wait_for_selector("#event_room", timeout=30000)
                     
-                    # Raum setzen Logik (JavaScript Injection für Dropdown)
+                    # Raum setzen (JS Injection für robustes Dropdown-Handling)
                     page.evaluate(f"document.querySelector('#event_room').value = '{room}';")
                     page.evaluate(f"""(r) => {{ 
                         const s = document.querySelector('#event_room'); 
@@ -96,11 +104,14 @@ class BrowserEngine:
                     page.keyboard.press("Enter")
                     page.fill("#event_title", "Lernen")
                     
-                    try: page.check('input[name="event[purpose]"][value="Other"]'); except: pass
+                    try:
+                        page.check('input[name="event[purpose]"][value="Other"]')
+                    except:
+                        pass
                     
                     page.click("#event_submit")
                     
-                    # Erfolgskontrolle
+                    # Erfolg prüfen
                     try: 
                         page.wait_for_url(lambda u: "event/add" not in u, timeout=10000)
                         success = True
@@ -108,12 +119,15 @@ class BrowserEngine:
                         if "successfully" in page.content(): success = True
             except Exception as e:
                 print(f"     [BOOKING ERROR] {e}")
-                try: page.screenshot(path=f"{DEBUG_DIR}/error_{int(time.time())}.png"); except: pass
+                try:
+                    page.screenshot(path=f"{DEBUG_DIR}/error_{int(time.time())}.png")
+                except:
+                    pass
             finally: 
                 browser.close()
         return success
 
-    # Kompatibilitäts-Wrapper für Web-App
+    # Kompatibilitäts-Wrapper
     def perform_booking_wrapper(self, account, date_str, slot):
         start_m = t2m(slot['start'])
         end_m = t2m(slot['end'])

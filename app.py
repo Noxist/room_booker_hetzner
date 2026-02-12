@@ -1,11 +1,7 @@
 import os
-import sys
-import logging
 from flask import Flask, render_template, request, redirect, url_for
-from roombooker.storage import StorageManager
 from roombooker.jobs import JobManager
 from main import run_booking_logic, run_sync
-from roombooker.config import BASE_DIR, SETTINGS_FILE
 
 app = Flask(__name__)
 app.secret_key = "secret"

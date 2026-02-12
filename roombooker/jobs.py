@@ -23,14 +23,14 @@ class JobManager:
         new_job = {
             "id": str(uuid.uuid4())[:8],
             "name": name,
-            "target_date": date_str, # Einheitlichkeit: target_date vs date_str
-            "date_str": date_str,    # Legacy support
+            "target_date": date_str,
+            "date_str": date_str,
             "start": start,
             "end": end,
             "category": category,
             "accounts": accounts,
-            "frequency": repetition, # mapping repetition -> frequency
             "repetition": repetition,
+            "frequency": repetition,
             "active": True,
             "last_booked": None,
             "created_at": datetime.now().isoformat()
@@ -43,22 +43,22 @@ class JobManager:
         for job in self.jobs:
             if job.get("id") == job_id:
                 job["last_booked"] = date_done
-                freq = job.get("frequency", job.get("repetition", "once"))
+                freq = job.get("repetition", job.get("frequency", "once"))
                 
                 if freq == "weekly":
                     try:
                         d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_date = (d + timedelta(days=7)).strftime("%d.%m.%Y")
-                        job["target_date"] = new_date
-                        job["date_str"] = new_date
+                        new_d = (d + timedelta(days=7)).strftime("%d.%m.%Y")
+                        job["target_date"] = new_d
+                        job["date_str"] = new_d
                     except: pass
                 elif freq == "daily":
                     try:
                         d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_date = (d + timedelta(days=1)).strftime("%d.%m.%Y")
-                        job["target_date"] = new_date
-                        job["date_str"] = new_date
+                        new_d = (d + timedelta(days=1)).strftime("%d.%m.%Y")
+                        job["target_date"] = new_d
+                        job["date_str"] = new_d
                     except: pass
-                elif freq == "once" or freq == "onetime":
+                elif freq == "once":
                     job["active"] = False
         self.save_jobs()

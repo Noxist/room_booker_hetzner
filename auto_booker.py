@@ -3,23 +3,24 @@ import sys
 import os
 import warnings
 
-# Nervige Google-Warnungen ignorieren
-warnings.filterwarnings("ignore", category=FutureWarning)
+# Warnungen unterdrücken
+warnings.filterwarnings("ignore")
+os.environ["PYTHONWARNINGS"] = "ignore"
 
 # Pfad sicherstellen
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# WICHTIG: Output sofort flushen (damit man was sieht trotz Warnungen)
+sys.stdout.reconfigure(line_buffering=True)
 
 from cli import interactive_wizard
 from main import run_sync
 
 def main():
-    # Force Flush, damit man sofort was sieht
-    sys.stdout.reconfigure(line_buffering=True)
-    
     print("\n>>> ROOM BOOKER CLI <<<")
     print("1. Sofort-Buchung")
     print("2. Job erstellen (Serie)")
-    print("3. Kalender Sync")
+    print("3. Kalender Sync (Echtzeit)")
     print("4. Exit")
     
     try:

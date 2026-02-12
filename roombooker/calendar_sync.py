@@ -5,7 +5,6 @@ from googleapiclient.discovery import build
 from .config import GOOGLE_CREDS
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-# Ersetze dies durch deine echte Kalender-ID, falls abweichend
 TARGET_CALENDAR_ID = "3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com"
 
 class CalendarSync:
@@ -26,9 +25,7 @@ class CalendarSync:
             print(f"[SYNC] Verbindungsfehler: {e}")
 
     def sync_scanned_bookings(self, bookings):
-        """Nimmt eine Liste von echten Scans und lädt sie hoch."""
         if not self.service: return
-        
         print(f"[SYNC] Synchronisiere {len(bookings)} gefundene Buchungen mit Google Calendar...")
         
         for b in bookings:
@@ -45,7 +42,7 @@ class CalendarSync:
                 summary = f"Lernen: {b['room']}"
                 desc = f"Account: {b['account']}"
 
-                # Duplikat-Check im Kalender
+                # Duplikat-Check
                 events = self.service.events().list(
                     calendarId=self.calendar_id,
                     timeMin=start_dt.isoformat() + "Z",
@@ -55,7 +52,6 @@ class CalendarSync:
                 
                 duplicate = False
                 for e in events.get('items', []):
-                    # Wenn gleicher Raum zur gleichen Zeit -> Skip
                     if b['room'] in e.get('summary', '') or summary == e.get('summary', ''):
                         duplicate = True
                         break
@@ -64,23 +60,18 @@ class CalendarSync:
                     print(f"   -> Skip (Existiert): {summary}")
                     continue
 
-                # Erstellen
                 event = {
                     'summary': summary,
                     'location': 'Bibliothek vonRoll',
                     'description': desc,
                     'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
                     'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
-                    'colorId': '5' # Gelb/Orange
+                    'colorId': '5'
                 }
                 self.service.events().insert(calendarId=self.calendar_id, body=event).execute()
                 print(f"   -> ✅ Hinzugefügt: {summary}")
                 
             except Exception as e:
-                print(f"   [ERROR] Konnte {b} nicht syncen: {e}")
+                print(f"   [ERROR] Fehler bei {b}: {e}")
         
         print("[SYNC] Abgleich abgeschlossen.")
-
-    # Legacy Wrapper falls alte Aufrufe existieren
-    def sync_all(self):
-        print("[SYNC] Bitte nutze den echten Scan-Modus in main.py!")

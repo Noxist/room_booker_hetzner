@@ -6,18 +6,23 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # HIER IST DER FIX: Wir binden deinen echten Daten-Ordner ein
-      - /home/leandro/auto_reserve_data:/root/auto_reserve_data
+      - /home/leandro/auto_reserve_data:/home/leandro/auto_reserve_data
       - .:/app
     environment:
-      # Der Container sucht intern hier (wohin wir gemountet haben)
-      - ROOMBOOKER_DATA_DIR=/root/auto_reserve_data
+      - ROOMBOOKER_DATA_DIR=/home/leandro/auto_reserve_data
       - PYTHONUNBUFFERED=1
     command: python3 app.py
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   tunnel:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --url http://app:5000
+    command: tunnel --no-autoupdate --url http://app:5000 --loglevel info
     depends_on:
-      - app
+      app:
+        condition: service_healthy

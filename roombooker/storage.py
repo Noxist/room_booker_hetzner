@@ -1,45 +1,45 @@
 import json
 import os
-from .config import SETTINGS_FILE, HISTORY_FILE, WEIGHTS_FILE, CATEGORIES_FILE, ROOMS_FILE
+from .config import SETTINGS_FILE, HISTORY_FILE, CATEGORIES_FILE, JOBS_FILE, STATUS_FILE
 
 class StorageManager:
-    def _load(self, path, default=None):
-        if default is None: default = {}
-        if os.path.exists(path):
+    def _load(self, path, default):
+        if path.exists():
             try:
-                with open(path, 'r') as f: return json.load(f)
-            except: pass
+                with open(path, "r") as f: return json.load(f)
+            except: return default
         return default
 
     def _save(self, path, data):
-        try:
-            with open(path, 'w') as f: json.dump(data, f, indent=2)
-        except Exception as e:
-            print(f"[STORAGE] Fehler beim Speichern von {path}: {e}")
+        with open(path, "w") as f: json.dump(data, f, indent=2)
 
     def get_settings(self):
-        # Handhabt Liste vs Dictionary Format
+        # Lädt accounts.json oder settings.json
         data = self._load(SETTINGS_FILE, [])
+        # Falls das Format {"accounts": [...]} ist, extrahieren
         if isinstance(data, dict): return data.get("accounts", [])
-        return data
+        return data if isinstance(data, list) else []
 
-    def get_categories(self): return self._load(CATEGORIES_FILE, {})
-    
-    def add_to_history(self, date_str, room, start_m, end_m, account):
-        history = self._load(HISTORY_FILE, {})
-        if date_str not in history: history[date_str] = []
-        
-        # Duplikat-Check
-        for b in history[date_str]:
-            if b['room'] == room and b['start'] == int(start_m) and b['account'] == account:
-                return # Schon drin
-        
-        history[date_str].append({
-            "room": room,
-            "start": int(start_m),
-            "end": int(end_m),
-            "account": account,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        })
-        self._save(HISTORY_FILE, history)
-import time
+    def save_settings(self, accounts):
+        # Preserve full settings structure if it exists
+        current_data = self._load(SETTINGS_FILE, [])
+        if isinstance(current_data, dict):
+            # Preserve other fields, just update accounts
+            current_data["accounts"] = accounts
+            self._save(SETTINGS_FILE, current_data)
+        else:
+            # Just save accounts array
+            self._save(SETTINGS_FILE, accounts)
+
+    def get_categories(self): 
+        return self._load(CATEGORIES_FILE, {"default": {"rooms": ["A-204"]}})
+
+    def get_jobs(self):
+        return self._load(JOBS_FILE, [])
+
+    def save_jobs(self, jobs):
+        self._save(JOBS_FILE, jobs)
+
+    def get_history(self): return self._load(HISTORY_FILE, {})
+    def save_history(self, history): self._save(HISTORY_FILE, history)
+

@@ -95,41 +95,60 @@ class BrowserEngine:
 
     def perform_booking(self, date_str, room, start_m, end_m, account):
         success = False
+        error_msg = None
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=self.headless, args=["--disable-blink-features=AutomationControlled"])
             page = browser.new_page()
             try:
-                if self._perform_login_logic(page, account['email'], account['password']):
-                    page.goto("https://raumreservation.ub.unibe.ch/event/add")
-                    page.wait_for_selector("#event_room", timeout=30000)
-                    page.evaluate(f"document.querySelector('#event_room').value = '{room}';")
-                    page.evaluate(f"""(r) => {{ 
-                        const s = document.querySelector('#event_room'); 
-                        for(let i=0; i<s.options.length; i++) {{ 
-                            if(s.options[i].innerText.includes(r)) {{ 
-                                s.selectedIndex = i; s.dispatchEvent(new Event('change')); 
-                            }} 
+                if not self._perform_login_logic(page, account['email'], account['password']):
+                    print(f"     [BOOKING] Login failed for {account['email']}")
+                    return False
+                
+                page.goto("https://raumreservation.ub.unibe.ch/event/add")
+                page.wait_for_selector("#event_room", timeout=30000)
+                
+                page.evaluate(f"document.querySelector('#event_room').value = '{room}';")
+                page.evaluate(f"""(r) => {{ 
+                    const s = document.querySelector('#event_room'); 
+                    for(let i=0; i<s.options.length; i++) {{ 
+                        if(s.options[i].innerText.includes(r)) {{ 
+                            s.selectedIndex = i; s.dispatchEvent(new Event('change')); 
                         }} 
-                    }}""", room)
-                    time.sleep(0.5)
-                    page.fill("#event_startDate", f"{date_str} {m2t(start_m)}")
-                    page.keyboard.press("Enter")
-                    time.sleep(0.5)
-                    page.fill("#event_duration", str(end_m - start_m))
-                    page.keyboard.press("Enter")
-                    page.fill("#event_title", "Lernen")
-                    
+                    }} 
+                }}""", room)
+                time.sleep(0.5)
+                
+                page.fill("#event_startDate", f"{date_str} {m2t(start_m)}")
+                page.keyboard.press("Enter")
+                time.sleep(0.5)
+                page.fill("#event_duration", str(end_m - start_m))
+                page.keyboard.press("Enter")
+                page.fill("#event_title", "Lernen")
+                
+                try:
+                    page.check('input[name="event[purpose]"][value="Other"]')
+                except:
+                    pass
+                
+                page.click("#event_submit")
+                
+                # Wait for response and check for errors
+                time.sleep(2)
+                content = page.content().lower()
+                
+                if "error" in content or "fehler" in content or "nicht verfügbar" in content:
+                    print(f"     [BOOKING] Buchung fehlgeschlagen: Raum nicht verfügbar oder Fehler")
                     try:
-                        page.check('input[name="event[purpose]"][value="Other"]')
+                        page.screenshot(path=f"{DEBUG_DIR}/error_{int(time.time())}.png")
                     except:
                         pass
+                    success = False
+                elif "successfully" in content or "erfolgreich" in content or "event/add" not in page.url:
+                    success = True
+                    print(f"     [BOOKING] ✅ Erfolgreich: {room} {m2t(start_m)}-{m2t(end_m)}")
+                else:
+                    print(f"     [BOOKING] Unklarer Status für {room}")
                     
-                    page.click("#event_submit")
-                    try: 
-                        page.wait_for_url(lambda u: "event/add" not in u, timeout=10000)
-                        success = True
-                    except: 
-                        if "successfully" in page.content(): success = True
             except Exception as e:
                 print(f"     [BOOKING ERROR] {e}")
                 try:

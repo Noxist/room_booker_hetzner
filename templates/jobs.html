@@ -17,34 +17,35 @@
       </thead>
       <tbody class="border-top-0">
         {% for j in jobs %}
-          {# FILTER: Wenn Job fertig (onetime + last_booked == target) -> NICHT ANZEIGEN #}
-          {% if not (j.frequency == 'onetime' and j.last_booked == j.target_date) %}
-            <tr>
-              <td class="ps-4 fw-bold text-white">{{ j.target_date }}</td>
-              <td class="text-muted">{{ j.time_start }} - {{ j.time_end }}</td>
-              <td>
-                {% if j.frequency == 'weekly' %}
-                    <span class="badge bg-info text-dark">Wöchentlich</span>
-                {% elif j.frequency == 'daily' %}
-                    <span class="badge bg-warning text-dark">Täglich</span>
-                {% else %}
-                    <span class="badge bg-secondary text-light">Einmalig</span>
-                {% endif %}
-                <span class="badge bg-dark border border-secondary text-muted ms-1">{{ j.category }}</span>
-              </td>
-              <td>
-                {% if j.active %}
-                  <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill">Aktiv</span>
-                {% else %}
-                  <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill">Pausiert</span>
-                {% endif %}
-              </td>
-              <td class="text-end pe-4">
-                <a href="/jobs/toggle/{{ j.id }}" class="btn btn-icon btn-sm btn-outline-secondary border-0"><i class="bi bi-pause-fill"></i></a>
-                <a href="/jobs/delete/{{ j.id }}" class="btn btn-icon btn-sm btn-outline-danger border-0" onclick="return confirm('Löschen?')"><i class="bi bi-trash"></i></a>
-              </td>
-            </tr>
-          {% endif %}
+          <tr>
+            <td class="ps-4 fw-bold text-white">{{ j.target_date or j.date_str }}</td>
+            <td class="text-muted">{{ j.start or j.time_start or '-' }} - {{ j.end or j.time_end or '-' }}</td>
+            <td>
+              {% if j.frequency == 'weekly' %}
+                <span class="badge bg-info text-dark">Wöchentlich</span>
+              {% elif j.frequency == 'daily' %}
+                <span class="badge bg-warning text-dark">Täglich</span>
+              {% elif j.frequency == 'monthly' %}
+                <span class="badge bg-success text-dark">Monatlich</span>
+              {% elif j.frequency == 'custom' %}
+                <span class="badge bg-purple text-white">Alle {{ j.interval }} {{ j.interval_unit }}</span>
+              {% else %}
+                <span class="badge bg-secondary text-light">Einmalig</span>
+              {% endif %}
+              <span class="badge bg-dark border border-secondary text-muted ms-1">{{ j.category }}</span>
+            </td>
+            <td>
+              {% if j.active %}
+                <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill">Aktiv</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill">Pausiert</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-4">
+              <a href="/jobs/toggle/{{ j.id }}" class="btn btn-icon btn-sm btn-outline-secondary border-0"><i class="bi bi-pause-fill"></i></a>
+              <a href="/jobs/delete/{{ j.id }}" class="btn btn-icon btn-sm btn-outline-danger border-0" onclick="return confirm('Job {{ j.name or j.id }} wirklich löschen?')"><i class="bi bi-trash"></i></a>
+            </td>
+          </tr>
         {% else %}
         <tr><td colspan="5" class="text-center py-5 text-muted">Keine aktiven Jobs</td></tr>
         {% endfor %}

@@ -9,13 +9,38 @@
     <div class="card shadow-sm border-0"><div class="card-body p-4">
         <h5 class="fw-bold mb-3">Buchung</h5>
         <form method="POST" action="/book">
-          <div class="mb-3"><input type="text" name="date" class="form-control bg-dark text-white" placeholder="Datum (z.B. 14.02)"></div>
+          <div class="mb-3"><input type="text" name="date" class="form-control bg-dark text-white" placeholder="Datum (z.B. 14.02)" required></div>
           <div class="row mb-3">
             <div class="col"><input type="text" name="start" class="form-control bg-dark text-white" placeholder="08:00" required></div>
             <div class="col"><input type="text" name="end" class="form-control bg-dark text-white" placeholder="12:00" required></div>
           </div>
-          <div class="mb-3"><select name="category" class="form-select bg-dark text-white">{% for k, v in categories.items() %}<option value="{{ k }}">{{ v.title }}</option>{% endfor %}</select></div>
-          <div class="mb-3"><select name="frequency" class="form-select bg-dark text-white"><option value="onetime">Einmalig</option><option value="weekly">Wöchentlich</option></select></div>
+          <div class="mb-3">
+            <select name="category" class="form-select bg-dark text-white">
+              {% for k, v in categories.items() %}
+                <option value="{{ k }}">{{ v.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <select name="frequency" id="frequencySelect" class="form-select bg-dark text-white" onchange="toggleRecurrenceOptions()">
+              <option value="onetime">Einmalig</option>
+              <option value="daily">Täglich</option>
+              <option value="weekly">Wöchentlich</option>
+              <option value="monthly">Monatlich</option>
+              <option value="custom">Benutzerdefiniert...</option>
+            </select>
+          </div>
+          <div id="customRecurrence" class="mb-3" style="display:none;">
+            <label class="form-label text-muted small">Wiederhole alle:</label>
+            <div class="input-group">
+              <input type="number" name="interval" class="form-control bg-dark text-white" value="1" min="1">
+              <select name="interval_unit" class="form-select bg-dark text-white">
+                <option value="days">Tage</option>
+                <option value="weeks">Wochen</option>
+                <option value="months">Monate</option>
+              </select>
+            </div>
+          </div>
           <button type="submit" class="btn btn-primary w-100">Starten</button>
         </form>
     </div></div>
@@ -25,13 +50,50 @@
   </div></div></div>
 </div>
 <script>
+function toggleRecurrenceOptions() {
+    const freq = document.getElementById('frequencySelect').value;
+    const custom = document.getElementById('customRecurrence');
+    custom.style.display = freq === 'custom' ? 'block' : 'none';
+}
+
+let lastStatusMsg = '';
+let statusTimeout = null;
+
 function updateStatus() {
     fetch('/api/status').then(r=>r.json()).then(d=>{
-        document.getElementById('statusText').innerText=d.msg;
-        const b=document.getElementById('statusBanner');
-        b.className = "alert shadow-sm mb-4 d-flex align-items-center " + (d.state==='success'?"alert-success":d.state==='error'?"alert-danger":"alert-info");
+        const text = d.msg || '';
+        const state = d.state || 'idle';
+        
+        document.getElementById('statusText').innerText = text;
+        const banner = document.getElementById('statusBanner');
+        
+        // Color based on state
+        if (state === 'success') {
+            banner.className = "alert alert-success shadow-sm mb-4 d-flex align-items-center";
+        } else if (state === 'error') {
+            banner.className = "alert alert-danger shadow-sm mb-4 d-flex align-items-center";
+        } else if (state === 'warning') {
+            banner.className = "alert alert-warning shadow-sm mb-4 d-flex align-items-center";
+        } else {
+            banner.className = "alert alert-info shadow-sm mb-4 d-flex align-items-center";
+        }
+        
+        // Auto-clear success/error messages after 30 seconds
+        if (text !== lastStatusMsg) {
+            lastStatusMsg = text;
+            if (statusTimeout) clearTimeout(statusTimeout);
+            
+            if (state === 'success' || state === 'error') {
+                statusTimeout = setTimeout(() => {
+                    document.getElementById('statusText').innerText = 'Bereit für Buchungen';
+                    banner.className = "alert alert-secondary shadow-sm mb-4 d-flex align-items-center";
+                }, 30000); // 30 seconds
+            }
+        }
     });
 }
-setInterval(updateStatus, 2000); updateStatus();
+
+setInterval(updateStatus, 2000); 
+updateStatus();
 </script>
 {% endblock %}

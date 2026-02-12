@@ -5,11 +5,12 @@ from .storage import StorageManager
 from .config import HISTORY_FILE
 
 class BookingEngine:
-    def __init__(self, base_dir):
+    def __init__(self, base_dir, max_attempts_per_gap=10):
         self.base_dir = base_dir
         self.intelligence = Intelligence()
         self.browser = BrowserEngine(headless=True)
         self.sm = StorageManager()
+        self.max_attempts_per_gap = max_attempts_per_gap
 
     def book_chain(self, date_str, start_t, end_t, target_rooms):
         # Lade History via Storage Manager
@@ -36,18 +37,28 @@ class BookingEngine:
             
             gap_filled = False
             accounts = self.sm.get_settings()
-            # Accounts mischen, aber "klug" (z.B. nicht die nehmen, die schon parallel gebucht haben)
-            # Das macht intelligence.score_room indirekt über Kollisions-Prüfung in Zukunft
-            random.shuffle(accounts)
+            active_accounts = [acc for acc in accounts if acc.get('active', True)]
+            
+            if not active_accounts:
+                print(f"[ENGINE] ⚠️  Keine aktiven Accounts verfügbar!")
+                return False
+            
+            random.shuffle(active_accounts)
+            
+            attempts = 0
+            max_attempts = min(self.max_attempts_per_gap, len(scored) * len(active_accounts))
 
             for r_info in scored:
-                if gap_filled: break
+                if gap_filled or attempts >= max_attempts: 
+                    break
                 r_name = r_info['name']
                 
-                for acc in accounts:
-                    if not acc.get('active', True): continue
+                for acc in active_accounts:
+                    if gap_filled or attempts >= max_attempts:
+                        break
                     
-                    print(f"[ENGINE] Gap {g_s}-{g_e}: Versuche {r_name} (Score: {r_info['score']:.2f}) mit {acc['email']}")
+                    attempts += 1
+                    print(f"[ENGINE] Gap {g_s}-{g_e}: Versuche {r_name} (Score: {r_info['score']:.2f}) mit {acc['email']} (Versuch {attempts}/{max_attempts})")
                     
                     if self.browser.perform_booking(date_str, r_name, g_s, g_e, acc):
                         # Sofort speichern!
@@ -57,7 +68,8 @@ class BookingEngine:
                         break
             
             if not gap_filled:
-                print(f"[ENGINE] ❌ Konnte Gap {g_s}-{g_e} nicht füllen.")
+                print(f"[ENGINE] ❌ Konnte Gap {g_s}-{g_e} nach {attempts} Versuchen nicht füllen.")
+                print(f"[ENGINE] Mögliche Gründe: Alle Räume ausgebucht, Bibliothek geschlossen, oder technische Probleme")
                 all_ok = False
                 
         return all_ok

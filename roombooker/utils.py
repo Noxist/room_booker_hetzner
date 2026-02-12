@@ -24,3 +24,21 @@ def smart_parse_time(user_input):
         h, m = user_input.split(":")
         return f"{int(h):02d}:{int(m):02d}"
     return user_input
+
+
+def parse_time_to_minutes(time_str):
+    """Convert HH:MM to minutes since midnight"""
+    try:
+        if ':' in time_str:
+            h, m = time_str.split(':')
+            return int(h) * 60 + int(m)
+        return int(time_str) * 60  # assume hours only
+    except:
+        return 0
+
+
+def format_minutes_to_time(minutes):
+    """Convert minutes since midnight to HH:MM"""
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours:02d}:{mins:02d}"

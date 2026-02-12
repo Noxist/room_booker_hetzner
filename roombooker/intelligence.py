@@ -14,11 +14,35 @@ class Intelligence:
         return {"totalCoveredMin": 0.003, "stabilityBonus": 0.5, "preferredRoomBonus": 5}
 
     def t2m(self, t):
+        """
+        Convert time to minutes. Handles multiple formats:
+        - "10" -> 600 (hours only)
+        - "10:30" or "10.30" -> 630 (hours:minutes)
+        - Integer < 24 -> treat as hours
+        - Integer >= 60 -> treat as already minutes
+        """
         try:
-            if isinstance(t, int): return t
-            h, m = map(int, str(t).replace(".", ":").split(":"))
-            return h * 60 + m
-        except: return 0
+            if isinstance(t, int):
+                # If integer < 24, treat as hours; otherwise as minutes
+                return t * 60 if t < 24 else t
+            
+            # String handling
+            t_str = str(t).replace(".", ":")
+            parts = t_str.split(":")
+            
+            if len(parts) == 1:
+                # Hours only: "10" -> 600 minutes
+                return int(parts[0]) * 60
+            elif len(parts) == 2:
+                # Hours and minutes: "10:30" -> 630 minutes
+                h, m = map(int, parts)
+                return h * 60 + m
+            else:
+                print(f"[WARNING] Invalid time format: {t}")
+                return 0
+        except Exception as e:
+            print(f"[ERROR] Time parse failed for '{t}': {e}")
+            return 0
 
     def calculate_needed_slots(self, start_time, end_time, date_str, history_data):
         """

@@ -2,14 +2,14 @@ import os
 import datetime
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from .config import GOOGLE_CREDS
+from .config import CREDENTIALS_FILE
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 TARGET_CALENDAR_ID = "3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com"
 
 class CalendarSync:
     def __init__(self, service_account_file=None):
-        self.creds_file = service_account_file or str(GOOGLE_CREDS)
+        self.creds_file = service_account_file or str(CREDENTIALS_FILE)
         self.calendar_id = TARGET_CALENDAR_ID
         self.service = None
         self._connect()

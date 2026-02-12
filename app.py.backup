@@ -1,0 +1,186 @@
+import os
+import sys
+import threading
+import logging
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+import pytz
+
+# Projekt-Importe
+from roombooker.config import BASE_DIR, STATUS_FILE
+from roombooker.storage import StorageManager
+from roombooker.jobs import JobManager
+from roombooker.utils import smart_parse_date, smart_parse_time
+from main import run_booking_logic, run_sync
+
+# Logging Setup
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s | %(levelname)s | %(message)s', 
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+load_dotenv()
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# Login Setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+class User(UserMixin):
+    def __init__(self, id): 
+        self.id = id
+
+@login_manager.user_loader
+def load_user(user_id): 
+    return User(user_id)
+
+# Inject current_user into all templates
+@app.context_processor
+def inject_user():
+    return dict(current_user=current_user)
+
+# --- ROUTES ---
+
+@app.route('/')
+@login_required
+def index():
+    sm = StorageManager()
+    categories = sm.get_categories() or {}
+    return render_template('index.html', categories=categories)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+<<<<<<< HEAD
+        if request.form.get('password') == os.getenv("WEB_PASSWORD", "admin123"):
+=======
+        # Passwort checken (Standard: admin123)
+        pw = os.getenv("WEB_PASSWORD", "admin123")
+        password = os.getenv("WEB_PASSWORD", "admin123")
+        if request.form.get('password') == password:
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/api/status')
+@login_required
+def get_status():
+    if STATUS_FILE.exists():
+        try:
+            with open(STATUS_FILE, "r") as f:
+<<<<<<< HEAD
+                parts = f.read().strip().split("|", 1)
+                if len(parts) == 2: return jsonify({"state": parts[0], "msg": parts[1]})
+=======
+                content = f.read().strip().split("|", 1)
+                parts = f.read().strip().split("|", 1)
+                if len(parts) == 2: 
+                    return jsonify({"state": parts[0], "msg": parts[1]})
+        except: 
+           
+<<<<<<< HEAD
+    threading.Thread(target=run_booking_logic, args=(request.form.get('date'), request.form.get('start'), request.form.get('end'), request.form.get('category'), 4, None)).start()
+=======
+    date = request.form.get('date')
+    start = request.form.get('start')
+    end = request.form.get('end')
+    category = request.form.get('category')
+    
+    # Validation
+    if not date or not start or not end:
+        flash('Daten fehlen!', 'danger')
+        return redirect(url_for('index'))
+
+    # Start booking in background thread
+    threading.Thread(
+        target=run_booking_logic, 
+        args=(date, start, end, category, 4, None)
+    ).start()
+    
+    flash('Buchung gestartet!', 'success'
+@login_required
+def sync():
+    flash('Synchronisierung gestartet!', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/jobs')
+@login_required
+def jobs():
+    return render_template('jobs.html', jobs=JobManager().jobs)
+
+@app.route('/accounts', methods=['GET', 'POST'])
+@login_required
+def accounts():
+    sm = StorageManager()
+    if request.method == 'POST':
+        accounts_list = sm.get_settings()
+        new_account = {
+            "email": request.form.get('email'), 
+            "password": request.form.get('password'), 
+            "active": True
+        }
+        accounts_list.append(new_account)
+        sm.save_settings(accounts_list)
+        flash('Account hinzugefügt!', 'success'
+>>>>>>> c96ef07 (Still trying to fix ui)
+        return redirect(url_for('accounts'))
+    return render_template('accounts.html', accounts=sm.get_settings())
+
+@app.route('/accounts/delete/<int:idx>')
+@login_required
+def delete_account(idx):
+    sm = StorageManager()
+<<<<<<< HEAD
+    s = sm.get_settings()
+    if 0 <= idx < len(s):
+    accounts_list = sm.get_settings()
+    if 0 <= idx < len(accounts_list):
+        accounts_list.pop(idx)
+        sm.save_settings(accounts_list)
+        flash('Account gelöscht!', 'success')
+    return redirect(url_for('accounts'))
+
+@app.route('/logs')
+@login_required
+def logs(): 
+   ired
+<<<<<<< HEAD
+def api_logs(): return "Logs siehe Terminal"
+
+if __name__ == '__main__':
+    scheduler = BackgroundScheduler(timezone=pytz.utc)
+    scheduler.add_job(lambda: None, 'interval', minutes=15)
+    scheduler.start()
+=======
+def api_logs():
+    try:
+        # Liest einfach docker logs via File (wenn gemountet) oder dummy
+        # Hier vereinfacht: wir geben Status zurück, da echte Logs im Container stdout sind
+        return "Bitte Docker Logs prüfen: docker-compose logs -f app"
+    except: return "Log Error"
+
+def api_logs():
+    try:
+        # Real logs are in Docker stdout
+        return "Bitte Docker Logs prüfen: docker-compose logs -f app"
+    except: 
+        return "Log Error"
+
+def check_scheduled_jobs():
+    """Background job checker - can be extended for automatic bookings"""
+    pass
+
+if __name__ == '__main__':
+    # Initialize scheduler for automatic jobs
+    scheduler = BackgroundScheduler(timezone=pytz.utc)
+    scheduler.add_job(check_scheduled_jobs, 'interval', minutes=15)
+    scheduler.start()
+    
+    logging.info("Starting Flask application on 0.0.0.0:5000"

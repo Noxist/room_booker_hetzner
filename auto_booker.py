@@ -1,69 +1,43 @@
-import sys
-import json
-import time
-import os
-import argparse
+import sys, os, time
 from datetime import datetime, timedelta
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from roombooker.storage import StorageManager
-from roombooker.browser import BrowserEngine
-from roombooker.config import SETTINGS_FILE
+from main import run_booking_logic, run_sync
 
-def t2m(t): 
-    try: h,m=map(int,t.split(":")); return h*60+m
-    except: return 0
+def wizard():
+    print("\n" + "="*40 + "\n      ROOM BOOKER MASTER WIZARD 🧙‍♂️\n" + "="*40)
+    print("1. Neue Buchung (Single/Serie)\n2. Manueller Kalender Sync\n3. Exit")
+    choice = input("\nWahl [1]: ").strip() or "1"
+    if choice == "2": run_sync(); return
+    if choice == "3": return
 
-def run_wizard():
-    print("\n" + "="*30)
-    print("   AUTO BOOKER WIZARD 🧙‍♂️")
-    print("="*30)
-    
-    # Standardwerte berechnen
     d_def = (datetime.now() + timedelta(days=1)).strftime("%d.%m.%Y")
+    date_str = input(f"\nStart-Datum ({d_def}): ").strip() or d_def
+    start_t = input("Start Zeit (08:00): ").strip() or "08:00"
+    end_t = input("Ende Zeit (12:00): ").strip() or "12:00"
     
-    # Eingaben abfragen
-    print("\nBitte Buchungsdaten eingeben:")
-    date_str = input(f"Datum ({d_def}): ").strip() or d_def
-    start_t = input("Start (08:00): ").strip() or "08:00"
-    end_t = input("Ende (12:00): ").strip() or "12:00"
-    room = input("Raum (A-204): ").strip() or "A-204"
-    
-    print(f"\n[INFO] Lade Accounts...")
     sm = StorageManager()
-    accounts = sm.get_settings()
-    
-    if not accounts:
-        print("[ERROR] Keine Accounts in settings.json gefunden!")
-        return
+    cats = sm.get_categories()
+    cat_keys = list(cats.keys())
+    print("\n--- 🏫 RAUM-KATEGORIE ---")
+    for i, k in enumerate(cat_keys): print(f"{i+1}) {cats[k].get('title', k)}")
+    cat_key = cat_keys[int(input(f"Wahl (1-{len(cat_keys)}) [2]: ").strip() or "2") - 1]
 
-    print(f"[INFO] Starte Browser-Engine...")
-    browser = BrowserEngine(headless=True)
-    
-    start_m = t2m(start_t)
-    end_m = t2m(end_t)
-    
-    print(f"\n>>> Starte Buchungsversuch für {room} am {date_str} ({start_t}-{end_t})...")
-
-    for acc in accounts:
-        if not acc.get('active', True): continue
-        
-        email = acc['email']
-        print(f"\n------------------------------------------------")
-        print(f"Versuche Account: {email}")
-        print(f"------------------------------------------------")
-        
-        # Aufruf der Browser-Logik
-        success = browser.perform_booking(date_str, room, start_m, end_m, acc)
-        
-        if success:
-            print(f"\n✅ BUCHUNG ERFOLGREICH MIT {email}!")
-            return
-        else:
-            print(f"❌ Fehlgeschlagen mit {email}. Probiere nächsten...")
-
-    print("\n[FAIL] Alle Accounts durchprobiert. Buchung nicht möglich.")
+    print("\n--- 🔁 SERIEN-LOGIK ---")
+    print("1. Einmalig\n2. Serie (Tage/Wochen/Monate)")
+    if (input("Modus [1]: ") or "1") == "2":
+        unit = input("Einheit (d=Tage, w=Wochen, m=Monate) [w]: ").lower() or "w"
+        step = int(input(f"Alle wie viele {unit}? [1]: ") or "1")
+        count = int(input("Anzahl Wiederholungen [4]: ") or "4")
+        start_dt = datetime.strptime(date_str, "%d.%m.%Y")
+        for i in range(count):
+            if unit == "d": d = (start_dt + timedelta(days=i*step)).strftime("%d.%m.%Y")
+            elif unit == "w": d = (start_dt + timedelta(weeks=i*step)).strftime("%d.%m.%Y")
+            else: d = (start_dt + timedelta(days=i*step*30)).strftime("%d.%m.%Y")
+            run_booking_logic(d, start_t, end_t, cat_key)
+    else:
+        run_booking_logic(date_str, start_t, end_t, cat_key)
 
 if __name__ == "__main__":
-    try:
-        run_wizard()
-    except KeyboardInterrupt:
-        print("\n[ABORT] Abbruch durch Benutzer.")
+    try: wizard()
+    except KeyboardInterrupt: print("\nBye.")

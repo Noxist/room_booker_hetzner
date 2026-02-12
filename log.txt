@@ -4332,3 +4332,254 @@ KeyError: 'id'
 2026-02-12 00:00:46,051 | 172.20.0.3 - - [12/Feb/2026 00:00:46] "GET /login?next=/api/status HTTP/1.1" 200 -
 2026-02-12 00:01:46,036 | 172.20.0.3 - - [12/Feb/2026 00:01:46] "GET /login?next=/api/status HTTP/1.1" 200 -
 2026-02-12 00:01:46,039 | 172.20.0.3 - - [12/Feb/2026 00:01:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:02:46,041 | 172.20.0.3 - - [12/Feb/2026 00:02:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:02:46,043 | 172.20.0.3 - - [12/Feb/2026 00:02:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:03:46,019 | 172.20.0.3 - - [12/Feb/2026 00:03:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:03:46,021 | 172.20.0.3 - - [12/Feb/2026 00:03:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:04:46,031 | 172.20.0.3 - - [12/Feb/2026 00:04:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:04:46,033 | 172.20.0.3 - - [12/Feb/2026 00:04:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:05:13,351 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:05:13,351 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:05:13,352 | Scheduler started
+2026-02-12 00:05:13,356 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:05:13,356 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:05:46,048 | 172.20.0.3 - - [12/Feb/2026 00:05:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:05:46,051 | 172.20.0.3 - - [12/Feb/2026 00:05:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:05:49,198 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:05:49,198 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:05:49,198 | Scheduler started
+2026-02-12 00:05:49,203 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:05:49,203 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:06:46,033 | 172.20.0.3 - - [12/Feb/2026 00:06:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:06:46,039 | 172.20.0.3 - - [12/Feb/2026 00:06:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:07:46,024 | 172.20.0.3 - - [12/Feb/2026 00:07:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:07:46,027 | 172.20.0.3 - - [12/Feb/2026 00:07:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:09:03,370 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:09:03,370 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:09:03,370 | Scheduler started
+2026-02-12 00:09:03,375 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:09:03,375 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:09:46,049 | 172.20.0.3 - - [12/Feb/2026 00:09:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:09:46,055 | 172.20.0.3 - - [12/Feb/2026 00:09:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:10:45,778 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:10:45,779 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:10:45,779 | Scheduler started
+2026-02-12 00:10:45,787 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:10:45,788 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:10:46,042 | 172.20.0.3 - - [12/Feb/2026 00:10:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:10:46,048 | 172.20.0.3 - - [12/Feb/2026 00:10:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:11:46,021 | 172.20.0.3 - - [12/Feb/2026 00:11:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:11:46,023 | 172.20.0.3 - - [12/Feb/2026 00:11:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:12:46,024 | 172.20.0.3 - - [12/Feb/2026 00:12:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:12:46,027 | 172.20.0.3 - - [12/Feb/2026 00:12:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:13:46,026 | 172.20.0.3 - - [12/Feb/2026 00:13:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:13:46,028 | 172.20.0.3 - - [12/Feb/2026 00:13:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:14:46,014 | 172.20.0.3 - - [12/Feb/2026 00:14:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:14:46,024 | 172.20.0.3 - - [12/Feb/2026 00:14:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:15:36,151 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:15:36,152 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:15:36,152 | Scheduler started
+2026-02-12 00:15:36,157 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:15:36,157 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:15:46,044 | 172.20.0.3 - - [12/Feb/2026 00:15:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:15:46,050 | 172.20.0.3 - - [12/Feb/2026 00:15:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:16:46,024 | 172.20.0.3 - - [12/Feb/2026 00:16:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:16:46,029 | 172.20.0.3 - - [12/Feb/2026 00:16:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:17:46,022 | 172.20.0.3 - - [12/Feb/2026 00:17:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:17:46,025 | 172.20.0.3 - - [12/Feb/2026 00:17:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:18:46,037 | 172.20.0.3 - - [12/Feb/2026 00:18:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:18:46,042 | 172.20.0.3 - - [12/Feb/2026 00:18:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:19:46,020 | 172.20.0.3 - - [12/Feb/2026 00:19:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:19:46,028 | 172.20.0.3 - - [12/Feb/2026 00:19:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:20:46,033 | 172.20.0.3 - - [12/Feb/2026 00:20:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:20:46,036 | 172.20.0.3 - - [12/Feb/2026 00:20:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:21:18,767 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:21:18,767 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:21:18,767 | Scheduler started
+2026-02-12 00:21:18,772 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:21:18,772 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:21:46,046 | 172.20.0.3 - - [12/Feb/2026 00:21:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:21:46,052 | 172.20.0.3 - - [12/Feb/2026 00:21:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:22:46,030 | 172.20.0.3 - - [12/Feb/2026 00:22:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:22:46,033 | 172.20.0.3 - - [12/Feb/2026 00:22:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:23:46,024 | 172.20.0.3 - - [12/Feb/2026 00:23:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:23:46,061 | 172.20.0.3 - - [12/Feb/2026 00:23:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:24:23,473 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:24:23,474 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:24:23,474 | Scheduler started
+2026-02-12 00:24:23,479 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:24:23,479 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:24:46,036 | 172.20.0.3 - - [12/Feb/2026 00:24:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:24:46,042 | 172.20.0.3 - - [12/Feb/2026 00:24:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:25:46,034 | 172.20.0.3 - - [12/Feb/2026 00:25:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:25:46,050 | 172.20.0.3 - - [12/Feb/2026 00:25:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:26:46,033 | 172.20.0.3 - - [12/Feb/2026 00:26:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:26:46,037 | 172.20.0.3 - - [12/Feb/2026 00:26:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:27:46,027 | 172.20.0.3 - - [12/Feb/2026 00:27:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:27:46,029 | 172.20.0.3 - - [12/Feb/2026 00:27:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:28:46,042 | 172.20.0.3 - - [12/Feb/2026 00:28:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:28:46,045 | 172.20.0.3 - - [12/Feb/2026 00:28:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:29:46,085 | 172.20.0.3 - - [12/Feb/2026 00:29:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:29:46,090 | 172.20.0.3 - - [12/Feb/2026 00:29:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:29:58,325 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:29:58,325 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:29:58,325 | Scheduler started
+2026-02-12 00:29:58,330 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:29:58,330 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:30:46,170 | 172.20.0.3 - - [12/Feb/2026 00:30:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:30:46,177 | 172.20.0.3 - - [12/Feb/2026 00:30:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:31:46,028 | 172.20.0.3 - - [12/Feb/2026 00:31:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:31:46,031 | 172.20.0.3 - - [12/Feb/2026 00:31:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:32:46,036 | 172.20.0.3 - - [12/Feb/2026 00:32:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:32:46,041 | 172.20.0.3 - - [12/Feb/2026 00:32:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:33:46,029 | 172.20.0.3 - - [12/Feb/2026 00:33:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:33:46,031 | 172.20.0.3 - - [12/Feb/2026 00:33:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:34:32,714 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:34:32,714 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:34:32,714 | Scheduler started
+2026-02-12 00:34:32,723 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:34:32,723 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:34:46,046 | 172.20.0.3 - - [12/Feb/2026 00:34:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:34:46,052 | 172.20.0.3 - - [12/Feb/2026 00:34:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:35:46,021 | 172.20.0.3 - - [12/Feb/2026 00:35:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:35:46,024 | 172.20.0.3 - - [12/Feb/2026 00:35:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:36:33,888 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:36:33,889 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:36:33,889 | Scheduler started
+2026-02-12 00:36:33,893 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:36:33,894 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:36:46,048 | 172.20.0.3 - - [12/Feb/2026 00:36:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:36:46,054 | 172.20.0.3 - - [12/Feb/2026 00:36:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:37:20,712 | 128.8.124.68 - - [12/Feb/2026 00:37:20] "[32mGET / HTTP/1.1[0m" 302 -
+2026-02-12 00:37:46,040 | 172.20.0.3 - - [12/Feb/2026 00:37:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:37:46,044 | 172.20.0.3 - - [12/Feb/2026 00:37:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:38:46,112 | 172.20.0.3 - - [12/Feb/2026 00:38:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:38:46,115 | 172.20.0.3 - - [12/Feb/2026 00:38:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:39:05,572 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:39:05,573 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:39:05,573 | Scheduler started
+2026-02-12 00:39:05,578 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:39:05,578 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:39:46,031 | 172.20.0.3 - - [12/Feb/2026 00:39:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:39:46,045 | 172.20.0.3 - - [12/Feb/2026 00:39:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:40:46,037 | 172.20.0.3 - - [12/Feb/2026 00:40:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:40:46,041 | 172.20.0.3 - - [12/Feb/2026 00:40:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:41:46,025 | 172.20.0.3 - - [12/Feb/2026 00:41:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:41:46,028 | 172.20.0.3 - - [12/Feb/2026 00:41:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:42:46,028 | 172.20.0.3 - - [12/Feb/2026 00:42:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:42:46,031 | 172.20.0.3 - - [12/Feb/2026 00:42:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:43:46,026 | 172.20.0.3 - - [12/Feb/2026 00:43:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:43:46,078 | 172.20.0.3 - - [12/Feb/2026 00:43:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:44:46,011 | 172.20.0.3 - - [12/Feb/2026 00:44:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:44:46,014 | 172.20.0.3 - - [12/Feb/2026 00:44:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:45:46,019 | 172.20.0.3 - - [12/Feb/2026 00:45:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:45:46,022 | 172.20.0.3 - - [12/Feb/2026 00:45:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:46:46,023 | 172.20.0.3 - - [12/Feb/2026 00:46:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:46:46,026 | 172.20.0.3 - - [12/Feb/2026 00:46:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:47:30,225 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 00:47:30,226 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 00:47:30,226 | Scheduler started
+2026-02-12 00:47:30,236 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 00:47:30,236 | [33mPress CTRL+C to quit[0m
+2026-02-12 00:47:46,048 | 172.20.0.3 - - [12/Feb/2026 00:47:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:47:46,051 | 172.20.0.3 - - [12/Feb/2026 00:47:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:48:46,032 | 172.20.0.3 - - [12/Feb/2026 00:48:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:48:46,036 | 172.20.0.3 - - [12/Feb/2026 00:48:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:49:46,031 | 172.20.0.3 - - [12/Feb/2026 00:49:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:49:46,043 | 172.20.0.3 - - [12/Feb/2026 00:49:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:50:46,031 | 172.20.0.3 - - [12/Feb/2026 00:50:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:50:46,036 | 172.20.0.3 - - [12/Feb/2026 00:50:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:51:46,026 | 172.20.0.3 - - [12/Feb/2026 00:51:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:51:46,029 | 172.20.0.3 - - [12/Feb/2026 00:51:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:52:46,047 | 172.20.0.3 - - [12/Feb/2026 00:52:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:52:46,072 | 172.20.0.3 - - [12/Feb/2026 00:52:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:53:46,022 | 172.20.0.3 - - [12/Feb/2026 00:53:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:53:46,033 | 172.20.0.3 - - [12/Feb/2026 00:53:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:54:46,023 | 172.20.0.3 - - [12/Feb/2026 00:54:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:54:46,027 | 172.20.0.3 - - [12/Feb/2026 00:54:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:55:46,021 | 172.20.0.3 - - [12/Feb/2026 00:55:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:55:46,023 | 172.20.0.3 - - [12/Feb/2026 00:55:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:56:46,019 | 172.20.0.3 - - [12/Feb/2026 00:56:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:56:46,023 | 172.20.0.3 - - [12/Feb/2026 00:56:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:57:46,020 | 172.20.0.3 - - [12/Feb/2026 00:57:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:57:46,024 | 172.20.0.3 - - [12/Feb/2026 00:57:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:58:46,040 | 172.20.0.3 - - [12/Feb/2026 00:58:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:58:46,043 | 172.20.0.3 - - [12/Feb/2026 00:58:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 00:59:46,030 | 172.20.0.3 - - [12/Feb/2026 00:59:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 00:59:46,033 | 172.20.0.3 - - [12/Feb/2026 00:59:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:00:46,019 | 172.20.0.3 - - [12/Feb/2026 01:00:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:00:46,022 | 172.20.0.3 - - [12/Feb/2026 01:00:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:01:46,031 | 172.20.0.3 - - [12/Feb/2026 01:01:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:01:46,034 | 172.20.0.3 - - [12/Feb/2026 01:01:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:02:30,226 | Running job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-12 00:02:30 UTC)" (scheduled at 2026-02-12 00:02:30.225662+00:00)
+2026-02-12 01:02:30,232 | Job "check_scheduled_jobs (trigger: interval[0:15:00], next run at: 2026-02-12 00:17:30 UTC)" executed successfully
+2026-02-12 01:02:46,164 | 172.20.0.3 - - [12/Feb/2026 01:02:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:02:46,168 | 172.20.0.3 - - [12/Feb/2026 01:02:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:03:46,049 | 172.20.0.3 - - [12/Feb/2026 01:03:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:03:46,052 | 172.20.0.3 - - [12/Feb/2026 01:03:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:04:46,235 | 172.20.0.3 - - [12/Feb/2026 01:04:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:04:46,243 | 172.20.0.3 - - [12/Feb/2026 01:04:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:05:46,041 | 172.20.0.3 - - [12/Feb/2026 01:05:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:05:46,048 | 172.20.0.3 - - [12/Feb/2026 01:05:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:06:46,040 | 172.20.0.3 - - [12/Feb/2026 01:06:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:06:46,042 | 172.20.0.3 - - [12/Feb/2026 01:06:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:07:46,057 | 172.20.0.3 - - [12/Feb/2026 01:07:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:07:46,059 | 172.20.0.3 - - [12/Feb/2026 01:07:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:08:46,028 | 172.20.0.3 - - [12/Feb/2026 01:08:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:08:46,031 | 172.20.0.3 - - [12/Feb/2026 01:08:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:09:46,065 | 172.20.0.3 - - [12/Feb/2026 01:09:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:09:46,068 | 172.20.0.3 - - [12/Feb/2026 01:09:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:10:46,035 | 172.20.0.3 - - [12/Feb/2026 01:10:46] "GET /login?next=/api/logs?lines%3D500 HTTP/1.1" 200 -
+2026-02-12 01:10:46,038 | 172.20.0.3 - - [12/Feb/2026 01:10:46] "GET /login?next=/api/status HTTP/1.1" 200 -
+2026-02-12 01:12:16,061 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 01:12:16,062 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 01:12:16,062 | Scheduler started
+2026-02-12 01:12:16,067 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 01:12:16,067 | [33mPress CTRL+C to quit[0m
+2026-02-12 01:16:00,259 | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-12 01:16:00,259 | Added job "check_scheduled_jobs" to job store "default"
+2026-02-12 01:16:00,259 | Scheduler started
+2026-02-12 01:16:00,264 | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.0.2:5000
+2026-02-12 01:16:00,265 | [33mPress CTRL+C to quit[0m

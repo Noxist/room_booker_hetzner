@@ -1,9 +1,7 @@
 import time
-import json
 import os
-import re
 from playwright.sync_api import sync_playwright
-from .config import URL_LOGIN, URL_SELECT, URL_SET_VONROLL, DEBUG_DIR, BASE_DIR, HEADLESS
+from .config import URL_LOGIN, URL_SELECT, URL_SET_VONROLL, DEBUG_DIR, HEADLESS
 
 def m2t(mins): return f"{mins // 60:02d}:{mins % 60:02d}"
 def t2m(t_str):
@@ -11,8 +9,8 @@ def t2m(t_str):
     except: return 0
 
 class BrowserEngine:
-    def __init__(self, base_dir=None, headless=True):
-        self.headless = HEADLESS 
+    def __init__(self, base_dir=None, headless=None):
+        self.headless = headless if headless is not None else HEADLESS
 
     def _perform_login_logic(self, page, email, password):
         print(f"[LOGIN] Starte Login für {email}...")
@@ -24,7 +22,6 @@ class BrowserEngine:
                 pass
             time.sleep(2)
             
-            # Standort Fix
             if "select" in page.url or page.locator("text=Bibliothek wählen").count() > 0:
                  print("[NAV] Standortwahl erkannt. Setze vonRoll...")
                  page.goto(URL_SET_VONROLL) 
@@ -43,17 +40,14 @@ class BrowserEngine:
                 page.click("text=Login")
                 time.sleep(2)
             
-            # Edu-ID
             if "wayf" in page.url or "login" in page.url or "eduid" in page.url:
                 page.wait_for_selector("#username", state="visible", timeout=10000)
                 page.fill("#username", email)
                 page.keyboard.press("Enter")
-                
                 page.wait_for_selector("#password", state="visible", timeout=10000)
                 time.sleep(1) 
                 page.fill("#password", password)
                 page.keyboard.press("Enter")
-                
                 page.wait_for_url("**/event/**", timeout=30000)
                 print("[LOGIN] Erfolgreich! ✅")
                 return True
@@ -63,8 +57,9 @@ class BrowserEngine:
 
     def perform_booking(self, date_str, room, start_m, end_m, account):
         success = False
-        print(f"[BROWSER] Starte Buchungsprozess für {room}...")
+        print(f"[BROWSER] Starte Buchung für {room}...")
         with sync_playwright() as p:
+            # WICHTIG: args verhindern Abstürze in Docker/Server Umgebungen
             browser = p.chromium.launch(headless=self.headless, args=["--disable-blink-features=AutomationControlled", "--no-sandbox"])
             page = browser.new_page()
             try:
@@ -72,7 +67,6 @@ class BrowserEngine:
                     page.goto("https://raumreservation.ub.unibe.ch/event/add")
                     page.wait_for_selector("#event_room", timeout=30000)
                     
-                    # Raum setzen
                     page.evaluate(f"document.querySelector('#event_room').value = '{room}';")
                     page.evaluate(f"""(r) => {{ 
                         const s = document.querySelector('#event_room'); 
@@ -90,15 +84,12 @@ class BrowserEngine:
                     page.fill("#event_duration", str(end_m - start_m))
                     page.keyboard.press("Enter")
                     page.fill("#event_title", "Lernen")
-                    
                     try:
                         page.check('input[name="event[purpose]"][value="Other"]')
                     except:
                         pass
                     
                     page.click("#event_submit")
-                    
-                    # Erfolgskontrolle
                     try: 
                         page.wait_for_url(lambda u: "event/add" not in u, timeout=10000)
                         success = True
@@ -106,20 +97,18 @@ class BrowserEngine:
                         if "successfully" in page.content(): success = True
             except Exception as e:
                 print(f"[BOOKING ERROR] {e}")
-                try:
-                    page.screenshot(path=f"{DEBUG_DIR}/error_{int(time.time())}.png")
-                except:
-                    pass
             finally: 
                 browser.close()
         return success
 
-    def scan_grid(self, date_str, allowed_rooms):
-        return {r: [] for r in allowed_rooms} 
-
-    # BRIDGE: Damit main.py funktioniert
+    # Kompatibilitäts-Wrapper für main.py
     def perform_booking_wrapper(self, account, date_str, slot):
-        return self.perform_booking(date_str, slot['room'], t2m(slot['start']), t2m(slot['end']), account)
+        start_m = t2m(slot['start'])
+        end_m = t2m(slot['end'])
+        return self.perform_booking(date_str, slot['room'], start_m, end_m, account)
 
-# Alias
+    def scan_grid(self, date_str, allowed_rooms):
+        return {r: [] for r in allowed_rooms}
+
+# Alias für main.py
 Browser = BrowserEngine

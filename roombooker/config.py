@@ -1,29 +1,37 @@
 import os
 from pathlib import Path
 
-APP_DIR = Path(os.getenv("ROOMBOOKER_DATA_DIR", "/root/auto_reserve_data"))
-BASE_DIR = APP_DIR
-DEBUG_DIR = APP_DIR
+# Pfad-Erkennung (Host vs Docker)
+if os.path.exists("/.dockerenv"):
+    BASE_DIR = Path("/root/auto_reserve_data")
+    HEADLESS = True
+else:
+    BASE_DIR = Path("/home/leandro/auto_reserve_data")
+    HEADLESS = True
 
-SETTINGS_FILE = APP_DIR / "settings.json"
-HISTORY_FILE = APP_DIR / "booking_history.json"
-WEIGHTS_FILE = APP_DIR / "weights.json"
-CATEGORIES_FILE = APP_DIR / "categories.json"
-ROOMS_FILE = APP_DIR / "rooms.json"
-JOBS_FILE = APP_DIR / "jobs.json"
-GOOGLE_CREDS = APP_DIR / "google_credentials.json"
-GOOGLE_TOKEN = APP_DIR / "token.json"
+BASE_DIR.mkdir(parents=True, exist_ok=True)
+APP_DIR = BASE_DIR
+DEBUG_DIR = BASE_DIR
 
-# Deine URLs (Original)
-URL_LOGIN = "https://raumreservation.ub.unibe.ch/login"
-URL_SELECT = "https://raumreservation.ub.unibe.ch/select"
-URL_SET_VONROLL = "https://raumreservation.ub.unibe.ch/set/1"
+SETTINGS_FILE = BASE_DIR / "settings.json"
+HISTORY_FILE = BASE_DIR / "booking_history.json"
+WEIGHTS_FILE = BASE_DIR / "weights.json"
+CATEGORIES_FILE = BASE_DIR / "categories.json"
+ROOMS_FILE = BASE_DIR / "rooms.json"
+JOBS_FILE = BASE_DIR / "jobs.json"
+GOOGLE_CREDS = BASE_DIR / "google_credentials.json"
+GOOGLE_TOKEN = BASE_DIR / "token.json"
 
-# Für Web-App Kompatibilität
+# Die URLs, die deine browser.py importiert
+URL_BASE = "https://raumreservation.ub.unibe.ch"
+URL_LOGIN = f"{URL_BASE}/login"
+URL_SELECT = f"{URL_BASE}/select"
+URL_SET_VONROLL = f"{URL_BASE}/set/1"
+
 URLS = {
-    "base": "https://raumreservation.ub.unibe.ch",
+    "base": URL_BASE,
     "login": URL_LOGIN,
-    "event_add": "https://raumreservation.ub.unibe.ch/event/add"
+    "event_add": f"{URL_BASE}/event/add"
 }
-HEADLESS = True
+
 TIMEOUT = 60000

@@ -359,7 +359,7 @@ def _delete_overlapping_bookings(sm, date, start, end, new_category):
         else:
             remaining.append(b)
 
-    # Delete from website
+    # Delete from website — group by account for efficiency
     if to_delete:
         accounts = sm.get_settings()
         acc_map = {a['email']: a for a in accounts}
@@ -376,14 +376,20 @@ def _delete_overlapping_bookings(sm, date, start, end, new_category):
             results = browser.delete_bookings_batch(batch, acc_map[email])
             for i, b in enumerate(bookings):
                 if results[i]:
-                    bid = b.get('id')
-                    if bid:
-                        try:
-                            from roombooker.calendar_sync import CalendarSync
-                            cal = CalendarSync()
-                            cal.delete_event_by_booking_id(bid)
-                        except Exception as ce:
-                            logging.warning(f"Calendar delete failed: {ce}")
+                    logging.info(f"Deleted booking: {b.get('room','?')} {date} "
+                                 f"{int(b['start'])//60:02d}:{int(b['start'])%60:02d} "
+                                 f"({email})")
+
+        # Clean up calendar: delete events for removed bookings
+        try:
+            from roombooker.calendar_sync import CalendarSync
+            cal = CalendarSync()
+            for b in to_delete:
+                bid = b.get('id')
+                if bid:
+                    cal.delete_event_by_booking_id(bid)
+        except Exception as ce:
+            logging.warning(f"Calendar cleanup failed: {ce}")
 
     # Update local history
     if date in history:

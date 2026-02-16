@@ -3,75 +3,387 @@ import datetime
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from .config import CREDENTIALS_FILE
+from .storage import StorageManager
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-TARGET_CALENDAR_ID = "3aa0292bb1019576073ee6521bdf7f12f1c795703be4cd02333217a809397b6e@group.calendar.google.com"
+LOCATION = "Bibliothek vonRoll\nFabrikstrasse 8, 3012 Bern"
+
+CATEGORY_LABELS = {
+    "large": "Gross",
+    "medium": "Mittel",
+    "small": "Klein",
+    "default": "Optimal",
+}
+
 
 class CalendarSync:
     def __init__(self, service_account_file=None):
         self.creds_file = service_account_file or str(CREDENTIALS_FILE)
-        self.calendar_id = TARGET_CALENDAR_ID
+        self.sm = StorageManager()
+        self.calendar_id = self.sm.get_calendar_id()
         self.service = None
         self._connect()
 
     def _connect(self):
         if not os.path.exists(self.creds_file):
-            print(f"[SYNC] ⚠️ Credentials fehlen: {self.creds_file}")
+            print(f"[CAL] Credentials fehlen: {self.creds_file}")
             return
         try:
             creds = Credentials.from_service_account_file(self.creds_file, scopes=SCOPES)
             self.service = build('calendar', 'v3', credentials=creds)
         except Exception as e:
-            print(f"[SYNC] Verbindungsfehler: {e}")
+            print(f"[CAL] Verbindungsfehler: {e}")
+
+    # ── helpers ──────────────────────────────────────────────
+
+    def _m2t(self, minutes):
+        return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+    def _date_str_to_date(self, date_str):
+        return datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
+
+    def _make_dt(self, date_str, minutes):
+        d = self._date_str_to_date(date_str)
+        return datetime.datetime.combine(d, datetime.time(minutes // 60, minutes % 60))
+
+    def _build_title(self, label, existing_title=None):
+        """Build title, preserving ' X' suffix if the user added it."""
+        title = f"{label} (Lernen)"
+        if existing_title and existing_title.rstrip().endswith(" X"):
+            title += " X"
+        return title
+
+    def _find_events_by_property(self, key, value):
+        if not self.service:
+            return []
+        try:
+            result = self.service.events().list(
+                calendarId=self.calendar_id,
+                privateExtendedProperty=f"{key}={value}",
+                singleEvents=True,
+                maxResults=50,
+            ).execute()
+            return result.get('items', [])
+        except Exception as e:
+            print(f"[CAL] Suche fehlgeschlagen ({key}={value}): {e}")
+            return []
+
+    def _find_event_for_date(self, events, date_str):
+        """From a list of events, find the one matching a specific date."""
+        target = self._date_str_to_date(date_str)
+        for ev in events:
+            dt_str = ev.get('start', {}).get('dateTime', '')
+            try:
+                ev_date = datetime.datetime.fromisoformat(dt_str).date()
+                if ev_date == target:
+                    return ev
+            except:
+                pass
+        return None
+
+    # ── confirmed bookings ───────────────────────────────────
+
+    def sync_booking(self, booking_id, date_str, room, start_m, end_m, account,
+                     category_key="default", job_id=None):
+        """Create or update a calendar event for a CONFIRMED booking."""
+        if not self.service:
+            return
+
+        # Look for existing event (first by job_id, then booking_id)
+        existing = None
+        existing_title = None
+        if job_id:
+            evs = self._find_events_by_property("job_id", job_id)
+            existing = self._find_event_for_date(evs, date_str)
+            if not existing and evs:
+                existing = evs[0]  # fallback to first match
+        if not existing and booking_id:
+            evs = self._find_events_by_property("booking_id", booking_id)
+            if evs:
+                existing = evs[0]
+        if existing:
+            existing_title = existing.get('summary', '')
+
+        title = self._build_title(room, existing_title)
+        start_dt = self._make_dt(date_str, start_m)
+        end_dt = self._make_dt(date_str, end_m)
+
+        body = {
+            'summary': title,
+            'location': LOCATION,
+            'description': f"Raum: {room}\nAccount: {account}\nKategorie: {category_key}\nID: {booking_id}",
+            'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+            'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+            'transparency': 'transparent',
+            'colorId': '9',
+            'extendedProperties': {
+                'private': {
+                    'booking_id': booking_id or '',
+                    'job_id': job_id or '',
+                    'source': 'roombooker',
+                    'status': 'booked',
+                }
+            },
+        }
+
+        try:
+            if existing:
+                self.service.events().update(
+                    calendarId=self.calendar_id, eventId=existing['id'], body=body
+                ).execute()
+                print(f"   [CAL] Aktualisiert: {title} ({date_str} {self._m2t(start_m)}-{self._m2t(end_m)})")
+            else:
+                self.service.events().insert(calendarId=self.calendar_id, body=body).execute()
+                print(f"   [CAL] Erstellt: {title} ({date_str} {self._m2t(start_m)}-{self._m2t(end_m)})")
+        except Exception as e:
+            print(f"   [CAL ERROR] sync_booking: {e}")
+
+    def delete_event_by_booking_id(self, booking_id):
+        """Delete a calendar event by its booking_id."""
+        if not self.service or not booking_id:
+            return False
+        try:
+            events = self._find_events_by_property("booking_id", booking_id)
+            for ev in events:
+                self.service.events().delete(
+                    calendarId=self.calendar_id, eventId=ev['id']
+                ).execute()
+                print(f"   [CAL] Event geloescht: {ev.get('summary', booking_id)}")
+            return len(events) > 0
+        except Exception as e:
+            print(f"   [CAL ERROR] delete_event: {e}")
+            return False
+
+    # ── pending job placeholders ─────────────────────────────
+
+    def sync_pending_job(self, job):
+        """Create/update a placeholder event for a pending (unbooked) job."""
+        if not self.service:
+            return
+
+        job_id = job.get('id')
+        date_str = job.get('target_date') or job.get('date_str')
+        start = job.get('start') or job.get('time_start', '08:00')
+        end = job.get('end') or job.get('time_end', '12:00')
+        category = job.get('category', 'default')
+
+        if not date_str or not job_id:
+            return
+
+        from .utils import parse_time_to_minutes
+        start_m = parse_time_to_minutes(start)
+        end_m = parse_time_to_minutes(end)
+
+        # Skip past dates
+        try:
+            if self._date_str_to_date(date_str) < datetime.date.today():
+                return
+        except:
+            return
+
+        # Find existing event for this job + date
+        evs = self._find_events_by_property("job_id", job_id)
+        existing = self._find_event_for_date(evs, date_str)
+        existing_title = None
+
+        if existing:
+            # Don't overwrite a confirmed booking
+            status = existing.get('extendedProperties', {}).get('private', {}).get('status', '')
+            if status == 'booked':
+                return
+            existing_title = existing.get('summary', '')
+
+        label = CATEGORY_LABELS.get(category, category.capitalize())
+        title = self._build_title(label, existing_title)
+
+        start_dt = self._make_dt(date_str, start_m)
+        end_dt = self._make_dt(date_str, end_m)
+
+        body = {
+            'summary': title,
+            'location': LOCATION,
+            'description': f"Geplant: {label}\nKategorie: {category}\nJob-ID: {job_id}\nNoch nicht gebucht",
+            'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+            'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+            'transparency': 'transparent',
+            'colorId': '5',
+            'extendedProperties': {
+                'private': {
+                    'job_id': job_id,
+                    'source': 'roombooker',
+                    'status': 'pending',
+                }
+            },
+        }
+
+        try:
+            if existing:
+                self.service.events().update(
+                    calendarId=self.calendar_id, eventId=existing['id'], body=body
+                ).execute()
+                print(f"   [CAL] Placeholder aktualisiert: {title} ({date_str})")
+            else:
+                self.service.events().insert(calendarId=self.calendar_id, body=body).execute()
+                print(f"   [CAL] Placeholder erstellt: {title} ({date_str})")
+        except Exception as e:
+            print(f"   [CAL ERROR] sync_pending: {e}")
+
+    def sync_pending_job_series(self, job, max_future_days=35):
+        """For recurring jobs, create placeholder events for up to ~5 weeks ahead."""
+        freq = job.get('repetition') or job.get('frequency', 'once')
+        if freq in ('once', 'onetime'):
+            self.sync_pending_job(job)
+            return
+
+        date_str = job.get('target_date') or job.get('date_str')
+        if not date_str:
+            return
+
+        from datetime import timedelta
+        try:
+            current = datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
+        except:
+            return
+        end_date = datetime.date.today() + timedelta(days=max_future_days)
+
+        while current <= end_date:
+            # Skip Sundays (library closed)
+            if current.weekday() != 6:
+                job_copy = dict(job)
+                job_copy['target_date'] = current.strftime("%d.%m.%Y")
+                self.sync_pending_job(job_copy)
+
+            if freq == 'daily':
+                current += timedelta(days=1)
+            elif freq == 'weekly':
+                current += timedelta(weeks=1)
+            elif freq == 'monthly':
+                current += timedelta(days=30)
+            elif freq == 'custom':
+                interval = job.get('interval', 1)
+                unit = job.get('interval_unit', 'weeks')
+                if unit == 'days':
+                    current += timedelta(days=interval)
+                elif unit == 'weeks':
+                    current += timedelta(weeks=interval)
+                else:
+                    current += timedelta(days=30 * interval)
+            else:
+                break
+
+    def sync_all_pending_jobs(self):
+        """Sync all active jobs (recurring → series, once → single)."""
+        if not self.service:
+            return
+        from .jobs import JobManager
+        jm = JobManager()
+        active = [j for j in jm.jobs if j.get('active', True)]
+        print(f"[CAL] Synchronisiere {len(active)} aktive Jobs als Kalender-Platzhalter...")
+        for job in active:
+            try:
+                self.sync_pending_job_series(job)
+            except Exception as e:
+                print(f"   [CAL ERROR] Job {job.get('id')}: {e}")
+
+    # ── fix existing events ──────────────────────────────────
+
+    def fix_all_existing_events(self):
+        """Patch ALL future events: transparency → transparent, location → full address."""
+        if not self.service:
+            return
+
+        print("[CAL] Fixe alle bestehenden Events (Adresse, Frei/Belegt)...")
+        now_iso = datetime.datetime.utcnow().isoformat() + 'Z'
+        page_token = None
+        fixed = 0
+
+        while True:
+            try:
+                result = self.service.events().list(
+                    calendarId=self.calendar_id,
+                    timeMin=now_iso,
+                    maxResults=250,
+                    singleEvents=True,
+                    pageToken=page_token,
+                ).execute()
+            except Exception as e:
+                print(f"[CAL ERROR] list: {e}")
+                break
+
+            for ev in result.get('items', []):
+                patch = {}
+                if ev.get('transparency') != 'transparent':
+                    patch['transparency'] = 'transparent'
+                if ev.get('location') != LOCATION:
+                    patch['location'] = LOCATION
+                if patch:
+                    try:
+                        self.service.events().patch(
+                            calendarId=self.calendar_id,
+                            eventId=ev['id'],
+                            body=patch,
+                        ).execute()
+                        fixed += 1
+                    except Exception as e:
+                        print(f"   [CAL ERROR] patch {ev.get('summary','?')}: {e}")
+
+            page_token = result.get('nextPageToken')
+            if not page_token:
+                break
+
+        print(f"[CAL] {fixed} Events korrigiert")
+
+    # ── legacy browser-scan sync ─────────────────────────────
 
     def sync_scanned_bookings(self, bookings):
-        if not self.service: return
-        print(f"[SYNC] Synchronisiere {len(bookings)} gefundene Buchungen mit Google Calendar...")
-        
+        """Sync bookings discovered by the browser scan."""
+        if not self.service:
+            return
+        print(f"[CAL] Synchronisiere {len(bookings)} gescannte Buchungen...")
         for b in bookings:
             try:
-                # Datum Parsing (DD.MM.YYYY + HH:MM)
                 d_obj = datetime.datetime.strptime(b['date'], "%d.%m.%Y")
-                
-                hm_start = b['start'].split(':')
-                start_dt = d_obj.replace(hour=int(hm_start[0]), minute=int(hm_start[1]))
-                
-                hm_end = b['end'].split(':')
-                end_dt = d_obj.replace(hour=int(hm_end[0]), minute=int(hm_end[1]))
-                
-                summary = f"Lernen: {b['room']}"
-                desc = f"Account: {b['account']}"
+                hm_s = b['start'].split(':')
+                start_dt = d_obj.replace(hour=int(hm_s[0]), minute=int(hm_s[1]))
+                hm_e = b['end'].split(':')
+                end_dt = d_obj.replace(hour=int(hm_e[0]), minute=int(hm_e[1]))
 
-                # Duplikat-Check
-                events = self.service.events().list(
+                summary = f"{b['room']} (Lernen)"
+
+                # duplicate check by time window
+                evts = self.service.events().list(
                     calendarId=self.calendar_id,
-                    timeMin=start_dt.isoformat() + "Z",
-                    timeMax=(start_dt + datetime.timedelta(minutes=1)).isoformat() + "Z",
-                    singleEvents=True
+                    timeMin=start_dt.isoformat() + "+01:00",
+                    timeMax=(start_dt + datetime.timedelta(minutes=1)).isoformat() + "+01:00",
+                    singleEvents=True,
                 ).execute()
-                
-                duplicate = False
-                for e in events.get('items', []):
-                    if b['room'] in e.get('summary', '') or summary == e.get('summary', ''):
-                        duplicate = True
+
+                dup = False
+                for e in evts.get('items', []):
+                    if b['room'] in e.get('summary', ''):
+                        # patch existing with correct props
+                        self.service.events().patch(
+                            calendarId=self.calendar_id,
+                            eventId=e['id'],
+                            body={'transparency': 'transparent', 'location': LOCATION},
+                        ).execute()
+                        dup = True
                         break
-                
-                if duplicate:
-                    print(f"   -> Skip (Existiert): {summary}")
+                if dup:
                     continue
 
                 event = {
                     'summary': summary,
-                    'location': 'Bibliothek vonRoll',
-                    'description': desc,
+                    'location': LOCATION,
+                    'description': f"Account: {b['account']}",
                     'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
                     'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
-                    'colorId': '5'
+                    'transparency': 'transparent',
+                    'colorId': '9',
+                    'extendedProperties': {'private': {'source': 'roombooker', 'status': 'booked'}},
                 }
                 self.service.events().insert(calendarId=self.calendar_id, body=event).execute()
-                print(f"   -> ✅ Hinzugefügt: {summary}")
-                
+                print(f"   -> Hinzugefuegt: {summary}")
             except Exception as e:
-                print(f"   [ERROR] Fehler bei {b}: {e}")
-        
-        print("[SYNC] Abgleich abgeschlossen.")
+                print(f"   [CAL ERROR] {b}: {e}")
+        print("[CAL] Abgleich abgeschlossen.")

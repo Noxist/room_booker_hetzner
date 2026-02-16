@@ -13,7 +13,20 @@ def smart_parse_date(user_input):
     parts = user_input.split(".")
     if len(parts) == 2:
         return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{now.year}"
+    if len(parts) == 3:
+        return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{int(parts[2])}"
     return user_input
+
+
+def normalize_date_str(date_str):
+    """Ensure date_str is always DD.MM.YYYY format. Handles DD.MM shorthand."""
+    parts = date_str.strip().split(".")
+    if len(parts) == 2:
+        year = datetime.now().year
+        return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{year}"
+    if len(parts) == 3:
+        return f"{int(parts[0]):02d}.{int(parts[1]):02d}.{int(parts[2])}"
+    return date_str
 
 def smart_parse_time(user_input):
     user_input = user_input.strip().replace(".", ":")

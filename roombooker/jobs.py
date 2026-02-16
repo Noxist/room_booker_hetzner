@@ -4,22 +4,34 @@ import uuid
 from datetime import datetime, timedelta
 from .config import JOBS_FILE
 
+
 class JobManager:
     def __init__(self):
         self.jobs = self.load_jobs()
 
     def load_jobs(self):
-        if not os.path.exists(JOBS_FILE): return []
+        if not os.path.exists(JOBS_FILE):
+            return []
         try:
-            with open(JOBS_FILE, "r") as f: 
+            with open(JOBS_FILE, "r") as f:
                 data = json.load(f)
                 return [j for j in data if 'id' in j]
-        except: return []
+        except Exception:
+            return []
 
     def save_jobs(self):
-        with open(JOBS_FILE, "w") as f: json.dump(self.jobs, f, indent=2)
+        with open(JOBS_FILE, "w") as f:
+            json.dump(self.jobs, f, indent=2)
 
-    def create_job(self, name, date_str, start, end, category, accounts, repetition="once", interval=None, interval_unit=None):
+    def create_job(self, name, date_str, start, end, category, accounts,
+                   repetition="once", interval=None, interval_unit=None):
+        """Create a new job. Normalizes time formats."""
+        from .utils import smart_parse_time, normalize_date_str
+
+        date_str = normalize_date_str(date_str)
+        start = smart_parse_time(str(start))
+        end = smart_parse_time(str(end))
+
         new_job = {
             "id": str(uuid.uuid4())[:8],
             "name": name,
@@ -35,75 +47,94 @@ class JobManager:
             "frequency": repetition,
             "active": True,
             "last_booked": None,
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
         }
-        
-        # Add custom interval fields if provided
+
         if repetition == 'custom' and interval and interval_unit:
             new_job['interval'] = interval
             new_job['interval_unit'] = interval_unit
-        
+
         self.jobs.append(new_job)
         self.save_jobs()
+
+        # Sync placeholder to Google Calendar
+        try:
+            from .config import CREDENTIALS_FILE
+            if CREDENTIALS_FILE.exists():
+                from .calendar_sync import CalendarSync
+                cal = CalendarSync()
+                cal.sync_pending_job_series(new_job)
+        except Exception as e:
+            print(f"[JOBS] Calendar-Sync fuer neuen Job fehlgeschlagen: {e}")
+
         return new_job["id"]
 
     def mark_done(self, job_id, date_done):
+        """Mark a job as done for a date and advance target_date for recurring jobs."""
         for job in self.jobs:
-            if job.get("id") == job_id:
-                job["last_booked"] = date_done
-                freq = job.get("repetition", job.get("frequency", "once"))
-                
-                if freq == "weekly":
-                    try:
-                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_d = (d + timedelta(days=7)).strftime("%d.%m.%Y")
-                        job["target_date"] = new_d
-                        job["date_str"] = new_d
-                    except: pass
-                elif freq == "daily":
-                    try:
-                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_d = (d + timedelta(days=1)).strftime("%d.%m.%Y")
-                        job["target_date"] = new_d
-                        job["date_str"] = new_d
-                    except: pass
-                elif freq == "monthly":
-                    try:
-                        from dateutil.relativedelta import relativedelta
-                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        new_d = (d + relativedelta(months=1)).strftime("%d.%m.%Y")
-                        job["target_date"] = new_d
-                        job["date_str"] = new_d
-                    except:
-                        # Fallback: just add 30 days
-                        try:
-                            d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                            new_d = (d + timedelta(days=30)).strftime("%d.%m.%Y")
-                            job["target_date"] = new_d
-                            job["date_str"] = new_d
-                        except: pass
-                elif freq == "custom":
-                    try:
-                        d = datetime.strptime(job["target_date"], "%d.%m.%Y")
-                        interval = job.get("interval", 1)
-                        unit = job.get("interval_unit", "weeks")
-                        
-                        if unit == "days":
-                            new_d = (d + timedelta(days=interval)).strftime("%d.%m.%Y")
-                        elif unit == "weeks":
-                            new_d = (d + timedelta(weeks=interval)).strftime("%d.%m.%Y")
-                        elif unit == "months":
-                            try:
-                                from dateutil.relativedelta import relativedelta
-                                new_d = (d + relativedelta(months=interval)).strftime("%d.%m.%Y")
-                            except:
-                                new_d = (d + timedelta(days=30*interval)).strftime("%d.%m.%Y")
-                        else:
-                            new_d = job["target_date"]
-                        
-                        job["target_date"] = new_d
-                        job["date_str"] = new_d
-                    except: pass
-                elif freq == "once" or freq == "onetime":
-                    job["active"] = False
+            if job.get("id") != job_id:
+                continue
+
+            job["last_booked"] = date_done
+            freq = job.get("repetition", job.get("frequency", "once"))
+
+            if freq == "weekly":
+                self._advance_date(job, timedelta(days=7))
+            elif freq == "daily":
+                self._advance_date(job, timedelta(days=1))
+            elif freq == "monthly":
+                self._advance_date_monthly(job, 1)
+            elif freq == "custom":
+                interval = job.get("interval", 1)
+                unit = job.get("interval_unit", "weeks")
+                if unit == "days":
+                    self._advance_date(job, timedelta(days=interval))
+                elif unit == "weeks":
+                    self._advance_date(job, timedelta(weeks=interval))
+                elif unit == "months":
+                    self._advance_date_monthly(job, interval)
+            elif freq in ("once", "onetime"):
+                job["active"] = False
+
+            # Sync next occurrence to calendar
+            if job.get('active', False):
+                try:
+                    from .config import CREDENTIALS_FILE
+                    if CREDENTIALS_FILE.exists():
+                        from .calendar_sync import CalendarSync
+                        cal = CalendarSync()
+                        cal.sync_pending_job(job)
+                except Exception as e:
+                    print(f"[JOBS] Calendar-Sync nach mark_done fehlgeschlagen: {e}")
+
         self.save_jobs()
+
+    def _advance_date(self, job, delta):
+        """Advance target_date by a timedelta."""
+        try:
+            d = datetime.strptime(job["target_date"], "%d.%m.%Y")
+            new_d = (d + delta).strftime("%d.%m.%Y")
+            job["target_date"] = new_d
+            job["date_str"] = new_d
+        except Exception:
+            pass
+
+    def _advance_date_monthly(self, job, months):
+        """Advance target_date by N months."""
+        try:
+            from dateutil.relativedelta import relativedelta
+            d = datetime.strptime(job["target_date"], "%d.%m.%Y")
+            new_d = (d + relativedelta(months=months)).strftime("%d.%m.%Y")
+            job["target_date"] = new_d
+            job["date_str"] = new_d
+        except ImportError:
+            # Fallback without dateutil
+            try:
+                d = datetime.strptime(job["target_date"], "%d.%m.%Y")
+                new_d = (d + timedelta(days=30 * months)).strftime("%d.%m.%Y")
+                job["target_date"] = new_d
+                job["date_str"] = new_d
+            except Exception:
+                pass
+        except Exception:
+            pass

@@ -74,6 +74,8 @@ function updateStatus() {
             banner.className = "alert alert-danger shadow-sm mb-4 d-flex align-items-center";
         } else if (state === 'warning') {
             banner.className = "alert alert-warning shadow-sm mb-4 d-flex align-items-center";
+        } else if (state === 'idle') {
+            banner.className = "alert alert-secondary shadow-sm mb-4 d-flex align-items-center";
         } else {
             banner.className = "alert alert-info shadow-sm mb-4 d-flex align-items-center";
         }

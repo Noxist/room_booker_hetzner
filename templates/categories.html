@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold m-0 text-white">Raum-Kategorien</h3>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+    <i class="bi bi-plus-lg me-1"></i> Neue Kategorie
+  </button>
+</div>
+
+<div class="row g-4">
+  {% for key, cat in categories.items() %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-secondary border-opacity-25">
+      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-start pt-3 px-3">
+        <div>
+          <h6 class="fw-bold mb-0 text-white">{{ cat.title or key }}</h6>
+          <span class="badge bg-dark border border-secondary text-muted mt-1">{{ key }}</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#editModal-{{ key }}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          {% if key != 'default' %}
+          <a href="/categories/delete/{{ key }}" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Kategorie &quot;{{ cat.title or key }}&quot; wirklich loeschen?')">
+            <i class="bi bi-trash"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body pt-2 px-3 pb-3">
+        {% if cat.desc %}
+        <p class="text-muted small mb-2">{{ cat.desc }}</p>
+        {% endif %}
+        <div class="d-flex flex-wrap gap-1">
+          {% for room in cat.rooms %}
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ room }}</span>
+          {% endfor %}
+        </div>
+        <div class="text-muted small mt-2">{{ cat.rooms | length }} Raeume</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal for {{ key }} -->
+  <div class="modal fade" id="editModal-{{ key }}" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title">Kategorie bearbeiten: {{ cat.title or key }}</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="POST" action="/categories/edit/{{ key }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">TITEL</label>
+              <input type="text" name="title" class="form-control" value="{{ cat.title or '' }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">BESCHREIBUNG</label>
+              <input type="text" name="desc" class="form-control" value="{{ cat.desc or '' }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">RAEUME (kommagetrennt)</label>
+              <textarea name="rooms" class="form-control" rows="3">{{ cat.rooms | join(', ') }}</textarea>
+              <div class="form-text">z.B. A-204, A-206, D-202</div>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary border-opacity-25">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="card border-secondary border-opacity-25">
+      <div class="card-body text-center py-5 text-muted">
+        Keine Kategorien vorhanden. Erstelle eine neue Kategorie.
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header border-secondary border-opacity-25">
+        <h5 class="modal-title">Neue Kategorie erstellen</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="/categories/add">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">SCHLUESSEL (intern)</label>
+            <input type="text" name="key" class="form-control" placeholder="z.B. quiet_rooms" required>
+            <div class="form-text">Wird intern als ID verwendet. Nur Kleinbuchstaben, Zahlen, Unterstrich.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">TITEL</label>
+            <input type="text" name="title" class="form-control" placeholder="z.B. Ruhige Raeume" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">BESCHREIBUNG</label>
+            <input type="text" name="desc" class="form-control" placeholder="z.B. Raeume im ruhigen Bereich">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">RAEUME (kommagetrennt)</label>
+            <textarea name="rooms" class="form-control" rows="3" placeholder="A-204, A-206, D-202"></textarea>
+            <div class="form-text">Alle Raumnamen kommagetrennt angeben.</div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Erstellen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

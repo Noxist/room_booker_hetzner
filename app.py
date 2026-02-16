@@ -11,7 +11,12 @@ import pytz
 from roombooker.config import BASE_DIR, STATUS_FILE, LOG_FILE
 from roombooker.storage import StorageManager
 from roombooker.jobs import JobManager
-from roombooker.utils import smart_parse_date, smart_parse_time, parse_time_to_minutes
+from roombooker.browser import BrowserEngine
+from roombooker.utils import (
+    smart_parse_date, smart_parse_time, parse_time_to_minutes,
+    format_minutes_to_time, check_overlap, build_overlap_options,
+    normalize_date_str as util_normalize_date_str,
+)
 
 
 # === LOG: Tee stdout/stderr to log file ===
@@ -139,6 +144,7 @@ def book():
         end = request.form.get('end', '').strip()
         category = request.form.get('category', 'default')
         frequency = request.form.get('frequency', 'onetime')
+        skip_overlap = request.form.get('skip_overlap', '') == '1'
 
         logging.info(f"Booking request: date={date}, start={start}, end={end}, cat={category}, freq={frequency}")
 
@@ -150,6 +156,22 @@ def book():
         date = normalize_date_str(smart_parse_date(date))
         start = smart_parse_time(start)
         end = smart_parse_time(end)
+
+        # --- Overlap detection (only on first submission, not after resolution) ---
+        if not skip_overlap:
+            overlaps = check_overlap(date, start, end, category)
+            if overlaps:
+                options, meta = build_overlap_options(date, start, end, category, overlaps)
+                return render_template(
+                    'overlap.html',
+                    date=date, start=start, end=end,
+                    category=category, frequency=frequency,
+                    interval=request.form.get('interval', '1'),
+                    interval_unit=request.form.get('interval_unit', 'weeks'),
+                    overlaps=overlaps,
+                    options=options,
+                    meta=meta,
+                )
 
         # Recurring bookings -> always create a job
         if frequency in ['weekly', 'daily', 'monthly', 'custom']:
@@ -210,6 +232,183 @@ def book():
         flash(f'Fehler: {str(e)}', 'danger')
 
     return redirect(url_for('index'))
+
+
+@app.route('/book/resolve', methods=['POST'])
+def book_resolve():
+    """Handle overlap resolution choice."""
+    try:
+        choice = request.form.get('choice', 'skip')
+        date = request.form.get('date', '')
+        start = request.form.get('start', '')
+        end = request.form.get('end', '')
+        category = request.form.get('category', 'default')
+        frequency = request.form.get('frequency', 'onetime')
+        interval = request.form.get('interval', '1')
+        interval_unit = request.form.get('interval_unit', 'weeks')
+        overlap_cat = request.form.get('overlap_cat', '')
+        combined_start = request.form.get('combined_start', '')
+        combined_end = request.form.get('combined_end', '')
+        adjusted_segments = request.form.get('adjusted_segments', '')
+
+        logging.info(f"Overlap resolution: choice={choice}, date={date}, start={start}, end={end}")
+
+        if choice == 'skip':
+            flash('Buchung uebersprungen. Keine Aenderungen.', 'info')
+            return redirect(url_for('index'))
+
+        sm = StorageManager()
+
+        if choice == 'replace_extend':
+            # Delete overlapping bookings, book combined window
+            _delete_overlapping_bookings(sm, date, start, end, category)
+            start = format_minutes_to_time(int(combined_start))
+            end = format_minutes_to_time(int(combined_end))
+            # Fall through to normal booking with skip_overlap
+
+        elif choice == 'book_overlap':
+            # Just book B as-is, no changes to existing
+            pass
+
+        elif choice == 'book_in_existing_cat':
+            # Book B but in the existing category
+            category = overlap_cat
+
+        elif choice == 'adjust_around':
+            # Delete overlapping bookings is NOT needed, just book the free segments
+            if adjusted_segments:
+                import json
+                segments = json.loads(adjusted_segments)
+                if not segments:
+                    flash('Keine freien Segmente verfuegbar.', 'warning')
+                    return redirect(url_for('index'))
+                # Book each segment as a separate booking
+                for seg_start, seg_end in segments:
+                    seg_s = format_minutes_to_time(seg_start)
+                    seg_e = format_minutes_to_time(seg_end)
+                    _submit_booking(
+                        date, seg_s, seg_e, category, frequency,
+                        interval, interval_unit
+                    )
+                flash(f'{len(segments)} Segment(e) gebucht.', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('Keine angepassten Segmente vorhanden.', 'warning')
+                return redirect(url_for('index'))
+
+        elif choice == 'delete_book_b':
+            # Delete existing overlapping bookings, book only B
+            _delete_overlapping_bookings(sm, date, start, end, category)
+
+        # Submit the booking (for choices that fall through)
+        _submit_booking(date, start, end, category, frequency, interval, interval_unit)
+
+    except Exception as e:
+        logging.error(f"Error in book_resolve: {e}", exc_info=True)
+        flash(f'Fehler: {str(e)}', 'danger')
+
+    return redirect(url_for('index'))
+
+
+def _delete_overlapping_bookings(sm, date, start, end, new_category):
+    """Delete bookings on date that overlap with start-end and are from a different category."""
+    start_m = parse_time_to_minutes(start)
+    end_m = parse_time_to_minutes(end)
+    history = sm.get_history()
+    day_bookings = history.get(date, [])
+
+    to_delete = []
+    remaining = []
+    for b in day_bookings:
+        b_start = int(b.get('start', 0))
+        b_end = int(b.get('end', 0))
+        b_cat = b.get('category', 'default')
+        if b_start < end_m and b_end > start_m and b_cat != new_category:
+            to_delete.append(b)
+        else:
+            remaining.append(b)
+
+    # Delete from website
+    if to_delete:
+        accounts = sm.get_settings()
+        acc_map = {a['email']: a for a in accounts}
+
+        browser = BrowserEngine(headless=True)
+        by_account = {}
+        for b in to_delete:
+            email = b.get('account', '')
+            if email in acc_map:
+                by_account.setdefault(email, []).append(b)
+
+        for email, bookings in by_account.items():
+            batch = [(date, int(b['start']), int(b['end'])) for b in bookings]
+            results = browser.delete_bookings_batch(batch, acc_map[email])
+            for i, b in enumerate(bookings):
+                if results[i]:
+                    bid = b.get('id')
+                    if bid:
+                        try:
+                            from roombooker.calendar_sync import CalendarSync
+                            cal = CalendarSync()
+                            cal.delete_event_by_booking_id(bid)
+                        except Exception as ce:
+                            logging.warning(f"Calendar delete failed: {ce}")
+
+    # Update local history
+    if date in history:
+        history[date] = remaining
+        if not remaining:
+            del history[date]
+        sm.save_history(history)
+
+
+def _submit_booking(date, start, end, category, frequency, interval, interval_unit):
+    """Create a job and trigger booking if in window."""
+    jm = JobManager()
+
+    if frequency in ['weekly', 'daily', 'monthly', 'custom']:
+        job_name = f"Serie {date} {start}-{end}"
+        iv = None
+        iv_unit = None
+        if frequency == 'custom':
+            iv = int(interval)
+            iv_unit = interval_unit
+            job_name = f"Alle {iv} {iv_unit}"
+
+        job_id = jm.create_job(
+            name=job_name, date_str=date, start=start, end=end,
+            category=category, accounts=4, repetition=frequency,
+            interval=iv, interval_unit=iv_unit
+        )
+        logging.info(f"Created recurring job: {job_id}")
+        flash(f'Wiederkehrender Job erstellt (ID: {job_id}).', 'success')
+
+        if is_date_in_booking_window(date):
+            from main import run_booking_logic
+            threading.Thread(
+                target=run_booking_logic,
+                args=(date, start, end, category, 4, job_id),
+                daemon=True
+            ).start()
+    else:
+        job_id = jm.create_job(
+            name=f"Einmalig {date} {start}-{end}",
+            date_str=date, start=start, end=end,
+            category=category, accounts=4, repetition='once'
+        )
+
+        if is_date_in_booking_window(date):
+            flash(f'Buchung gestartet fuer {date} {start}-{end}', 'info')
+            from main import run_booking_logic
+            threading.Thread(
+                target=run_booking_logic,
+                args=(date, start, end, category, 4, job_id),
+                daemon=True
+            ).start()
+        else:
+            flash(
+                f'Datum {date} ausserhalb des 14-Tage-Fensters. Job erstellt.', 'info'
+            )
 
 
 @app.route('/sync')

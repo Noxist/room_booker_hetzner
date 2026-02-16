@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-warning border-opacity-50">
+      <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold pt-3 px-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> Ueberlappung erkannt
+      </div>
+      <div class="card-body p-4">
+        <p class="text-muted mb-3">
+          Deine neue Buchung <strong>{{ start }}-{{ end }}</strong> am <strong>{{ date }}</strong>
+          ueberlappt mit bestehenden Buchungen aus einer anderen Kategorie:
+        </p>
+
+        <div class="mb-4">
+          {% for b in overlaps %}
+          <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-dark rounded">
+            <span class="badge bg-danger bg-opacity-10 text-danger">Bestehend</span>
+            <span class="text-white fw-bold">
+              {{ "%02d:%02d"|format(b.start // 60, b.start % 60) }}-{{ "%02d:%02d"|format(b.end // 60, b.end % 60) }}
+            </span>
+            <span class="text-muted">{{ b.room or '?' }}</span>
+            <span class="badge bg-dark border border-secondary text-muted">{{ b.category or '?' }}</span>
+            <span class="text-muted small">({{ b.account or '?' }})</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <h6 class="fw-bold text-white mb-3">Wie moechtest du fortfahren?</h6>
+
+        {% for opt in options %}
+        <form method="POST" action="/book/resolve" class="mb-2">
+          <input type="hidden" name="choice" value="{{ opt.key }}">
+          <input type="hidden" name="date" value="{{ date }}">
+          <input type="hidden" name="start" value="{{ start }}">
+          <input type="hidden" name="end" value="{{ end }}">
+          <input type="hidden" name="category" value="{{ category }}">
+          <input type="hidden" name="frequency" value="{{ frequency }}">
+          <input type="hidden" name="interval" value="{{ interval }}">
+          <input type="hidden" name="interval_unit" value="{{ interval_unit }}">
+          <input type="hidden" name="overlap_cat" value="{{ meta.overlap_cat }}">
+          <input type="hidden" name="combined_start" value="{{ meta.combined_start }}">
+          <input type="hidden" name="combined_end" value="{{ meta.combined_end }}">
+          <input type="hidden" name="adjusted_segments" value="{{ meta.adjusted_segments | tojson }}">
+
+          <button type="submit" class="btn btn-outline-light w-100 text-start p-3 d-flex align-items-start gap-3">
+            <span class="badge bg-primary rounded-pill mt-1">{{ loop.index }}</span>
+            <div>
+              <div class="fw-bold mb-1">{{ opt.label }}</div>
+              <div class="small text-muted">{{ opt.description }}</div>
+            </div>
+          </button>
+        </form>
+        {% endfor %}
+
+        <div class="mt-3">
+          <a href="/" class="btn btn-outline-secondary">Abbrechen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

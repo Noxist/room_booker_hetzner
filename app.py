@@ -34,8 +34,17 @@ class TeeWriter:
                 ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 with open(self.log_path, "a") as f:
                     for line in text.rstrip('\n').split('\n'):
-                        if line.strip():
-                            f.write(f"{ts} | {line}\n")
+                        if not line.strip():
+                            continue
+                        # Skip noisy polling / static GET lines
+                        if '"GET / HTTP' in line and '127.0.0.1' in line:
+                            continue
+                        if any(p in line for p in (
+                            'GET /api/status', 'GET /api/logs',
+                            'GET /static/', 'GET /favicon.ico',
+                        )):
+                            continue
+                        f.write(f"{ts} | {line}\n")
             except Exception:
                 pass
         self.original.write(text)
@@ -53,6 +62,28 @@ log_handler_stdout.setFormatter(log_formatter)
 log_handler_file = logging.FileHandler(str(LOG_FILE))
 log_handler_file.setFormatter(log_formatter)
 logging.basicConfig(level=logging.INFO, handlers=[log_handler_stdout, log_handler_file])
+
+
+# --- Suppress noisy Werkzeug GET request logs ---
+import re as _re
+
+_NOISY_PATHS = _re.compile(
+    r'"GET /(api/status|api/logs|static/|favicon\.ico| HTTP)'
+)
+
+class _QuietRequestFilter(logging.Filter):
+    """Drop routine polling / static-asset GET lines from the log."""
+    def filter(self, record):
+        msg = record.getMessage()
+        # Keep POST, DELETE, errors, non-200 – only drop boring GETs
+        if _NOISY_PATHS.search(msg):
+            return False
+        # Also suppress the health-check "GET / HTTP" from 127.0.0.1
+        if '"GET / HTTP' in msg and '127.0.0.1' in msg:
+            return False
+        return True
+
+logging.getLogger('werkzeug').addFilter(_QuietRequestFilter())
 
 load_dotenv()
 

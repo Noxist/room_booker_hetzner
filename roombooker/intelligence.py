@@ -79,9 +79,8 @@ class Intelligence:
 
     def score_room(self, room_name, start_m, end_m, date_str, history_data):
         """
-        Score a room based on weights and distance matrix.
-        No hardcoded preferences -- everything comes from weights.json
-        and roomDistanceMatrix.json.
+        Score = (Duration * totalCoveredMin) + stabilityBonus - (Distance * 0.01)
+        Uses last_room for distance lookup from roomDistanceMatrix.
         """
         duration = end_m - start_m
         w = self.weights
@@ -99,25 +98,22 @@ class Intelligence:
                     chaining = True
                     break
 
+        # Preferred room bonus
+        if any(x in room_name for x in ["204", "206"]):
+            score += w.get("preferredRoomBonus", 5)
+
         # Distance penalty: walk from last room
         last_room = self._get_last_room(date_str, start_m, history_data)
         distance = self._get_distance(last_room, room_name)
-        switch_penalty = w.get("switchBonus", -0.032)
-        if last_room and last_room != room_name:
-            score += switch_penalty
         distance_penalty = distance * 0.01
         score -= distance_penalty
-
-        # Wait penalty: penalize productive time lost walking
-        if distance > 0:
-            walk_minutes = distance / 80.0  # ~80m per minute walking
-            score += w.get("productiveLossMin", -0.122) * walk_minutes
 
         if self.excessive_logging:
             m2t = lambda m: f"{m//60:02d}:{m%60:02d}"
             print(f"    [SCORE] {room_name} | {m2t(start_m)}-{m2t(end_m)} | "
                   f"dur={duration}min | base={duration * w.get('totalCoveredMin', 0.003):.3f} | "
                   f"chain={'YES' if chaining else 'no'} | "
+                  f"prefBonus={w.get('preferredRoomBonus', 5) if any(x in room_name for x in ['204','206']) else 0} | "
                   f"lastRoom={last_room} dist={distance}m pen=-{distance_penalty:.2f} | "
                   f"TOTAL={score:.3f}")
 
@@ -138,7 +134,7 @@ class Intelligence:
         print(f"\n{'='*70}")
         print(f"  ASCII Grid for {date_str}")
         if opening_hours:
-            print(f"  Opening Hours: {oh_start//60:02d}:{oh_start%60:02d} - {oh_end//60:02d}:{oh_end%60:02d}")
+            print(f"  🕐 Opening Hours: {oh_start//60:02d}:{oh_start%60:02d} - {oh_end//60:02d}:{oh_end%60:02d}")
         print(f"{'='*70}")
 
         # Collect all rooms that have bookings

@@ -1,147 +1,12 @@
 from datetime import datetime, timedelta
 from roombooker.jobs import JobManager
-from roombooker.utils import (
-    smart_parse_date, smart_parse_time, parse_time_to_minutes,
-    format_minutes_to_time, check_overlap, build_overlap_options,
-)
+from roombooker.utils import smart_parse_date, smart_parse_time, parse_time_to_minutes
 from roombooker.storage import StorageManager
 from roombooker.browser import BrowserEngine
 from main import run_booking_logic
 
 def clean_time(t_str):
     return t_str.replace(".", ":").strip()
-
-
-def _handle_overlap(date_input, start, end, category, accs, mode, freq=None,
-                     interval=None, interval_unit=None):
-    """
-    Check for overlaps and let the user choose a resolution.
-    Returns True if the booking should proceed with possibly modified params,
-    or False if skipped.
-    Also returns the (possibly modified) start, end, category.
-    """
-    overlaps = check_overlap(date_input, start, end, category)
-    if not overlaps:
-        return True, start, end, category
-
-    options, meta = build_overlap_options(date_input, start, end, category, overlaps)
-
-    print("\n" + "!" * 50)
-    print("  UEBERLAPPUNG ERKANNT")
-    print("!" * 50)
-    print(f"\nNeue Buchung: {date_input} {start}-{end} (Kategorie: {category})")
-    print("Bestehende Buchungen:")
-    m2t = format_minutes_to_time
-    for b in overlaps:
-        print(f"  {m2t(int(b['start']))}-{m2t(int(b['end']))} {b.get('room', '?')} "
-              f"({b.get('category', '?')}) [{b.get('account', '?')}]")
-
-    print("\nOptionen:")
-    for i, opt in enumerate(options, 1):
-        print(f"\n  [{i}] {opt['label']}")
-        print(f"      {opt['description']}")
-
-    choice_num = input(f"\nWahl [1-{len(options)}]: ").strip()
-    try:
-        choice_idx = int(choice_num) - 1
-        if choice_idx < 0 or choice_idx >= len(options):
-            raise ValueError
-    except ValueError:
-        print("Ungueltige Wahl. Ueberspringe Buchung.")
-        return False, start, end, category
-
-    choice_key = options[choice_idx]['key']
-    sm = StorageManager()
-
-    if choice_key == 'skip':
-        print("Buchung uebersprungen.")
-        return False, start, end, category
-
-    elif choice_key == 'replace_extend':
-        _cli_delete_overlaps(sm, date_input, start, end, category)
-        start = m2t(meta['combined_start'])
-        end = m2t(meta['combined_end'])
-        print(f"Erweiterter Zeitblock: {start}-{end}")
-        return True, start, end, category
-
-    elif choice_key == 'book_overlap':
-        print("Buche trotz Ueberlappung.")
-        return True, start, end, category
-
-    elif choice_key == 'book_in_existing_cat':
-        new_cat = meta['overlap_cat']
-        print(f"Buche in Kategorie: {new_cat}")
-        return True, start, end, new_cat
-
-    elif choice_key == 'adjust_around':
-        segments = meta['adjusted_segments']
-        if not segments:
-            print("Keine freien Segmente vorhanden.")
-            return False, start, end, category
-        print(f"Buche {len(segments)} Segment(e):")
-        for seg_s, seg_e in segments:
-            seg_start = m2t(seg_s)
-            seg_end = m2t(seg_e)
-            print(f"  -> {seg_start}-{seg_end}")
-            run_booking_logic(date_input, seg_start, seg_end, category, accs)
-        return False, start, end, category  # Already booked segments
-
-    elif choice_key == 'delete_book_b':
-        _cli_delete_overlaps(sm, date_input, start, end, category)
-        print("Bestehende Buchungen geloescht. Buche nur B.")
-        return True, start, end, category
-
-    return True, start, end, category
-
-
-def _cli_delete_overlaps(sm, date_str, start, end, new_category):
-    """Delete overlapping bookings from website and local history."""
-    start_m = parse_time_to_minutes(start)
-    end_m = parse_time_to_minutes(end)
-    history = sm.get_history()
-    day_bookings = history.get(date_str, [])
-
-    to_delete = []
-    remaining = []
-    for b in day_bookings:
-        b_start = int(b.get('start', 0))
-        b_end = int(b.get('end', 0))
-        b_cat = b.get('category', 'default')
-        if b_start < end_m and b_end > start_m and b_cat != new_category:
-            to_delete.append(b)
-        else:
-            remaining.append(b)
-
-    if to_delete:
-        accounts = sm.get_settings()
-        acc_map = {a['email']: a for a in accounts}
-        browser = BrowserEngine(headless=True)
-        by_account = {}
-        for b in to_delete:
-            email = b.get('account', '')
-            if email in acc_map:
-                by_account.setdefault(email, []).append(b)
-
-        for email, bookings in by_account.items():
-            batch = [(date_str, int(b['start']), int(b['end'])) for b in bookings]
-            results = browser.delete_bookings_batch(batch, acc_map[email])
-            for i, b in enumerate(bookings):
-                if results[i]:
-                    bid = b.get('id')
-                    if bid:
-                        try:
-                            from roombooker.calendar_sync import CalendarSync
-                            cal = CalendarSync()
-                            cal.delete_event_by_booking_id(bid)
-                        except Exception as ce:
-                            print(f"  [CAL] Kalender-Loeschung fehlgeschlagen: {ce}")
-
-    if date_str in history:
-        history[date_str] = remaining
-        if not remaining:
-            del history[date_str]
-        sm.save_history(history)
-
 
 def interactive_wizard(mode="once"):
     print("\n" + "="*30)
@@ -155,37 +20,24 @@ def interactive_wizard(mode="once"):
     start = smart_parse_time(input("Start (08:00): ").strip() or "08:00")
     end = smart_parse_time(input("Ende  (12:00): ").strip() or "12:00")
 
-    # Load categories dynamically from categories.json
-    sm = StorageManager()
-    cats = sm.get_categories()
-    cat_keys = list(cats.keys())
-
     print("\nKategorie:")
-    for i, k in enumerate(cat_keys, 1):
-        title = cats[k].get('title', k)
-        desc = cats[k].get('desc', '')
-        rooms_count = len(cats[k].get('rooms', []))
-        print(f"  [{i}] {title} ({rooms_count} Raeume) {('- ' + desc) if desc else ''}")
-    c = input(f"Wahl [1-{len(cat_keys)}]: ").strip()
-    try:
-        category = cat_keys[int(c) - 1]
-    except (ValueError, IndexError):
-        category = "default"
+    print("  [1] Grosser Raum (16 Pers.)")
+    print("  [2] Standard (10 Pers.)")
+    print("  [3] Klein (6 Pers.)")
+    cat_map = {"1": "large", "2": "medium", "3": "small"}
+    c = input("Wahl [2]: ").strip() or "2"
+    category = cat_map.get(c, "medium")
 
     accs = 4
 
     if mode == "once":
-        proceed, start, end, category = _handle_overlap(
-            date_input, start, end, category, accs, mode
-        )
-        if proceed:
-            print(f"\nStarte Sofort-Buchung fuer {date_input} {start}-{end}...")
-            run_booking_logic(date_input, start, end, category, accs)
+        print(f"\nStarte Sofort-Buchung fuer {date_input} {start}-{end}...")
+        run_booking_logic(date_input, start, end, category, accs)
     else:
         jm = JobManager()
         print("\nWiederholung:")
-        print(" [1] Taeglich")
-        print(" [2] Woechentlich")
+        print(" [1] Täglich")
+        print(" [2] Wöchentlich")
         print(" [3] Monatlich")
         print(" [4] Benutzerdefiniert")
         f = input("Wahl [2]: ").strip() or "2"
@@ -205,14 +57,6 @@ def interactive_wizard(mode="once"):
             u = input("Wahl [2]: ").strip() or "2"
             unit_map = {"1": "days", "2": "weeks", "3": "months"}
             interval_unit = unit_map.get(u, "weeks")
-
-        # Check overlap before creating job
-        proceed, start, end, category = _handle_overlap(
-            date_input, start, end, category, accs, mode,
-            freq=freq, interval=interval, interval_unit=interval_unit
-        )
-        if not proceed:
-            return
         
         job_name = f"Serie {date_input} {start}-{end}"
         if freq == "custom":
@@ -230,10 +74,10 @@ def interactive_wizard(mode="once"):
             interval_unit=interval_unit if freq == "custom" else None
         )
         print(f"Job gespeichert (ID: {job_id})")
-        print(f"Naechster Termin: {date_input}")
+        print(f"Nächster Termin: {date_input}")
         
         if input("\nErsten Termin sofort buchen? (y/n): ").lower() == "y":
-            run_booking_logic(date_input, start, end, category, accs, job_id)
+            run_booking_logic(date_input, start, end, category, accs)
 
 
 def _parse_date_list(raw):
@@ -365,7 +209,7 @@ def deletion_wizard():
         print("Abgebrochen.")
         return
 
-    # Group by account -- batch delete (one login per account)
+    # Group by account to minimize logins
     by_account = {}
     for d, s, e, acc, booking in deletions:
         email = acc['email']
@@ -377,36 +221,36 @@ def deletion_wizard():
     deleted_count = 0
 
     for email, items in by_account.items():
-        print(f"\n--- Account: {email} ({len(items)} Loeschungen, ein Login) ---")
-        batch = [(d, s, e) for d, s, e, _, _ in items]
-        results = browser.delete_bookings_batch(batch, items[0][3])
+        print(f"\n--- Account: {email} ({len(items)} Loeschungen) ---")
+        for d, s, e, acc, booking in items:
+            print(f"  Loesche: {d} {s//60:02d}:{s%60:02d}-{e//60:02d}:{e%60:02d}...")
+            try:
+                ok = browser.delete_booking(d, s, e, acc)
+                if ok:
+                    deleted_count += 1
+                    # Remove from local history
+                    h = sm.get_history()
+                    if d in h:
+                        h[d] = [b for b in h[d] if not (
+                            int(b.get('start', -1)) == s and
+                            int(b.get('end', -1)) == e and
+                            b.get('account', '') == email
+                        )]
+                        if not h[d]:
+                            del h[d]
+                        sm.save_history(h)
 
-        for i, (d, s, e, acc, booking) in enumerate(items):
-            if results[i]:
-                deleted_count += 1
-                # Remove from local history
-                h = sm.get_history()
-                if d in h:
-                    h[d] = [b for b in h[d] if not (
-                        int(b.get('start', -1)) == s and
-                        int(b.get('end', -1)) == e and
-                        b.get('account', '') == email
-                    )]
-                    if not h[d]:
-                        del h[d]
-                    sm.save_history(h)
-
-                # Remove from Google Calendar
-                try:
-                    from roombooker.config import CREDENTIALS_FILE
-                    bid = booking.get('id')
-                    if CREDENTIALS_FILE.exists() and bid:
-                        from roombooker.calendar_sync import CalendarSync
-                        cal = CalendarSync()
-                        cal.delete_event_by_booking_id(bid)
-                except Exception as ce:
-                    print(f"  [CAL] Kalender-Loeschung fehlgeschlagen: {ce}")
-            else:
-                print(f"  [FEHLER] {d} {s//60:02d}:{s%60:02d}-{e//60:02d}:{e%60:02d} konnte nicht geloescht werden")
+                    # Remove from Google Calendar
+                    try:
+                        from roombooker.config import CREDENTIALS_FILE
+                        bid = booking.get('id')
+                        if CREDENTIALS_FILE.exists() and bid:
+                            from roombooker.calendar_sync import CalendarSync
+                            cal = CalendarSync()
+                            cal.delete_event_by_booking_id(bid)
+                    except Exception as ce:
+                        print(f"  [CAL] Kalender-Loeschung fehlgeschlagen: {ce}")
+            except Exception as ex:
+                print(f"  [ERROR] {ex}")
 
     print(f"\nFertig: {deleted_count}/{len(deletions)} Buchungen geloescht.")

@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 from playwright.sync_api import sync_playwright
 from .config import (
     URL_LOGIN, URL_EVENT_ADD, URL_SELECT, URL_SET_VONROLL, URL_GRID_BASE,
-    URL_MY_RESERVATIONS, DEBUG_DIR, BASE_DIR, get_excessive_logging
+    URL_MY_RESERVATIONS, DEBUG_DIR, BASE_DIR, get_excessive_logging, get_proxy_config
 )
 
 # --- HELPER FUNCTIONS ---
@@ -185,6 +185,24 @@ class BrowserEngine:
     def __init__(self, headless=True):
         self.headless = headless
 
+    def _get_launch_args(self):
+        """Build Playwright launch arguments (no proxy here - applied at context level)."""
+        return {
+            "headless": self.headless,
+            "args": ["--disable-blink-features=AutomationControlled"],
+        }
+
+    def _new_page(self, browser):
+        """Create a new page routed through the local proxy forwarder if configured."""
+        proxy_cfg = get_proxy_config()
+        if proxy_cfg:
+            local_port = proxy_cfg.get("local_port", 18123)
+            server = f"http://127.0.0.1:{local_port}"
+            print(f"     [PROXY] Verwende lokalen Proxy-Forwarder: {server}")
+            context = browser.new_context(proxy={"server": server})
+            return context.new_page()
+        return browser.new_page()
+
     def _perform_login_logic(self, page, email, password):
         print(f"     [LOGIN] Starte Login für {email}...")
         try:
@@ -245,8 +263,8 @@ class BrowserEngine:
         opening_hours = None
         
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=self.headless, args=["--disable-blink-features=AutomationControlled"])
-            page = browser.new_page()
+            browser = p.chromium.launch(**self._get_launch_args())
+            page = self._new_page(browser)
             try:
                 url = f"{URL_GRID_BASE}{iso_date}"
                 page.goto(url)
@@ -316,8 +334,8 @@ class BrowserEngine:
         date_str = normalize_date_str(date_str)
         success = False
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=self.headless, args=["--disable-blink-features=AutomationControlled"])
-            page = browser.new_page()
+            browser = p.chromium.launch(**self._get_launch_args())
+            page = self._new_page(browser)
             try:
                 if not self._perform_login_logic(page, account['email'], account['password']):
                     print(f"     [BOOKING] Login failed for {account['email']}")
@@ -470,8 +488,8 @@ class BrowserEngine:
     def get_my_reservations(self, account):
         bookings = []
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=self.headless)
-            page = browser.new_page()
+            browser = p.chromium.launch(**self._get_launch_args())
+            page = self._new_page(browser)
             try:
                 if self._perform_login_logic(page, account['email'], account['password']):
                     target_url = URL_MY_RESERVATIONS
@@ -566,85 +584,54 @@ class BrowserEngine:
         except: pass
 
     def delete_booking(self, date_str, start_m, end_m, account):
-        """Delete a single booking from the reservation website."""
-        results = self.delete_bookings_batch(
-            [(date_str, start_m, end_m)], account
-        )
-        return results[0] if results else False
-
-    def delete_bookings_batch(self, bookings_list, account):
-        """
-        Delete multiple bookings in a single browser session (one login).
-        bookings_list: list of (date_str, start_m, end_m) tuples.
-        Returns a list of booleans indicating success for each booking.
-        """
+        """Delete a booking from the reservation website."""
         from .utils import normalize_date_str
+        date_str = normalize_date_str(date_str)
+        start_time = f"{start_m // 60:02d}:{start_m % 60:02d}"
 
-        results = [False] * len(bookings_list)
-        if not bookings_list:
-            return results
-
+        success = False
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=self.headless,
-                args=["--disable-blink-features=AutomationControlled"],
-            )
-            page = browser.new_page()
+            browser = p.chromium.launch(**self._get_launch_args())
+            page = self._new_page(browser)
             try:
                 if not self._perform_login_logic(page, account['email'], account['password']):
-                    print(f"     [DELETE] Login fehlgeschlagen fuer {account['email']}")
-                    return results
+                    return False
 
-                # Auto-accept confirmation dialogs
+                page.goto(URL_MY_RESERVATIONS)
+                try:
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                except:
+                    pass
+                time.sleep(2)
+
+                # Auto-accept confirmation dialog
                 page.on("dialog", lambda dialog: dialog.accept())
 
-                for idx, (date_str, start_m, end_m) in enumerate(bookings_list):
-                    date_str = normalize_date_str(date_str)
-                    start_time = f"{start_m // 60:02d}:{start_m % 60:02d}"
+                print(f"     [DELETE] Suche: {date_str} ab {start_time}...")
+                target_row = page.locator("tr").filter(has_text=date_str).filter(has_text=start_time)
+                count = target_row.count()
 
+                if count == 0:
+                    print(f"     [DELETE] Keine Reservation gefunden fuer {date_str} {start_time}")
+                    return False
+
+                if count > 1:
+                    print(f"     [DELETE] {count} Zeilen gefunden -- loesche erste")
+
+                delete_btn = target_row.first.locator("button", has_text="Löschen")
+                if delete_btn.is_visible():
+                    delete_btn.click()
                     try:
-                        page.goto(URL_MY_RESERVATIONS)
-                        try:
-                            page.wait_for_load_state("networkidle", timeout=10000)
-                        except Exception:
-                            pass
-                        time.sleep(2)
-
-                        print(f"     [DELETE] Suche: {date_str} ab {start_time}...")
-                        target_row = (
-                            page.locator("tr")
-                            .filter(has_text=date_str)
-                            .filter(has_text=start_time)
-                        )
-                        count = target_row.count()
-
-                        if count == 0:
-                            print(f"     [DELETE] Keine Reservation fuer {date_str} {start_time}")
-                            continue
-
-                        if count > 1:
-                            print(f"     [DELETE] {count} Zeilen -- loesche erste")
-
-                        delete_btn = target_row.first.locator(
-                            "button", has_text="Löschen"
-                        )
-                        if delete_btn.is_visible():
-                            delete_btn.click()
-                            try:
-                                page.wait_for_load_state("networkidle", timeout=10000)
-                            except Exception:
-                                pass
-                            time.sleep(1)
-                            print(f"     [DELETE] Reservation geloescht: {date_str} {start_time}")
-                            results[idx] = True
-                        else:
-                            print(f"     [DELETE] Loeschen-Button nicht sichtbar")
-                    except Exception as e:
-                        print(f"     [DELETE ERROR] {date_str} {start_time}: {e}")
-
+                        page.wait_for_load_state("networkidle", timeout=10000)
+                    except:
+                        pass
+                    time.sleep(2)
+                    print(f"     [DELETE] Reservation geloescht: {date_str} {start_time}")
+                    success = True
+                else:
+                    print(f"     [DELETE] Loeschen-Button nicht sichtbar")
             except Exception as e:
-                print(f"     [DELETE ERROR] Session: {e}")
+                print(f"     [DELETE ERROR] {e}")
             finally:
                 browser.close()
-
-        return results
+        return success

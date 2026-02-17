@@ -6,7 +6,7 @@ from .config import CREDENTIALS_FILE
 from .storage import StorageManager
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-LOCATION = "Bibliothek vonRoll\nFabrikstrasse 8, 3012 Bern"
+LOCATION = "Bibliothek vonRoll, Fabrikstrasse 8, 3012 Bern, Switzerland"
 
 CATEGORY_LABELS = {
     "large": "Gross",
@@ -85,128 +85,145 @@ class CalendarSync:
 
     def sync_booking(self, booking_id, date_str, room, start_m, end_m, account,
                      category_key="default", job_id=None):
-        """Create or update a SINGLE merged calendar event for all bookings
-        on the same date+job.  Instead of one event per gap, we consolidate
-        into one event spanning the full booked range."""
+        """Create or update a calendar event for a CONFIRMED booking.
+        Merges multiple bookings on the same day (same job) into one event."""
         if not self.service:
             return
 
-        # Collect ALL bookings for this date from history to build a merged view
-        sm = StorageManager()
-        history = sm.get_history()
-        day_bookings = history.get(date_str, [])
-
-        # Determine which bookings belong to this "group"
-        # Group key: job_id (if set), otherwise category_key
-        group_bookings = []
-        for b in day_bookings:
-            if job_id and b.get('job_id') == job_id:
-                group_bookings.append(b)
-            elif not job_id and b.get('category') == category_key and not b.get('job_id'):
-                group_bookings.append(b)
-
-        if not group_bookings:
-            # Fallback: just use the current booking info
-            group_bookings = [{
-                'room': room, 'start': start_m, 'end': end_m,
-                'account': account, 'id': booking_id,
-            }]
-
-        # Calculate merged time range
-        merged_start = min(int(b['start']) for b in group_bookings)
-        merged_end = max(int(b['end']) for b in group_bookings)
-
-        # Build description with all segments
-        desc_lines = []
-        booking_ids = []
-        rooms_used = set()
-        for b in sorted(group_bookings, key=lambda x: int(x['start'])):
-            bs, be = int(b['start']), int(b['end'])
-            r = b.get('room', room)
-            a = b.get('account', account)
-            rooms_used.add(r)
-            desc_lines.append(f"{self._m2t(bs)}-{self._m2t(be)}: {r} ({a})")
-            if b.get('id'):
-                booking_ids.append(b['id'])
-
-        # Title: use room name if all same room, otherwise category label
-        if len(rooms_used) == 1:
-            title_base = list(rooms_used)[0]
-        else:
-            label = CATEGORY_LABELS.get(category_key, category_key.capitalize())
-            title_base = label
-        title = self._build_title(title_base)
-
-        description = (
-            f"Kategorie: {category_key}\n"
-            + "\n".join(desc_lines)
-            + (f"\nJob-ID: {job_id}" if job_id else "")
-        )
-
-        start_dt = self._make_dt(date_str, merged_start)
-        end_dt = self._make_dt(date_str, merged_end)
-
-        # Store first booking_id for reference; job_id is the main key
-        primary_bid = booking_ids[0] if booking_ids else (booking_id or '')
-
-        body = {
-            'summary': title,
-            'location': LOCATION,
-            'description': description,
-            'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
-            'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
-            'transparency': 'transparent',
-            'colorId': '9',
-            'extendedProperties': {
-                'private': {
-                    'booking_id': primary_bid,
-                    'job_id': job_id or '',
-                    'source': 'roombooker',
-                    'status': 'booked',
-                }
-            },
-        }
-
-        # Find existing event to update (avoid duplicates)
+        # Look for existing event on this date (first by job_id, then booking_id)
         existing = None
+        existing_title = None
         if job_id:
             evs = self._find_events_by_property("job_id", job_id)
             existing = self._find_event_for_date(evs, date_str)
-        if not existing:
-            # Also search by any of the booking_ids
-            for bid in booking_ids:
-                evs = self._find_events_by_property("booking_id", bid)
-                if evs:
-                    existing = evs[0]
-                    break
+        if not existing and booking_id:
+            evs = self._find_events_by_property("booking_id", booking_id)
+            if evs:
+                existing = evs[0]
+        if existing:
+            existing_title = existing.get('summary', '')
 
-        try:
-            if existing:
-                # Delete any OTHER events for the same job+date (cleanup duplicates)
+        title = self._build_title(room, existing_title)
+
+        if existing:
+            # Merge: extend the time range and append account info
+            ex_start_str = existing.get('start', {}).get('dateTime', '')
+            ex_end_str = existing.get('end', {}).get('dateTime', '')
+            ex_desc = existing.get('description', '')
+
+            try:
+                ex_start_dt = datetime.datetime.fromisoformat(ex_start_str)
+                ex_end_dt = datetime.datetime.fromisoformat(ex_end_str)
+                new_start_dt = self._make_dt(date_str, start_m)
+                new_end_dt = self._make_dt(date_str, end_m)
+
+                # Strip timezone info for comparison (both sides)
+                ex_start_naive = ex_start_dt.replace(tzinfo=None)
+                ex_end_naive = ex_end_dt.replace(tzinfo=None)
+
+                merged_start = min(ex_start_naive, new_start_dt)
+                merged_end = max(ex_end_naive, new_end_dt)
+            except Exception:
+                merged_start = self._make_dt(date_str, start_m)
+                merged_end = self._make_dt(date_str, end_m)
+
+            # Build merged description with per-slot account lines
+            slot_line = f"{self._m2t(start_m)}-{self._m2t(end_m)}: {room} ({account})"
+            if ex_desc:
+                # Check if description already has slot lines
+                lines = ex_desc.strip().split('\n')
+                slot_lines = [l for l in lines if ':' in l and '(' in l and ')' in l
+                              and any(c.isdigit() for c in l.split(':')[0])]
+                meta_lines = [l for l in lines if l not in slot_lines]
+
+                # Add new slot line (avoid duplicates)
+                if slot_line not in slot_lines:
+                    slot_lines.append(slot_line)
+
+                # Sort slot lines by time
+                slot_lines.sort()
+
+                # Rebuild description
+                desc_parts = slot_lines[:]
+                # Add metadata at the end
+                for ml in meta_lines:
+                    stripped = ml.strip()
+                    if stripped and not stripped.startswith('Kategorie:') and not stripped.startswith('Job-ID:'):
+                        continue
+                desc_parts.append(f"Kategorie: {category_key}")
                 if job_id:
-                    all_evs = self._find_events_by_property("job_id", job_id)
-                    for ev in all_evs:
-                        if ev['id'] != existing['id']:
-                            dt_str = ev.get('start', {}).get('dateTime', '')
-                            try:
-                                ev_date = datetime.datetime.fromisoformat(dt_str).date()
-                                if ev_date == self._date_str_to_date(date_str):
-                                    self.service.events().delete(
-                                        calendarId=self.calendar_id, eventId=ev['id']
-                                    ).execute()
-                                    print(f"   [CAL] Duplikat entfernt: {ev.get('summary','?')}")
-                            except:
-                                pass
+                    desc_parts.append(f"Job-ID: {job_id}")
+                new_desc = '\n'.join(desc_parts)
+            else:
+                new_desc = f"{slot_line}\nKategorie: {category_key}"
+                if job_id:
+                    new_desc += f"\nJob-ID: {job_id}"
 
+            # Collect all booking_ids (comma-separated)
+            ex_bid = existing.get('extendedProperties', {}).get('private', {}).get('booking_id', '')
+            if booking_id and booking_id not in ex_bid:
+                merged_bid = f"{ex_bid},{booking_id}" if ex_bid else booking_id
+            else:
+                merged_bid = ex_bid or booking_id or ''
+
+            body = {
+                'summary': title,
+                'location': LOCATION,
+                'description': new_desc,
+                'start': {'dateTime': merged_start.isoformat(), 'timeZone': 'Europe/Zurich'},
+                'end': {'dateTime': merged_end.isoformat(), 'timeZone': 'Europe/Zurich'},
+                'transparency': 'transparent',
+                'colorId': '9',
+                'extendedProperties': {
+                    'private': {
+                        'booking_id': merged_bid,
+                        'job_id': job_id or '',
+                        'source': 'roombooker',
+                        'status': 'booked',
+                    }
+                },
+            }
+
+            try:
                 self.service.events().update(
                     calendarId=self.calendar_id, eventId=existing['id'], body=body
                 ).execute()
-                print(f"   [CAL] Aktualisiert: {title} ({date_str} {self._m2t(merged_start)}-{self._m2t(merged_end)})")
-            else:
+                print(f"   [CAL] Merged: {title} ({date_str} "
+                      f"{merged_start.strftime('%H:%M')}-{merged_end.strftime('%H:%M')})")
+            except Exception as e:
+                print(f"   [CAL ERROR] merge sync_booking: {e}")
+        else:
+            # Create new event
+            start_dt = self._make_dt(date_str, start_m)
+            end_dt = self._make_dt(date_str, end_m)
+            slot_line = f"{self._m2t(start_m)}-{self._m2t(end_m)}: {room} ({account})"
+            desc = f"{slot_line}\nKategorie: {category_key}"
+            if job_id:
+                desc += f"\nJob-ID: {job_id}"
+
+            body = {
+                'summary': title,
+                'location': LOCATION,
+                'description': desc,
+                'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+                'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
+                'transparency': 'transparent',
+                'colorId': '9',
+                'extendedProperties': {
+                    'private': {
+                        'booking_id': booking_id or '',
+                        'job_id': job_id or '',
+                        'source': 'roombooker',
+                        'status': 'booked',
+                    }
+                },
+            }
+
+            try:
                 self.service.events().insert(calendarId=self.calendar_id, body=body).execute()
-                print(f"   [CAL] Erstellt: {title} ({date_str} {self._m2t(merged_start)}-{self._m2t(merged_end)})")
-        except Exception as e:
-            print(f"   [CAL ERROR] sync_booking: {e}")
+                print(f"   [CAL] Erstellt: {title} ({date_str} {self._m2t(start_m)}-{self._m2t(end_m)})")
+            except Exception as e:
+                print(f"   [CAL ERROR] sync_booking: {e}")
 
     def delete_event_by_booking_id(self, booking_id):
         """Delete a calendar event by its booking_id."""
@@ -223,6 +240,32 @@ class CalendarSync:
         except Exception as e:
             print(f"   [CAL ERROR] delete_event: {e}")
             return False
+
+    def delete_events_by_job_id(self, job_id):
+        """Delete ALL calendar events (pending placeholders) for a given job_id."""
+        if not self.service or not job_id:
+            return 0
+        try:
+            events = self._find_events_by_property("job_id", job_id)
+            deleted = 0
+            for ev in events:
+                status = ev.get('extendedProperties', {}).get('private', {}).get('status', '')
+                # Only delete pending placeholders, not confirmed bookings
+                if status == 'booked':
+                    continue
+                try:
+                    self.service.events().delete(
+                        calendarId=self.calendar_id, eventId=ev['id']
+                    ).execute()
+                    print(f"   [CAL] Placeholder geloescht: {ev.get('summary', '?')} "
+                          f"({ev.get('start', {}).get('dateTime', '?')})")
+                    deleted += 1
+                except Exception as e:
+                    print(f"   [CAL ERROR] delete placeholder: {e}")
+            return deleted
+        except Exception as e:
+            print(f"   [CAL ERROR] delete_events_by_job_id: {e}")
+            return 0
 
     # ── pending job placeholders ─────────────────────────────
 
@@ -406,12 +449,10 @@ class CalendarSync:
     # ── legacy browser-scan sync ─────────────────────────────
 
     def sync_scanned_bookings(self, bookings):
-        """Sync bookings discovered by the browser scan.
-        Merges with existing roombooker events instead of creating duplicates."""
+        """Sync bookings discovered by the browser scan."""
         if not self.service:
             return
         print(f"[CAL] Synchronisiere {len(bookings)} gescannte Buchungen...")
-
         for b in bookings:
             try:
                 d_obj = datetime.datetime.strptime(b['date'], "%d.%m.%Y")
@@ -422,7 +463,7 @@ class CalendarSync:
 
                 summary = f"{b['room']} (Lernen)"
 
-                # Check for existing events in this time window
+                # duplicate check by time window
                 evts = self.service.events().list(
                     calendarId=self.calendar_id,
                     timeMin=start_dt.isoformat() + "+01:00",
@@ -432,9 +473,8 @@ class CalendarSync:
 
                 dup = False
                 for e in evts.get('items', []):
-                    props = e.get('extendedProperties', {}).get('private', {})
-                    # If it's a roombooker event for the same room, just patch it
-                    if b['room'] in e.get('summary', '') or props.get('source') == 'roombooker':
+                    if b['room'] in e.get('summary', ''):
+                        # patch existing with correct props
                         self.service.events().patch(
                             calendarId=self.calendar_id,
                             eventId=e['id'],
@@ -445,23 +485,15 @@ class CalendarSync:
                 if dup:
                     continue
 
-                # No existing event — create one with proper properties
                 event = {
                     'summary': summary,
                     'location': LOCATION,
-                    'description': f"Account: {b['account']}\n(gescannt)",
+                    'description': f"Account: {b['account']}",
                     'start': {'dateTime': start_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
                     'end': {'dateTime': end_dt.isoformat(), 'timeZone': 'Europe/Zurich'},
                     'transparency': 'transparent',
                     'colorId': '9',
-                    'extendedProperties': {
-                        'private': {
-                            'source': 'roombooker',
-                            'status': 'booked',
-                            'booking_id': '',
-                            'job_id': '',
-                        }
-                    },
+                    'extendedProperties': {'private': {'source': 'roombooker', 'status': 'booked'}},
                 }
                 self.service.events().insert(calendarId=self.calendar_id, body=event).execute()
                 print(f"   -> Hinzugefuegt: {summary}")

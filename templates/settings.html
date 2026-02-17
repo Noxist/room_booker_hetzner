@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center mt-5 g-4">
   <div class="col-md-6 col-lg-5">
     <div class="card border-warning border-opacity-25 shadow-lg">
       <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold text-center py-3">
-        <i class="bi bi-key-fill me-2"></i> Web-Passwort ändern
+        <i class="bi bi-key-fill me-2"></i> Web-Passwort aendern
       </div>
       <div class="card-body p-4">
         <form method="POST">
@@ -21,7 +21,59 @@
             <label class="form-label text-muted small fw-bold">WIEDERHOLEN</label>
             <input type="password" name="confirm_pw" class="form-control" required>
           </div>
-          <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">Ändern & Logout</button>
+          <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">Aendern & Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-5">
+    <div class="card border-info border-opacity-25 shadow-lg">
+      <div class="card-header bg-info bg-opacity-10 text-info fw-bold text-center py-3">
+        <i class="bi bi-shield-lock me-2"></i> Proxy / VPN
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <input type="hidden" name="action" value="proxy">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="proxy_enabled" name="proxy_enabled"
+              {% if proxy.get('enabled') %}checked{% endif %}>
+            <label class="form-check-label text-white" for="proxy_enabled">Proxy aktiviert</label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">SOCKS5 HOST</label>
+            <input type="text" name="socks_host" class="form-control"
+              placeholder="proxy-nl.privateinternetaccess.com"
+              value="{{ proxy.get('socks_host', '') }}">
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="form-label text-muted small fw-bold">SOCKS5 PORT</label>
+              <input type="number" name="socks_port" class="form-control"
+                placeholder="1080"
+                value="{{ proxy.get('socks_port', 1080) }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label text-muted small fw-bold">LOKALER PORT</label>
+              <input type="number" name="local_port" class="form-control"
+                placeholder="18123"
+                value="{{ proxy.get('local_port', 18123) }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">USERNAME</label>
+            <input type="text" name="proxy_username" class="form-control"
+              placeholder="PIA Benutzername"
+              value="{{ proxy.get('username', '') }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">PASSWORT</label>
+            <input type="password" name="proxy_password" class="form-control"
+              placeholder="PIA Passwort"
+              value="{{ proxy.get('password', '') }}">
+          </div>
+          <button type="submit" class="btn btn-info w-100 fw-bold text-dark">Proxy speichern</button>
+          <div class="form-text text-muted mt-2">Lokaler HTTP-Forwarder leitet Traffic über SOCKS5 weiter (Chromium-kompatibel). Neustart nötig nach Änderung.</div>
         </form>
       </div>
     </div>

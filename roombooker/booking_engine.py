@@ -46,38 +46,6 @@ class BookingEngine:
                 g_s = chunk_end
         return out
 
-    def _sort_accounts_by_adjacency(self, accounts, gap_start, gap_end,
-                                     date_str, history):
-        """Sort accounts so that the best candidate is tried first.
-
-        Priority order:
-        1. Account that has an adjacent booking ending at gap_start or
-           starting at gap_end (same room chain - can extend).
-        2. Accounts with the LEAST used time today (spread load evenly +
-           reduce chance of hitting 4h cap later).
-        3. Random tiebreak among equals.
-        """
-        day_bookings = history.get(date_str, [])
-        adjacent_emails = set()
-        for b in day_bookings:
-            bs, be = int(b['start']), int(b['end'])
-            if be == gap_start or bs == gap_end:
-                adjacent_emails.add(b.get('account', ''))
-
-        email_minutes = {}
-        for b in day_bookings:
-            email = b.get('account', '')
-            email_minutes[email] = email_minutes.get(email, 0) + (int(b['end']) - int(b['start']))
-
-        def sort_key(acc):
-            email = acc['email']
-            is_adjacent = email in adjacent_emails
-            used = email_minutes.get(email, 0)
-            # Sort: adjacent first (False < True, so negate), then least used
-            return (not is_adjacent, used, random.random())
-
-        return sorted(accounts, key=sort_key)
-
     # ── main booking chain ───────────────────────────────────
 
     def book_chain(self, date_str, start_t, end_t, target_rooms,
@@ -141,9 +109,7 @@ class BookingEngine:
             self.intelligence.print_ascii_grid(date_str, history, opening_hours)
 
         # ── Account tracking ──
-        # We do NOT exclude accounts just because they already booked today.
-        # Instead, we rely on the 4-hour cap per account and prioritize
-        # accounts intelligently based on adjacency and remaining capacity.
+        used_accounts_today = self.sm.get_accounts_used_on_date(date_str)
 
         all_ok = True
         for g_s, g_e in gaps:
@@ -179,14 +145,21 @@ class BookingEngine:
                     print(f"[ENGINE] Kontinuitaet: {best['name']} (andere Kategorie)")
 
             print(f"[ENGINE] Gap {g_s//60:02d}:{g_s%60:02d}-{g_e//60:02d}:{g_e%60:02d}: "
-                  f"{len(scored)} Raeume verfuegbar")
+                  f"{len(scored)} Räume verfügbar")
 
-            # Filter accounts by 4-hour cap only (not by "already used today")
+            # Filter accounts
             accounts = self.sm.get_settings()
             active_accs = [a for a in accounts if a.get('active', True)]
+            avail_accs = [a for a in active_accs if a['email'] not in used_accounts_today]
 
+            if not avail_accs:
+                print(f"[ENGINE] Alle Accounts bereits heute verwendet: {used_accounts_today}")
+                all_ok = False
+                continue
+
+            # 4-hour cap per account
             final_accs = []
-            for a in active_accs:
+            for a in avail_accs:
                 used_m = self.sm.get_account_minutes_on_date(date_str, a['email'])
                 if used_m + gap_dur <= MAX_BOOKING_MINUTES:
                     final_accs.append(a)
@@ -198,11 +171,7 @@ class BookingEngine:
                 all_ok = False
                 continue
 
-            # Smart account ordering: prefer accounts that are adjacent in time
-            # (i.e., the account that booked the slot right before or after this gap)
-            final_accs = self._sort_accounts_by_adjacency(
-                final_accs, g_s, g_e, date_str, history
-            )
+            random.shuffle(final_accs)
 
             gap_filled = False
             attempts = 0
@@ -230,6 +199,7 @@ class BookingEngine:
                             acc['email'], category_key, job_id,
                         )
                         history = self.sm._load(HISTORY_FILE, {})
+                        used_accounts_today.add(acc['email'])
                         gap_filled = True
                         break
 

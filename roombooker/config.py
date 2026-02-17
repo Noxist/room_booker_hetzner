@@ -93,5 +93,27 @@ def get_excessive_logging():
             pass
     return False
 
+# --- Load proxy settings from settings.json ---
+def get_proxy_config():
+    """Load proxy config from settings.json.
+    Returns dict with SOCKS5 upstream info + local forwarder port, or None."""
+    if SETTINGS_FILE.exists():
+        try:
+            with open(SETTINGS_FILE, "r") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    proxy = data.get("proxy", {})
+                    if proxy.get("enabled") and proxy.get("socks_host"):
+                        return {
+                            "socks_host": proxy["socks_host"],
+                            "socks_port": proxy.get("socks_port", 1080),
+                            "username": proxy.get("username", ""),
+                            "password": proxy.get("password", ""),
+                            "local_port": proxy.get("local_port", 18123),
+                        }
+        except:
+            pass
+    return None
+
 # Browser settings
 HEADLESS = True

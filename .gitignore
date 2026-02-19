@@ -6,3 +6,4 @@ data/playwright/
 data/*.json
 data/session_*.json
 token.json
+*.log

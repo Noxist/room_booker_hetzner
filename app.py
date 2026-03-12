@@ -389,6 +389,38 @@ def check_scheduled_jobs():
 
         logging.info(f"[SCHEDULER] Pruefe {len(jm.jobs)} Jobs  |  buchbar bis {max_date.strftime('%d.%m.%Y')}")
 
+        # ── Housekeeping: fix stale jobs with past target dates ──
+        _did_cleanup = False
+        for job in jm.jobs:
+            if not job.get('active', True):
+                continue
+            target_str = job.get('target_date') or job.get('date_str', '')
+            if not target_str:
+                continue
+            try:
+                from roombooker.utils import normalize_date_str
+                target_str = normalize_date_str(target_str)
+                target_dt = datetime.strptime(target_str, "%d.%m.%Y")
+                if target_dt < today:
+                    freq = job.get('frequency', job.get('repetition', 'once'))
+                    if freq == 'weekly':
+                        # Advance weekly jobs to the next future occurrence
+                        while target_dt < today:
+                            target_dt += timedelta(days=7)
+                        new_target = target_dt.strftime("%d.%m.%Y")
+                        logging.info(f"[SCHEDULER] Stale weekly Job {job.get('id')} vorgerueckt: {target_str} → {new_target}")
+                        job['target_date'] = new_target
+                        job['date_str'] = new_target
+                        _did_cleanup = True
+                    elif freq in ('once', 'onetime'):
+                        logging.info(f"[SCHEDULER] Stale once-Job {job.get('id')} deaktiviert (target {target_str} liegt in Vergangenheit)")
+                        job['active'] = False
+                        _did_cleanup = True
+            except Exception:
+                pass
+        if _did_cleanup:
+            jm.save_jobs()
+
         # Group eligible jobs by target date
         jobs_by_date = defaultdict(list)
 
@@ -405,7 +437,7 @@ def check_scheduled_jobs():
                 target_date_str = normalize_date_str(target_date_str)
                 target_date = datetime.strptime(target_date_str, "%d.%m.%Y")
 
-                if not (today < target_date <= max_date):
+                if not (today <= target_date <= max_date):
                     continue
 
                 last_booked = job.get('last_booked')

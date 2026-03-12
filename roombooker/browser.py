@@ -189,7 +189,12 @@ class BrowserEngine:
         """Build Playwright launch arguments (no proxy here - applied at context level)."""
         return {
             "headless": self.headless,
-            "args": ["--disable-blink-features=AutomationControlled"],
+            "args": [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ],
         }
 
     def _new_page(self, browser):

@@ -450,6 +450,7 @@ def check_scheduled_jobs():
                 logging.error(f"Error processing job {job.get('id')}: {e}")
 
         # Run jobs grouped by date, sequentially within each date
+        _booking_threads = []
         for date_str, date_jobs in sorted(jobs_by_date.items()):
             if len(date_jobs) > 1:
                 logging.info(f"[SCHEDULER] {len(date_jobs)} Jobs am {date_str} -- sequenzielle Ausfuehrung")
@@ -472,14 +473,18 @@ def check_scheduled_jobs():
                         import time
                         time.sleep(2)
 
-            threading.Thread(
+            t = threading.Thread(
                 target=_run_date_jobs,
                 args=(date_str, date_jobs),
-                daemon=True
-            ).start()
+                daemon=False
+            )
+            t.start()
+            _booking_threads.append(t)
 
-            import time
-            time.sleep(1)
+        # Block until all booking threads finish so that docker-exec callers
+        # don't exit prematurely (which would kill non-started daemon threads).
+        for t in _booking_threads:
+            t.join()
 
     except Exception as e:
         logging.error(f"Error in scheduled job check: {e}", exc_info=True)

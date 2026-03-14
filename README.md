@@ -84,7 +84,7 @@ static/                 CSS, JS assets
 ```
 
 ### Data directory (outside repo)
-Runtime data lives at `/home/leandro/auto_reserve_data` (override with `ROOMBOOKER_DATA_DIR`):
+Runtime data lives at `/home/leandro/service_data/auto_reserve` (override with `ROOMBOOKER_DATA_DIR`):
 - `jobs.json` -- active job definitions
 - `booking_history.json` -- per-date booking records
 - `categories.json` -- room category definitions
@@ -97,6 +97,10 @@ Runtime data lives at `/home/leandro/auto_reserve_data` (override with `ROOMBOOK
 ---
 
 ## Quick start
+
+Repository location:
+
+- `/home/leandro/services/auto_reserve`
 
 ### Docker Compose (recommended)
 ```bash

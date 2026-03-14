@@ -25,12 +25,29 @@ class JobManager:
 
     def create_job(self, name, date_str, start, end, category, accounts,
                    repetition="once", interval=None, interval_unit=None):
-        """Create a new job. Normalizes time formats."""
-        from .utils import smart_parse_time, normalize_date_str
+        """Create a new job. Normalizes time formats.
+        Returns (job_id, created) where created=False means an overlapping job already existed."""
+        from .utils import smart_parse_time, normalize_date_str, parse_time_to_minutes
 
         date_str = normalize_date_str(date_str)
         start = smart_parse_time(str(start))
         end = smart_parse_time(str(end))
+        start_m = parse_time_to_minutes(start)
+        end_m = parse_time_to_minutes(end)
+
+        # Overlap check: warn if an active job already covers the same date+time
+        for existing in self.jobs:
+            if not existing.get('active', True):
+                continue
+            if (existing.get('target_date') or existing.get('date_str', '')) != date_str:
+                continue
+            ex_s = parse_time_to_minutes(existing.get('start') or existing.get('time_start', '00:00'))
+            ex_e = parse_time_to_minutes(existing.get('end') or existing.get('time_end', '00:00'))
+            if not (end_m <= ex_s or start_m >= ex_e):
+                print(f"[JOBS] Warnung: Überschneidung mit bestehendem Job {existing['id']} "
+                      f"({existing.get('target_date')} {existing.get('start')}-{existing.get('end')}). "
+                      f"Neuer Job wird trotzdem erstellt.")
+
 
         new_job = {
             "id": str(uuid.uuid4())[:8],

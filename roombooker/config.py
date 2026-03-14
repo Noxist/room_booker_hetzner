@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 # Docker data directory path
-BASE_DIR = Path(os.getenv("ROOMBOOKER_DATA_DIR", "/home/leandro/auto_reserve_data"))
+BASE_DIR = Path(os.getenv("ROOMBOOKER_DATA_DIR", "/home/leandro/service_data/auto_reserve"))
 BASE_DIR.mkdir(parents=True, exist_ok=True)
 
 # File paths

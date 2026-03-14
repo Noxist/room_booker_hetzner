@@ -198,5 +198,32 @@ def stop_forwarder():
             pass
     if _thread:
         _thread.join(timeout=5)
-    _thread = None
-    _server_socket = None
+
+
+def probe_socks5(host: str, port: int, user: str, pwd: str, timeout: float = 5) -> bool:
+    """Return True if SOCKS5 proxy authenticates and can open a tunnel.
+    Used before routing Playwright through the forwarder."""
+    try:
+        sock = _socks5_connect("1.1.1.1", 80, host, port, user, pwd, timeout=timeout)
+        sock.close()
+        return True
+    except Exception as exc:
+        log.debug("SOCKS5 probe failed: %s", exc)
+        return False
+
+
+def ensure_started():
+    """Start the forwarder from proxy config if not already running.
+    Safe to call multiple times – no-op when already running."""
+    if _thread and _thread.is_alive():
+        return
+    from roombooker.config import get_proxy_config
+    cfg = get_proxy_config()
+    if cfg:
+        start_forwarder(
+            cfg["socks_host"],
+            cfg["socks_port"],
+            cfg["username"],
+            cfg["password"],
+            cfg.get("local_port", 18123),
+        )

@@ -3,13 +3,13 @@ services:
     build: .
     container_name: roombooker_app
     restart: unless-stopped
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     volumes:
-      - /home/leandro/auto_reserve_data:/home/leandro/auto_reserve_data
+      - /home/leandro/service_data/auto_reserve:/data/auto_reserve
       - .:/app
     environment:
-      - ROOMBOOKER_DATA_DIR=/home/leandro/auto_reserve_data
+      - ROOMBOOKER_DATA_DIR=/data/auto_reserve
       - PYTHONUNBUFFERED=1
     command: python3 app.py
     healthcheck:

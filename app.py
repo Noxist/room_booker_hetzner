@@ -68,6 +68,24 @@ app.secret_key = os.urandom(24)
 _booking_lock = threading.Lock()
 
 
+@app.before_request
+def require_cloudflare_access():
+    remote_addr = request.remote_addr or ""
+    if remote_addr in {"127.0.0.1", "::1"}:
+        return None
+
+    jwt_assertion = request.headers.get("cf-access-jwt-assertion", "")
+    authenticated_email = request.headers.get("cf-access-authenticated-user-email", "")
+    if jwt_assertion and authenticated_email:
+        return None
+
+    return (
+        "Cloudflare Access is required for RoomBooker.",
+        403,
+        {"Content-Type": "text/plain; charset=utf-8"},
+    )
+
+
 
 # ============================================
 # ROUTES
